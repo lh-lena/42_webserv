@@ -14,6 +14,8 @@ int socket(int domain, int type, int protocol);
 
 - https://man7.org/linux/man-pages/man2/socket.2.html
 
+- https://www.ibm.com/docs/en/i/7.4?topic=programming-socket-application-design-recommendations
+
 
 **getaddrinfo,freeaddrinfo,gai_strerror**
 - network address and service translation
