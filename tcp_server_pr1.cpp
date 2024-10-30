@@ -6,6 +6,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <cstdlib>
+#include <stdio.h>
+#include <string.h>
 
 using namespace std;
 // https://www.youtube.com/watch?v=cNdlrbZSkyQ
@@ -25,7 +27,7 @@ int main()
     hint.sin_family = AF_INET;
     hint.sin_port = htons(54000);
     // to run on any IP address on this machine
-    inet_pton(AF_INET, "0.0.0.0", &hint.sin_addr); // convert a number to array of integers 127.0.0.1 
+    inet_pton(AF_INET, "127.0.0.1", &hint.sin_addr); // convert a number to array of integers 127.0.0.1 
     if (bind(listening, (sockaddr*)&hint, sizeof(hint)) == -1)
     {
         cerr << "Can't bind to IP/port";

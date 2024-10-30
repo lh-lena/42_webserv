@@ -44,3 +44,28 @@ Request forbidden by administrative rules.
 
 * GET www.google.com HPPT/1.1 
 <!doctype html><html itemscope="" itemtype="http://schema.org/WebPage" lang="de"><head><meta content="text/html; charset=UTF-8" http-equiv="Content-Type"><meta content="/images/branding/googleg/1x/googleg_standard_color_128dp.png" itemprop="image"><title>Google</title><.....
+
+
+* nc 127.0.0.1 5500       
+GET /error_page/404.html
+
+HTTP/1.1 404 Not Found
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Content-Security-Policy: default-src 'none'
+X-Content-Type-Options: nosniff
+Content-Type: text/html; charset=utf-8
+Content-Length: 158
+Date: Wed, 30 Oct 2024 10:59:56 GMT
+Connection: close
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /error_page/404.html</pre>
+</body>
+</html>
