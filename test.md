@@ -69,3 +69,22 @@ Connection: close
 <pre>Cannot GET /error_page/404.html</pre>
 </body>
 </html>
+
+- c3a5c2% nc 127.0.0.1 5500
+GET /error_pages/hello.html
+
+HTTP/1.1 200 OK
+Vary: Origin
+Access-Control-Allow-Credentials: true
+Accept-Ranges: bytes
+Cache-Control: public, max-age=0
+Last-Modified: Wed, 30 Oct 2024 15:11:24 GMT
+ETag: W/"12f-192ddfb4304"
+Content-Type: text/html; charset=UTF-8
+Content-Length: 1796
+Date: Sat, 02 Nov 2024 15:13:38 GMT
+Connection: close
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
