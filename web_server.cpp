@@ -1,17 +1,23 @@
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netdb.h>
 #include <string>
+#include <vector>
 #include <cstring>
+#include <dirent.h>
+#include <libgen.h>
 #include <iostream>
+#include <fstream>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <fcntl.h>
+#include <sstream>
 #include <sys/epoll.h>
 #include "Server.hpp"
 
-#define READ_BUFFER_SIZE 1024
+#define READ_BUFFER_SIZE 2048
 #define MAX_EVENTS  64
 #define PORT 8080
 #define LISTEN_BACKLOG 5
@@ -20,6 +26,11 @@
 #define YELLOW "\033[33m"
 #define RESET "\033[0m"
 
+std::string root = "./var/www/html";
+std::string error_404 = "./error_pages/404.html";
+
+std::string extractPath(std::string const &request);
+int forward_message(int fd, std::string partPath);
 std::vector<std::string> split(std::string &s, std::string delimeter)
 {
     size_t pos = 0;
@@ -36,6 +47,29 @@ std::vector<std::string> split(std::string &s, std::string delimeter)
 		}
     }
     return parts;
+}
+
+std::string intToString(int num)
+{
+	std::stringstream ss;
+    ss << num;
+    return ss.str();
+}
+
+bool is_regular_file(const std::string& path)
+{
+	struct stat path_stat;
+
+	stat(path.c_str(), &path_stat);
+	return S_ISREG(path_stat.st_mode);
+}
+
+bool is_dir(const std::string& path)
+{
+	struct stat path_stat;
+
+	stat(path.c_str(), &path_stat);
+	return S_ISDIR(path_stat.st_mode);
 }
 
 int set_to_nonblocking(int server_fd)
@@ -102,8 +136,8 @@ int create_tcp_server_socket()
 		return -4;
 	}
 
-	// Listen for connections. Max connections is 5
-	if (listen(server_fd, LISTEN_BACKLOG) == -1)
+	// Listen for connections. Max connections is 5 LISTEN_BACKLOG
+	if (listen(server_fd, SOMAXCONN) == -1)
 	{
 		std::cerr << "Error listening on socket: " << strerror(errno) << std::endl;
 		close(server_fd);
@@ -121,129 +155,124 @@ void remove_fd(int fd)
 	epoll_ctl(fd, EPOLL_CTL_DEL, fd, &epoll_event);
 }
 
-int forward_message(int fd, std::vector<std::string> parts)
+std::string getContentType(std::string const &path)
 {
-	int ss = 0;
-	for (int i = 0; i < parts.size(); i++)
+	size_t pos = path.find(".");
+	if (pos == std::string::npos)
+		return "";
+	std::string res = path.substr(pos);
+	if (res == ".html")
+		return "text/html; charset=utf-8";
+	if (res == ".js")
+		return "text/javascript; charset=utf-8";
+	if (res == ".css")
+		return "text/css";
+	return "text";
+}
+
+/* std::string searchingIndexFile(std::string &name)
+{
+	DIR *dir;
+    struct dirent *dp;
+
+
+} */
+
+int forward_message(int fd, std::string partPath)
+{
+	std::cout << "\t\t\t\tpartPath " << partPath << std::endl;
+	if (partPath == "/" || partPath.find("/?") == 0)
 	{
-		ss = sizeof(parts[i]);
-		if (ss)
-			send(fd, parts[i].c_str(), ss + 1, 0);
+		partPath = "/index.html";
 	}
+	std::string path = root + partPath;
+
+	if (partPath.size() <= 1)
+		return 1; // pressing 'Enter' don't close connection, just waiting
+	if (is_dir(path))
+	{
+		// path = searchingIndexFile(path);
+		path = error_404;
+	}
+	std::ifstream in(path.c_str());
+	std::string contents((std::istreambuf_iterator<char>(in)), 
+	std::istreambuf_iterator<char>());
+	std::cout <<"[LOG] : Transmission Data Size "<< contents.length()<<" Bytes." << std::endl;
+
+	std::cout <<"[LOG] : Sending..." << std::endl;
+
+	std::string response = "HTTP/1.1 200 OK\r\n"
+					"Content-Type: " + getContentType(partPath) + "\r\n"
+					"Content-Length: " + intToString(contents.size()) + "\r\n\r\n" 
+					+ contents;
+	int sent_bytes = send(fd, response.c_str(), response.size(), 0);
+
+	std::cout <<"[LOG] : Transmitted Data Size "<< sent_bytes <<" Bytes."  << std::endl;
+	std::cout <<"[LOG] : File Transfer Complete." << std::endl;
+
 	return 0;
+}
+
+std::string extractPath(std::string const &request)
+{
+	if (!request.size())
+		return "";
+	std::stringstream ss(request);
+	std::string method;
+	std::string path;
+	ss >> method >> path;
+	return path;
 }
 
 int recv_and_forward_message(int fd)
 {
-	std::string rem = "";
+	ssize_t recv_bytes;
+	// std::string rem = "";
 
-	ssize_t recv_size;
-	while (1)
+	// while (1)
+	// {
+    //     char buf[READ_BUFFER_SIZE];
+    //     int recv_bytes = recv(fd, buf, READ_BUFFER_SIZE - 1, 0);
+
+    //     if (recv_bytes > 0) {
+    //         /* Read recv_bytes number of bytes from buf */
+    //         std::string msg(buf, buf + recv_bytes);
+    //         msg = rem + msg;
+
+    //         /* Parse and split incoming bytes into individual messages */
+    //         std::vector<std::string> parts = split(msg, "<EOM>");
+    //         rem = msg;
+	// 		int ss = parts.size();
+	// 		for(int i = 0; i < ss; i++)
+	// 		{
+	// 			std::cout << "size: " << ss << " msg: " << parts[i] << std::endl;
+	// 		}
+    //         forward_message(fd, parts);
+    //     }
+    //     else {
+    //         /* Stopped sending new data */
+    //         break;
+    //     }
+    // }
+	char read_buffer[READ_BUFFER_SIZE];
+	recv_bytes = recv(fd, read_buffer, READ_BUFFER_SIZE - 1, 0);
+	if (recv_bytes < 0)
 	{
-        char buf[READ_BUFFER_SIZE];
-        int recv_size = recv(fd, buf, READ_BUFFER_SIZE - 1, 0);
-
-        if (recv_size > 0) {
-            /* Read recv_size number of bytes from buf */
-            std::string msg(buf, buf + recv_size);
-            msg = rem + msg;
-
-            /* Parse and split incoming bytes into individual messages */
-            std::vector<std::string> parts = split(msg, "<EOM>");
-            rem = msg;
-			int ss = parts.size();
-			for(int i = 0; i < ss; i++)
-			{
-				std::cout << "size: " << ss << " msg: " << parts[i] << std::endl;
-			}
-            forward_message(fd, parts);
-        }
-        else {
-            /* Stopped sending new data */
-            break;
-        }
-    }
-	// recv_size = recv(fd, read_buffer, READ_BUFFER_SIZE -1, 0);
-	// if (recv_size < 0)
-	// {
-	// 	std::cout << "Error: reading data: " << strerror(errno) << std::endl;
-	// 	return -1;
-	// }
-	// else if (recv_size == 0)
-	// {
-	// 	std::cout << "Client disconnected" << std::endl;
-    //     return 0;
-	// }
-	// read_buffer[recv_size] = '\0';
-	// int bytes_read = read(fd, read_buffer, READ_BUFFER_SIZE -1);
-	// printf("Bytes read: %d\n", bytes_read);
-	// printf("Received message: %s\n", read_buffer);
+		std::cout << "[Error]: reading data: " << strerror(errno) << std::endl;
+		return -1;
+	}
+	else if (recv_bytes == 0)
+	{
+		std::cout << "Client disconnected" << std::endl;
+		return 0;
+	}
+	read_buffer[recv_bytes] = '\0';
+	printf("\trecv_bytes: %zd\n", recv_bytes);
+	printf("\tReceived message: %s\n\n", read_buffer);
+	std::string request(read_buffer);
+	if (forward_message(fd, extractPath(request)) == 0)
+		close(fd);  // Close the connection to prevent repeated responses
 	return 1;
-}
-
-int accept_new_connection_request(int server_fd, int epoll_fd, struct epoll_event* ev)
-{
-	struct sockaddr_in new_addr;
-    int addrlen = sizeof(struct sockaddr_in);
-
-    while (1)
-	{
-        /* Accept new connections */
-        int conn_sock = accept(server_fd, (struct sockaddr*)&new_addr, 
-                          (socklen_t*)&addrlen);
-        
-        if (conn_sock == -1) {
-            /* We have processed all incoming connections. */
-            if ((errno == EAGAIN) || (errno == EWOULDBLOCK))
-			{
-                break;
-            }
-            else
-			{
-				std::cout << "Error accepting client connection: " << strerror(errno) << std::endl;
-                break;
-            }
-        }
-
-        /* Make the new connection non blocking */
-        fcntl(conn_sock, F_SETFL, O_NONBLOCK);
-
-        /* Monitor new connection for read events in edge triggered mode */
-        ev->events = EPOLLIN | EPOLLET;
-        ev->data.fd = conn_sock;
-
-        /* Allow epoll to monitor new connection */
-        if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, conn_sock, ev) == -1) {
-			std::cout << "Error manipulating epoll instance: " << strerror(errno) << std::endl;
-            break;
-        }
-    }
-	return 0;
-}
-
-int	handle_event_on_file(struct epoll_event* epoll_event, int server_fd, int epoll_fd, struct epoll_event* ev)
-{
-	uint32_t events = epoll_event->events;
-	int fd = epoll_event->data.fd;
-	
-	if (fd == server_fd)
-	{
-		/* New connection request received */
-		accept_new_connection_request(fd, epoll_fd, ev);
-	}
-	if ((events & EPOLLERR) || 
-		(events & EPOLLHUP) || 
-		(!(events & EPOLLIN))) {
-            /* Client connection closed */
-			remove_fd(fd); // do we have to remove connection?
-            close(fd);
-	}
-	else if (EPOLLIN & events)
-	{
-		/* Received data on an existing client socket */
-		recv_and_forward_message(fd);
-	}
-	return 1;	
 }
 
 int create_epoll(int server_fd)
@@ -252,7 +281,7 @@ int create_epoll(int server_fd)
 	int epoll_fd = epoll_create(1);
 	if (epoll_fd == -1)
 	{
-		std::cout << "Error creating epoll instance: " << strerror(errno) << std::endl;
+		std::cout << "[ERROR] : creating epoll instance: " << strerror(errno) << std::endl;
 		return -1;
 	}
 
@@ -265,19 +294,19 @@ int create_epoll(int server_fd)
 	int ep_ctl = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_fd, &ev);
 	if (ep_ctl == -1)
 	{
-		std::cout << "Error manipulating epoll instance: " << strerror(errno) << std::endl;
+		std::cout << "[ERROR] : manipulating epoll instance: " << strerror(errno) << std::endl;
 		close(server_fd);
 		close(epoll_fd);
 		return -1;
 	}
 
-	while(true)
+	while (true)
 	{
 		// Call epoll_wait with a timeout of 1000 milliseconds to obtain number of file desciptors.
-		int fds_ready = epoll_wait(epoll_fd, epoll_event_buffer, MAX_EVENTS, 1000); // -1 - infinite
+		int fds_ready = epoll_wait(epoll_fd, epoll_event_buffer, MAX_EVENTS, -1); // -1 - infinite
 		if(-1 == fds_ready)
 		{
-			std::cout << "Error: epoll_wait(): " << strerror(errno) << std::endl;
+			std::cout << "[ERROR] : epoll_wait: " << strerror(errno) << std::endl;
 			break; // errors: EBADF or EINTR or EFAULT or EINVAL
 		}
 		/** Handle any file descriptors with events */
@@ -285,8 +314,67 @@ int create_epoll(int server_fd)
 		{
 			struct epoll_event& epoll_event = epoll_event_buffer[i];
 			// Handle the event now, by reading in data and printing it.
-			if (handle_event_on_file(&epoll_event, server_fd, epoll_fd, &ev) == -1)
-				return (-1);
+			uint32_t events = epoll_event.events;
+			int fd = epoll_event.data.fd;
+			
+			if (fd == server_fd)
+			{
+				/* New connection request received */
+				struct sockaddr_in new_addr;
+				ssize_t addrlen = sizeof(new_addr);
+
+				while (1)
+				{
+					/* Accept new connections */
+					int conn_sock = accept(server_fd, (struct sockaddr*)&new_addr, 
+									(socklen_t*)&addrlen);
+					if (conn_sock == -1)
+					{
+						/* We have processed all incoming connections. */
+						if ((errno == EAGAIN) || (errno == EWOULDBLOCK))
+						{
+							/* All incoming connections processed */
+							break;
+						}
+						else
+						{
+							std::cout << "[ERROR] : Accepting client connection: " 
+							<< strerror(errno) << std::endl;
+							break;
+						}
+					}
+					std::cout << "[LOG] : Connected to Client." << std::endl;
+
+					/* Make the new connection non blocking */
+					fcntl(conn_sock, F_SETFL, O_NONBLOCK);
+
+					/* Monitor new connection for read events in edge triggered mode */
+					ev.events = EPOLLIN | EPOLLET;
+					ev.data.fd = conn_sock;
+
+					/* Allow epoll to monitor new connection */
+					if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, conn_sock, &ev) == -1)
+					{
+						std::cout << "[ERROR] : Manipulating epoll instance: " << strerror(errno) << std::endl;
+						close(conn_sock);
+						break;
+					}
+				}
+			}
+			else if ((events & EPOLLERR) || 
+				(events & EPOLLHUP) || 
+				(!(events & EPOLLIN)))
+			{
+				std::cout << "[ERROR] : Closing connection due to EPOLLERR or EPOLLHUP." << std::endl;
+				/* Client connection closed */
+				remove_fd(fd); // do we have to remove connection?
+				close(fd);
+			}
+			else if (EPOLLIN & events)
+			{
+				/* Received data on an existing client socket */
+				recv_and_forward_message(fd);
+			}
 		}
 	}
 	close(server_fd);
