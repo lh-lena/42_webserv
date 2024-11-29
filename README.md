@@ -35,5 +35,3 @@ int socket(int domain, int type, int protocol);
 get started:
 
  - https://www.geeksforgeeks.org/socket-programming-cc/
-
-
