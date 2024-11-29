@@ -28,7 +28,7 @@ getsockname, getprotobyname, fcntl, close, read,
 write, waitpid, kill, signal, access, stat, open,
 opendir, readdir and closedir.
 */
-#include "Server.hpp"
+// #include "Server.hpp"
 
 #define READ_BUFFER_SIZE 2048
 #define MAX_EVENTS  64
