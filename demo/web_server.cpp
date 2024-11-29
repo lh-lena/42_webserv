@@ -96,7 +96,7 @@ int set_to_nonblocking(int server_fd)
 		return -6;
 	}
 	int res = fcntl(server_fd, F_SETFL, flags | O_NONBLOCK);
-	if (flags == -1)
+	if (res == -1)
 	{
 		std::cerr << "Error: " << strerror(errno) << std::endl;
 		close(server_fd);
