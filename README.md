@@ -1,3 +1,6 @@
+
+Notion: https://www.notion.so/webserv-42-1186ef9c39b580dfbdede764b6b25e09?pvs=4 
+
 1. create a socket
 2. bind the socket to a IP / port
 3. Mark the socket for listening include
@@ -32,4 +35,5 @@ int socket(int domain, int type, int protocol);
 get started:
 
  - https://www.geeksforgeeks.org/socket-programming-cc/
+
 
