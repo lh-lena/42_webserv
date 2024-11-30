@@ -16,6 +16,8 @@
 #include <sstream>
 #include <sys/epoll.h>
 
+#include "../includes/Config.hpp"
+
 /*
 Everything in C++ 98.
 execve, dup, dup2, pipe, strerror, gai_strerror,
@@ -32,7 +34,7 @@ opendir, readdir and closedir.
 
 #define READ_BUFFER_SIZE 2048
 #define MAX_EVENTS  64
-#define PORT 8080
+#define PORT 5500
 #define LISTEN_BACKLOG 5
 #define RED "\033[31m"
 #define GREEN "\033[32m"
@@ -395,9 +397,16 @@ int create_epoll(int server_fd)
 	return 0;
 }
 
-int main()
+int main(int ac, char *av[])
 {
-	
+	(void)ac;
+	(void)av;
+
+	// std::string configFilePath;
+	// configFilePath = if (av[1]) ? av[1] : "serv.config";
+	// parsing_config(configFilePath);
+
+
 	/* create listening socket */
     int server_fd = create_tcp_server_socket();
 	if (!server_fd)
