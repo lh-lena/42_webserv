@@ -6,6 +6,7 @@
 
 ParseConfig::ParseConfig(char **envp) : _envp(envp)
 {
+	this->setGlobalDirective("http");
 	this->setHttpDirective("server");
 	this->setHttpDirective("error_log");
 	this->setHttpDirective("client_max_body_size");
@@ -18,10 +19,11 @@ ParseConfig::ParseConfig(char **envp) : _envp(envp)
 	this->setServerDirective("client_max_body_size");
 	this->setLocationDirective("root");
 	this->setLocationDirective("index");
+	this->setLocationDirective("return");
+	this->setLocationDirective("autoindex");
 	this->setLocationDirective("error_page");
-	this->setLocationDirective("root");
-	this->setLocationDirective("root");
-	
+	this->setLocationDirective("allowed_methods");
+	this->setLocationDirective("upload_directory");
 }
 
 /*
@@ -52,6 +54,28 @@ ParseConfig::ParseException::~ParseException() throw() {};
 ** --------------------------------- METHODS ----------------------------------
 */
 
+void ParseConfig::readFileContent(std::string& filePath)
+{
+	if (ParseConfig::isDirectory(filePath))
+		throw ParseException("[emerg] :  open() " + filePath + " failed (Is a directory)");
+
+	std::ifstream conf_file(filePath.c_str());
+
+	if (!conf_file.is_open())
+		throw ParseException("[emerg] : open() " + filePath + " failed (" + std::strerror(errno) + ")");
+	
+    std::string line;
+    while (std::getline(conf_file, line)) {
+        this->_contentConfFile.push_back(line);
+    }
+    conf_file.close();
+}
+
+void ParseConfig::setGlobalDirective(const std::string &directive)
+{
+	this->_global_directives.push_back(directive);
+}
+
 void ParseConfig::setHttpDirective(const std::string &directive)
 {
 	this->_http_directives.push_back(directive);
@@ -67,14 +91,16 @@ void ParseConfig::setLocationDirective(const std::string &directive)
 	this->_location_directives.push_back(directive);
 }
 
-std::string ParseConfig::getEnvValue(char **envp, std::string &variable)
+std::string ParseConfig::getEnvValue(char **envp, const std::string &variable)
 {
 	std::string value = "";
+	size_t var_len = variable.length();
 	for (int i = 0; envp[i] != NULL; i++)
 	{
-		if (std::strncmp(envp[i], variable.c_str(), variable.length()) == 0)
+		if (std::strncmp(envp[i], variable.c_str(), var_len) == 0 && envp[i][var_len] == '=')
 		{
-			value = envp[i] + variable.length() + 1;
+			value = envp[i] + var_len + 1;
+			break;
 		}
 	}
 	return value;
@@ -89,17 +115,6 @@ bool ParseConfig::isDirectory(const std::string& path)
 		return false;
 	}
 	return S_ISDIR(path_stat.st_mode);
-}
-
-void ParseConfig::parseConfigFile(std::string& filePath)
-{
-	if (ParseConfig::isDirectory(filePath))
-		throw ParseException("[emerg] :  open() " + filePath + " failed (Is a directory)");
-
-	std::ifstream conf_file(filePath.c_str());
-
-	if (!conf_file.is_open())
-		throw ParseException("[emerg] : open() " + filePath + " failed (" + std::strerror(errno) + ")");
 }
 
 /* ************************************************************************** */
