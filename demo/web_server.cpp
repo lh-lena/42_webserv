@@ -408,7 +408,7 @@ int main(int argc, char *argv[], char* envp[])
 	ParseConfig config(envp);
 	try
 	{
-		config.parseConfigFile(configFilePath);
+		// config.readFileContent(configFilePath);
 	}
 	catch (std::exception &e)
 	{
