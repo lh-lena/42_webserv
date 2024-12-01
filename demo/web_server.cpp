@@ -16,7 +16,8 @@
 #include <sstream>
 #include <sys/epoll.h>
 
-#include "../includes/Config.hpp"
+#include "includes/Server.hpp"
+#include "includes/ParseConfig.hpp"
 
 /*
 Everything in C++ 98.
@@ -397,18 +398,26 @@ int create_epoll(int server_fd)
 	return 0;
 }
 
-int main(int ac, char *av[])
+int main(int argc, char *argv[], char* envp[])
 {
-	(void)ac;
-	(void)av;
+	(void)argc;
+	(void)argv;
 
-	// std::string configFilePath;
-	// configFilePath = if (av[1]) ? av[1] : "serv.config";
-	// parsing_config(configFilePath);
-
+	std::string configFilePath;
+	configFilePath = "serv.conf";
+	ParseConfig config(envp);
+	try
+	{
+		config.parseConfigFile(configFilePath);
+	}
+	catch (std::exception &e)
+	{
+		std::cerr << e.what() << std::endl;
+		return (1);
+	}
 
 	/* create listening socket */
-    int server_fd = create_tcp_server_socket();
+   /*  int server_fd = create_tcp_server_socket();
 	if (!server_fd)
 		return (server_fd);
 	
@@ -416,7 +425,7 @@ int main(int ac, char *av[])
 		return -8;
 	
 	if (create_epoll(server_fd) < 0)
-		return -1;
+		return -1; */
 
 	return (0);
 }
