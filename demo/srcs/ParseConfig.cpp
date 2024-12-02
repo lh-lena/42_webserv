@@ -64,11 +64,30 @@ void ParseConfig::readFileContent(std::string& filePath)
 	if (!conf_file.is_open())
 		throw ParseException("[emerg] : open() " + filePath + " failed (" + std::strerror(errno) + ")");
 	
-    std::string line;
-    while (std::getline(conf_file, line)) {
-        this->_contentConfFile.push_back(line);
-    }
-    conf_file.close();
+	std::string line;
+	while (std::getline(conf_file, line))
+	{
+		std::istringstream stream(line);
+		std::string word;
+		while (stream >> word)
+		{
+			if (word == "#")
+				break;
+			_contentConfFile.push_back(word);
+		}
+	}
+	conf_file.close();
+}
+
+void	ParseConfig::printConfigContent( void )
+{
+	std::vector<std::string>::iterator it;
+	it = _contentConfFile.begin();
+	while (it < _contentConfFile.end())
+	{
+		std::cout << *it << std::endl;
+		it++;
+	}
 }
 
 void ParseConfig::setGlobalDirective(const std::string &directive)
@@ -108,6 +127,7 @@ std::string ParseConfig::getEnvValue(char **envp, const std::string &variable)
 
 bool ParseConfig::isDirectory(const std::string& path)
 {
+	std::cout << path << std::endl;
 	struct stat path_stat;
 	if (stat(path.c_str(), &path_stat) != 0)
 	{
@@ -118,3 +138,23 @@ bool ParseConfig::isDirectory(const std::string& path)
 }
 
 /* ************************************************************************** */
+
+int main(int argc, char *argv[], char* envp[])
+{
+	(void)argc;
+	(void)argv;
+
+	std::string configFilePath;
+	configFilePath = "serv.conf";
+	ParseConfig config(envp);
+	try
+	{
+		config.readFileContent(configFilePath);
+		config.printConfigContent();
+	}
+	catch (std::exception &e)
+	{
+		std::cerr << e.what() << std::endl;
+		return (1);
+	}
+}

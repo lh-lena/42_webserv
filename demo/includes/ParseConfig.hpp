@@ -24,7 +24,7 @@ class ParseConfig
         void                readFileContent(std::string& filePath);
         static bool         isDirectory(const std::string& path);
         static std::string  getEnvValue(char **envp, const std::string &variable);
-
+    void                printConfigContent( void );
         class ParseException : public std::exception
         {
             public:
