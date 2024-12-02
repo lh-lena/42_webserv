@@ -22,7 +22,7 @@ class Location
 
 		bool								_autoindex;
 		int									_timeout;
-		std::string							_client_max_body_size;
+		int									_client_max_body_size;
 		std::string							_name;
 		std::string							_root;
 		std::string							_upload_dir;

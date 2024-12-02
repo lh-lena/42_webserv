@@ -4,12 +4,12 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-Location::Location()
+Location::Location() 
+	:	_root("var/www/html"),
+		_autoindex(false),
+		_client_max_body_size(1)
 {
-	this->_root = "var/www/html";
-	this->_autoindex = false;
-	this->_indexes.push_back("index.html");
-	this->_client_max_body_size = 1;
+	_indexes.push_back("index.html");
 }
 
 /* Location::Location( const Location & src )
