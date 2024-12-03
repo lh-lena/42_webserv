@@ -23,10 +23,11 @@ class ParseConfig
 		ParseConfig(std::string file_path, char **envp);
 		~ParseConfig();
 
-		void				setGlobalDirective(const std::string &directive, bool required);
-		void				setHttpDirective(const std::string &directive, bool required);
-		void				setServerDirective(const std::string &directive, bool required);
-		void				setLocationDirective(const std::string &directive, bool required);
+		typedef void		(ParseConfig::*DirectiveHandler)(const std::string&, void*);
+		void				setGlobalDirective(const std::string &directive, DirectiveHandler handler);
+		void				setHttpDirective(const std::string &directive, DirectiveHandler handler);
+		void				setServerDirective(const std::string &directive, DirectiveHandler handler);
+		void				setLocationDirective(const std::string &directive, DirectiveHandler handler);
 		void				readFileContent( void );
 		void				parseConfigContent( void );
 		static bool			isDirectory(const std::string& path);
@@ -44,16 +45,20 @@ class ParseConfig
 			private:
 				std::string	_msg;
 		};
-	
+
 	private:
-		char							**_envp;
-		std::string						_conf_file_path;
-		std::list<std::string>			_conf_content;
-		std::map<std::string, bool>		_global_directives;
-		std::map<std::string, bool>		_http_directives;
-		std::map<std::string, bool>		_server_directives;
-		std::map<std::string, bool>		_location_directives;
-		std::vector<Server>				_servers;
+		char										**_envp;
+		std::string									_conf_file_path;
+		std::vector<Server>							_servers;
+		std::list<std::string>						_conf_content;
+		std::map<std::string, DirectiveHandler>		_global_directives;
+		std::map<std::string, DirectiveHandler>		_http_directives;
+		std::map<std::string, DirectiveHandler>		_server_directives;
+		std::map<std::string, DirectiveHandler>		_location_directives;
+
+		template<typename T> void	handleWorkCont(const std::string& value, T* instance);
+		template<typename T> void	handleHttpBlock(const std::string& value, T* instance);
+		template<typename T> void	handleServerBlock(const std::string& value, T* instance);
 };
 
 #endif /* ******************************************************** PARSECONFIG_HPP */
