@@ -5,12 +5,15 @@
 */
 
 Location::Location() 
-	:	_root("var/www/html"),
-		_autoindex(false),
-		_client_max_body_size(1)
-{
-	_indexes.push_back("index.html");
-}
+	:	_autoindex(false),
+		_timeout(60),
+		_client_max_body_size(1048576), // 1MB
+		_name(""),
+		_root("./var/www/html"),
+		_upload_dir(""),
+		_cgi_extension(""),
+		_indexes({"index.html", "index.htm"})
+{}
 
 /* Location::Location( const Location & src )
 {
