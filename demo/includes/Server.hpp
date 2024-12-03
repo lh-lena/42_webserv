@@ -5,6 +5,7 @@
 # include <string>
 # include <vector>
 # include <iostream>
+# include "Location.hpp"
 
 class Server
 {
@@ -16,11 +17,13 @@ class Server
 
 	private:
 		int									_location_nbr;
+		int									_client_max_body_size;
+		int									_worker_connections;
 		std::string							_host;
 		std::string							_port;
 		std::string							_root;
-		std::string							_access_log;
-		std::string							_client_max_body_size;
+		std::string							_error_log;
+		std::vector<Location>				_locations;
 		std::vector<std::string>			_indexes;
 		std::vector<std::string>			_server_names;
 		std::map<std::string, std::string>	_error_pages;

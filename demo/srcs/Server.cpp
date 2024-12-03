@@ -5,12 +5,16 @@
 */
 
 Server::Server()
-{
-	this->_host = "localhost";
-	this->_root = "var/www/html";
-	this->_indexes.push_back("index.html");
-	this->_client_max_body_size = 1;
-}
+	:	
+		_location_nbr(0),
+		_client_max_body_size(1048576), //1M
+		_worker_connections(1024),
+		_host("localhost"),
+		_port("8080"),
+		_root("./var/www/html"),
+		_error_log("error.log"),
+		_indexes({"index.html", "index.htm"})
+{}
 
 /* Server::Server( const Server & src )
 {
