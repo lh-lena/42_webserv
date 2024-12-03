@@ -4,26 +4,31 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-ParseConfig::ParseConfig(char **envp) : _envp(envp)
+ParseConfig::ParseConfig(std::string file_path, char **envp) : _conf_file_path("serv.conf"), _envp(envp)
 {
-	this->setGlobalDirective("http");
-	this->setHttpDirective("server");
-	this->setHttpDirective("error_log");
-	this->setHttpDirective("client_max_body_size");
-	this->setServerDirective("root");
-	this->setServerDirective("index");
-	this->setServerDirective("listen");
-	this->setServerDirective("location");
-	this->setServerDirective("error_page");
-	this->setServerDirective("server_name");
-	this->setServerDirective("client_max_body_size");
-	this->setLocationDirective("root");
-	this->setLocationDirective("index");
-	this->setLocationDirective("return");
-	this->setLocationDirective("autoindex");
-	this->setLocationDirective("error_page");
-	this->setLocationDirective("allowed_methods");
-	this->setLocationDirective("upload_directory");
+	if (!file_path.empty())
+		_conf_file_path = file_path;
+	this->setGlobalDirective("worker_connections", false);
+	this->setGlobalDirective("http", true);
+	this->setHttpDirective("server", false);
+	this->setHttpDirective("error_log", false);
+	this->setHttpDirective("client_max_body_size", false);
+	this->setServerDirective("root", false);
+	this->setServerDirective("index", false);
+	this->setServerDirective("listen", true);
+	this->setServerDirective("timeout", false);
+	this->setServerDirective("location", false);
+	this->setServerDirective("error_page", false);
+	this->setServerDirective("server_name", false);
+	this->setServerDirective("client_max_body_size", false);
+	this->setLocationDirective("root", false);
+	this->setLocationDirective("index", false);
+	this->setLocationDirective("return", false);
+	this->setLocationDirective("timeout", false);
+	this->setLocationDirective("autoindex", false);
+	this->setLocationDirective("error_page", false);
+	this->setLocationDirective("allowed_methods", false);
+	this->setLocationDirective("upload_directory", false);
 }
 
 /*
@@ -54,60 +59,88 @@ ParseConfig::ParseException::~ParseException() throw() {};
 ** --------------------------------- METHODS ----------------------------------
 */
 
-void ParseConfig::readFileContent(std::string& filePath)
+void ParseConfig::readFileContent( void )
 {
-	if (ParseConfig::isDirectory(filePath))
-		throw ParseException("[emerg] :  open() " + filePath + " failed (Is a directory)");
+	if (ParseConfig::isDirectory(_conf_file_path))
+		throw ParseException("[emerg] :  open() " + _conf_file_path + " failed (Is a directory)");
 
-	std::ifstream conf_file(filePath.c_str());
+	std::ifstream conf_file(_conf_file_path.c_str());
 
 	if (!conf_file.is_open())
-		throw ParseException("[emerg] : open() " + filePath + " failed (" + std::strerror(errno) + ")");
-	
+		throw ParseException("[emerg] : open() " + _conf_file_path + " failed (" + std::strerror(errno) + ")");
+
 	std::string line;
 	while (std::getline(conf_file, line))
 	{
-		std::istringstream stream(line);
-		std::string word;
+		std::istringstream	stream(line);
+		std::string			word;
 		while (stream >> word)
 		{
-			if (word == "#")
+			if (word == "#" || word[0] == '#')
 				break;
-			_contentConfFile.push_back(word);
+			_conf_content.push_back(word);
 		}
 	}
 	conf_file.close();
 }
 
+/* void ParseConfig::parseConfigContent( void )
+{
+	std::list<std::string>::iterator it = _conf_content.begin();
+	std::list<std::string>::iterator it_end = _conf_content.end();
+	Server serv;
+	while (it != it_end)
+	{
+		std::map<std::string, bool>::iterator it_gl = _global_directives.begin();
+		for (; it_gl != _global_directives.end(); it_gl++)
+		{
+			if (it_gl->second && (*it).compare(0, (*it).length(), it_gl->first) == 0)
+			{
+				exceptTocken(&_conf_content, it_gl->first);
+			}
+		}
+	}
+} */
+
+int	ParseConfig::exceptTocken(std::list<std::string> *src, std::string tocken)
+{
+	if ((*src).front() == tocken)
+	{
+		(*src).pop_front();
+		return 1;
+	}
+	return 0;
+}
+
 void	ParseConfig::printConfigContent( void )
 {
-	std::vector<std::string>::iterator it;
-	it = _contentConfFile.begin();
-	while (it < _contentConfFile.end())
+	std::list<std::string>::iterator it;
+	it = _conf_content.begin();
+	while (it != _conf_content.end())
 	{
 		std::cout << *it << std::endl;
 		it++;
 	}
 }
 
-void ParseConfig::setGlobalDirective(const std::string &directive)
+void ParseConfig::setGlobalDirective(const std::string &directive, bool required)
 {
-	this->_global_directives.push_back(directive);
+	_global_directives[directive] = required;
 }
 
-void ParseConfig::setHttpDirective(const std::string &directive)
+void ParseConfig::setHttpDirective(const std::string &directive, bool required)
 {
-	this->_http_directives.push_back(directive);
+	_http_directives[directive] = required;
 }
 
-void ParseConfig::setServerDirective(const std::string &directive)
+void ParseConfig::setServerDirective(const std::string &directive, bool required)
 {
-	this->_server_directives.push_back(directive);
+	_server_directives[directive] = required;
 }
 
-void ParseConfig::setLocationDirective(const std::string &directive)
+void ParseConfig::setLocationDirective(const std::string &directive, bool required)
 {
-	this->_location_directives.push_back(directive);
+	_location_directives[directive] = required;
 }
 
 std::string ParseConfig::getEnvValue(char **envp, const std::string &variable)
@@ -146,10 +179,10 @@ int main(int argc, char *argv[], char* envp[])
 
 	std::string configFilePath;
 	configFilePath = "serv.conf";
-	ParseConfig config(envp);
+	ParseConfig config(configFilePath, envp);
 	try
 	{
-		config.readFileContent(configFilePath);
+		config.readFileContent();
 		config.printConfigContent();
 	}
 	catch (std::exception &e)
