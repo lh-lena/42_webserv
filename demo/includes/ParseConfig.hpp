@@ -23,15 +23,15 @@ class ParseConfig
 		ParseConfig(std::string file_path, char **envp);
 		~ParseConfig();
 
-		typedef void		(ParseConfig::*DirectiveHandler)(const std::string&, void*);
-		void				setGlobalDirective(const std::string &directive, DirectiveHandler handler);
-		void				setHttpDirective(const std::string &directive, DirectiveHandler handler);
-		void				setServerDirective(const std::string &directive, DirectiveHandler handler);
-		void				setLocationDirective(const std::string &directive, DirectiveHandler handler);
+		typedef void		(ParseConfig::*DirectiveServerHandler)(const std::string&, Server*);
+		typedef void		(ParseConfig::*DirectiveLocationHandler)(const std::string&, Location*);
+		void				setGlobalDirective(const std::string &directive, DirectiveServerHandler handler);
+		void				setHttpDirective(const std::string &directive, DirectiveServerHandler handler);
+		void				setServerDirective(const std::string &directive, DirectiveServerHandler handler);
+		void				setLocationDirective(const std::string &directive, DirectiveLocationHandler handler);
 		void				readFileContent( void );
 		void				parseConfigContent( void );
 		static bool			isDirectory(const std::string& path);
-		void				printConfigContent( void );
 		int					exceptTocken(std::list<std::string> *src, std::string tocken);
 
 		static std::string	getEnvValue(char **envp, const std::string &variable);
@@ -47,18 +47,33 @@ class ParseConfig
 		};
 
 	private:
-		char										**_envp;
-		std::string									_conf_file_path;
-		std::vector<Server>							_servers;
-		std::list<std::string>						_conf_content;
-		std::map<std::string, DirectiveHandler>		_global_directives;
-		std::map<std::string, DirectiveHandler>		_http_directives;
-		std::map<std::string, DirectiveHandler>		_server_directives;
-		std::map<std::string, DirectiveHandler>		_location_directives;
+		char												**_envp;
+		std::string											_conf_file_path;
+		std::vector<Server>									_servers;
+		std::list<std::string>								_conf_content;
+		std::map<std::string, DirectiveServerHandler>		_global_directives;
+		std::map<std::string, DirectiveServerHandler>		_http_directives;
+		std::map<std::string, DirectiveServerHandler>		_server_directives;
+		std::map<std::string, DirectiveLocationHandler>		_location_directives;
 
 		template<typename T> void	handleWorkCont(const std::string& value, T* instance);
 		template<typename T> void	handleHttpBlock(const std::string& value, T* instance);
 		template<typename T> void	handleServerBlock(const std::string& value, T* instance);
+		/* TODO */
+		// template<typename T> void	handleErrorLog(const std::string& value, T* instance);
+		// template<typename T> void	handleClientBodySize(const std::string& value, T* instance);
+		template<typename T> void	handleRoot(const std::string& value, T* instance);
+		// template<typename T> void	handleIndex(const std::string& value, T* instance);
+		// template<typename T> void	handleListen(const std::string& value, T* instance);
+		// template<typename T> void	handleTimeout(const std::string& value, T* instance);
+		// template<typename T> void	handleLocationBlock(const std::string& value, T* instance);
+		// template<typename T> void	handleErrorPage(const std::string& value, T* instance);
+		// template<typename T> void	handleServerName(const std::string& value, T* instance);
+		// template<typename T> void	handleReturn(const std::string& value, T* instance);
+		// template<typename T> void	handleTimeout(const std::string& value, T* instance);
+		// template<typename T> void	handleAutoindex(const std::string& value, T* instance);
+		// template<typename T> void	handleAllowedMethods(const std::string& value, T* instance);
+		// template<typename T> void	handleUploadDir(const std::string& value, T* instance);
 };
 
 #endif /* ******************************************************** PARSECONFIG_HPP */

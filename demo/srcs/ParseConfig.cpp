@@ -4,8 +4,25 @@
 ** ------------------------------ DECLARATION ---------------------------------
 */
 
-template void	ParseConfig::handleWorkCont(const std::string&, Server*);
-template void	ParseConfig::handleWorkCont(const std::string&, Location*);
+template void	ParseConfig::handleWorkCont<Server>(const std::string&, Server*);
+template void	ParseConfig::handleHttpBlock<Server>(const std::string&, Server*);
+template void	ParseConfig::handleServerBlock<Server>(const std::string&, Server*);
+// template void	ParseConfig::handleErrorLog<Server>(const std::string&, Server*);
+// template void	ParseConfig::handleClientBodySize<Server>(const std::string&, Server*);
+// template void	ParseConfig::handleListen<Server>(const std::string&, Server*);
+// template void	ParseConfig::handleLocationBlock<Server>(const std::string&, Server*);
+// template void	ParseConfig::handleServerName<Server>(const std::string&, Server*);
+template void	ParseConfig::handleRoot<Location>(const std::string&, Location*);
+template void	ParseConfig::handleRoot<Server>(const std::string&, Server*);
+// template void	ParseConfig::handleIndex<Location>(const std::string&, Location*);
+// template void	ParseConfig::handleIndex<Server>(const std::string&, Server*);
+// template void	ParseConfig::handleTimeout<Location>(const std::string&, Location*);
+// template void	ParseConfig::handleTimeout<Server>(const std::string&, Server*);
+// template void	ParseConfig::handleErrorPage<Location>(const std::string&, Location*);
+// template void	ParseConfig::handleErrorPage<Server>(const std::string&, Server*);
+// template void	ParseConfig::handleAllowedMethods<Location>(const std::string&, Location*);
+// template void	ParseConfig::handleUploadDir<Location>(const std::string&, Location*);
+// template void	ParseConfig::handleAutoindex<Location>(const std::string&, Location*);
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
@@ -16,26 +33,26 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _conf_file_path("
 	if (!file_path.empty())
 		_conf_file_path = file_path;
 	this->setGlobalDirective("worker_connections", &ParseConfig::handleWorkCont);
-	this->setGlobalDirective("http", &ParseConfig::handleHttpBlock);
-	this->setHttpDirective("server", &ParseConfig::handleServerBlock);
-	// this->setHttpDirective("error_log", false);
-	// this->setHttpDirective("client_max_body_size", false);
-	// this->setServerDirective("root", false);
-	// this->setServerDirective("index", false);
-	// this->setServerDirective("listen", true);
-	// this->setServerDirective("timeout", false);
-	// this->setServerDirective("location", false);
-	// this->setServerDirective("error_page", false);
-	// this->setServerDirective("server_name", false);
-	// this->setServerDirective("client_max_body_size", false);
-	// this->setLocationDirective("root", false);
-	// this->setLocationDirective("index", false);
-	// this->setLocationDirective("return", false);
-	// this->setLocationDirective("timeout", false);
-	// this->setLocationDirective("autoindex", false);
-	// this->setLocationDirective("error_page", false);
-	// this->setLocationDirective("allowed_methods", false);
-	// this->setLocationDirective("upload_directory", false);
+	// this->setGlobalDirective("http", &ParseConfig::handleHttpBlock);
+	// this->setHttpDirective("server", &ParseConfig::handleServerBlock);
+	// this->setHttpDirective("error_log", &ParseConfig::handleErrorLog);
+	// this->setHttpDirective("client_max_body_size", &ParseConfig::handleClientBodySize);
+	this->setServerDirective("root", &ParseConfig::handleRoot);
+	// this->setServerDirective("index", &ParseConfig::handleIndex);
+	// this->setServerDirective("listen", &ParseConfig::handleListen);
+	// this->setServerDirective("timeout", &ParseConfig::handleTimeout);
+	// this->setServerDirective("location", &ParseConfig::handleLocationBlock);
+	// this->setServerDirective("error_page", &ParseConfig::handleErrorPage);
+	// this->setServerDirective("server_name", &ParseConfig::handleServerName);
+	// this->setServerDirective("client_max_body_size", &ParseConfig::handleClientBodySize);
+	this->setLocationDirective("root", &ParseConfig::handleRoot);
+	// this->setLocationDirective("index", &ParseConfig::handleIndex);
+	// this->setLocationDirective("return", &ParseConfig::handleReturn);
+	// this->setLocationDirective("timeout", &ParseConfig::handleTimeout);
+	// this->setLocationDirective("autoindex", &ParseConfig::handleAutoindex);
+	// this->setLocationDirective("error_page", &ParseConfig::handleErrorPage);
+	// this->setLocationDirective("allowed_methods", &ParseConfig::handleAllowedMethods);
+	// this->setLocationDirective("upload_directory", &ParseConfig::handleUploadDir);
 }
 
 /*
@@ -98,44 +115,68 @@ void ParseConfig::parseConfigContent( void )
 	std::string directive;
 	std::string value;
 	Server server;
-	while (it != it_end)
-	{
+	Location location;
+	// while (it != it_end)
+	// {
 		directive = *it;
-		if (_global_directives.find(directive) != _global_directives.end())
+		std::cout << "[LOG] directive " << directive << "  " <<(_server_directives.find(directive) != _server_directives.end()) << std::endl;
+
+		if (_server_directives.find(directive) != _server_directives.end())
 		{
 			exceptTocken(&_conf_content, directive);
-			it++;
+			it = _conf_content.begin();
 			value = *it;
-			while (it != it_end)
-			{
+			std::cout << "value" << value << std::endl;
+			// while (it != it_end)
+			// {
 				// value = value.substr(0, value.size()-1);
-				if (value.find(";") != std::string::npos)
-					;
-				DirectiveHandler handler = _global_directives[directive];
-				(this->*handler)(value, &server);
-			}
+				// if (value.find(";") != std::string::npos)
+				// 	;
+			// }
+				DirectiveServerHandler serv_handler = _server_directives[directive];
+				(this->*serv_handler)(value, (Server*)&server);
+				std::cout << "Server: " << server.getRoot() << std::endl;
+				DirectiveLocationHandler loc_handler = _location_directives[directive];
+				(this->*loc_handler)(value, (Location*)&location);
+				std::cout << "Location: " << location.getRoot() << std::endl;
+
+			return ;
 		}
 		else
 		{
 			std::cerr << "Unknown directive: " << directive << std::endl;
 		}
-	}
+	// 	return ;
+	// }
 }
 
 template<typename T> void	ParseConfig::handleWorkCont(const std::string& value, T* instance)
 {
-	std::cout << "Generic handler for directive: " << value << std::endl;
-	instance->_
+	std::cout << "[LOG] processing value: " << value << std::endl;
+	std::istringstream iss(value);
+	int val = 0;
+	iss >> val;
+	// if (iss.bad())
+
+	instance->setWorkCont(val);
 }
 
 template<typename T> void	ParseConfig::handleHttpBlock(const std::string& value, T* instance)
 {
-	std::cout << "Generic handler for directive: " << value << std::endl;
+		std::cout << "[LOG] processing value: " << value << std::endl;
+
 }
 
 template<typename T> void	ParseConfig::handleServerBlock(const std::string& value, T* instance)
 {
-	std::cout << "Generic handler for directive: " << value << std::endl;
+	std::cout << "[LOG] processing value: " << value << std::endl;
+
+}
+
+template<typename T> void	ParseConfig::handleRoot(const std::string& value, T* instance)
+{
+	std::cout << "[LOG] processing value: " << value << std::endl;
+	instance->setRoot(value);
 }
 
 int	ParseConfig::exceptTocken(std::list<std::string> *src, std::string tocken)
@@ -176,25 +217,31 @@ bool ParseConfig::isDirectory(const std::string& path)
 	return S_ISDIR(path_stat.st_mode);
 }
 
-void ParseConfig::setGlobalDirective(const std::string &directive, DirectiveHandler handler)
+/*
+** --------------------------------- ACCESSOR ---------------------------------
+*/
+
+void ParseConfig::setGlobalDirective(const std::string &directive, DirectiveServerHandler handler)
 {
 	_global_directives[directive] = handler;
 }
 
-void ParseConfig::setHttpDirective(const std::string &directive, DirectiveHandler handler)
+void ParseConfig::setHttpDirective(const std::string &directive, DirectiveServerHandler handler)
 {
 	_http_directives[directive] = handler;
 }
 
-void ParseConfig::setServerDirective(const std::string &directive, DirectiveHandler handler)
+void ParseConfig::setServerDirective(const std::string &directive, DirectiveServerHandler handler)
 {
 	_server_directives[directive] = handler;
 }
 
-void ParseConfig::setLocationDirective(const std::string &directive, DirectiveHandler handler)
+void ParseConfig::setLocationDirective(const std::string &directive, DirectiveLocationHandler handler)
 {
 	_location_directives[directive] = handler;
 }
+
+
 
 /* ************************************************************************** */
 
@@ -209,7 +256,8 @@ int main(int argc, char *argv[], char* envp[])
 	try
 	{
 		config.readFileContent();
-		config.printConfigContent();
+		// config.printConfigContent();
+		config.parseConfigContent();
 	}
 	catch (std::exception &e)
 	{
