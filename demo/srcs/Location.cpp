@@ -11,9 +11,11 @@ Location::Location()
 		_name(""),
 		_root("./var/www/html"),
 		_upload_dir(""),
-		_cgi_extension(""),
-		_indexes({"index.html", "index.htm"})
-{}
+		_cgi_extension("")
+{
+	_indexes.push_back("index.html");
+	_indexes.push_back("index.htm");
+}
 
 /* Location::Location( const Location & src )
 {
@@ -46,6 +48,7 @@ Location::~Location()
 /*
 ** --------------------------------- METHODS ----------------------------------
 */
+
 
 
 /*

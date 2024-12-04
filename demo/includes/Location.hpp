@@ -17,7 +17,9 @@ class Location
 
 		// Location &		operator=( Location const & rhs );
 
-
+		void								setRoot(const std::string &arg);
+		std::string							getRoot( void );
+		
 	private:
 
 		bool								_autoindex;
