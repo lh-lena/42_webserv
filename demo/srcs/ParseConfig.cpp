@@ -32,8 +32,10 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _conf_file_path("
 {
 	if (!file_path.empty())
 		_conf_file_path = file_path;
+	HttpServer httpServer;
+	_servers = httpServer;
 	this->setGlobalDirective("worker_connections", &ParseConfig::handleWorkCont);
-	// this->setGlobalDirective("http", &ParseConfig::handleHttpBlock);
+	this->setGlobalDirective("http", &ParseConfig::handleHttpBlock);
 	// this->setHttpDirective("server", &ParseConfig::handleServerBlock);
 	// this->setHttpDirective("error_log", &ParseConfig::handleErrorLog);
 	// this->setHttpDirective("client_max_body_size", &ParseConfig::handleClientBodySize);
@@ -115,39 +117,33 @@ void ParseConfig::parseConfigContent( void )
 	std::string directive;
 	std::string value;
 	Server server;
-	Location location;
-	// while (it != it_end)
-	// {
+	while (it != it_end)
+	{
 		directive = *it;
-		std::cout << "[LOG] directive " << directive << "  " <<(_server_directives.find(directive) != _server_directives.end()) << std::endl;
+		std::cout << "[LOG] directive " << directive << "  " <<(_global_directives.find(directive) != _global_directives.end()) << std::endl;
 
-		if (_server_directives.find(directive) != _server_directives.end())
+		if (_global_directives.find(directive) != _global_directives.end())
 		{
 			exceptTocken(&_conf_content, directive);
 			it = _conf_content.begin();
 			value = *it;
 			std::cout << "value" << value << std::endl;
+			
 			// while (it != it_end)
 			// {
 				// value = value.substr(0, value.size()-1);
 				// if (value.find(";") != std::string::npos)
 				// 	;
 			// }
-				DirectiveServerHandler serv_handler = _server_directives[directive];
-				(this->*serv_handler)(value, (Server*)&server);
-				std::cout << "Server: " << server.getRoot() << std::endl;
-				DirectiveLocationHandler loc_handler = _location_directives[directive];
-				(this->*loc_handler)(value, (Location*)&location);
-				std::cout << "Location: " << location.getRoot() << std::endl;
-
-			return ;
+			DirectiveServerHandler serv_handler = _global_directives[directive];
+			(this->*serv_handler)(value, (Server*)&server);
+			_servers.setServer(server);
 		}
 		else
 		{
 			std::cerr << "Unknown directive: " << directive << std::endl;
 		}
-	// 	return ;
-	// }
+	}
 }
 
 template<typename T> void	ParseConfig::handleWorkCont(const std::string& value, T* instance)
@@ -156,14 +152,16 @@ template<typename T> void	ParseConfig::handleWorkCont(const std::string& value, 
 	std::istringstream iss(value);
 	int val = 0;
 	iss >> val;
-	// if (iss.bad())
+	// if (iss.bad()) /*TODO: -error checking */
 
 	instance->setWorkCont(val);
 }
 
 template<typename T> void	ParseConfig::handleHttpBlock(const std::string& value, T* instance)
 {
-		std::cout << "[LOG] processing value: " << value << std::endl;
+	std::cout << "[LOG] processing value: " << value << std::endl;
+	if (_servers.size() == 0)
+		Server server;
 
 }
 

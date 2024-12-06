@@ -12,6 +12,7 @@
 # include <iterator>
 # include <sys/stat.h>
 # include <exception>
+# include "HttpServer.hpp"
 # include "Server.hpp"
 # include "Location.hpp"
 
@@ -47,9 +48,9 @@ class ParseConfig
 		};
 
 	private:
+		HttpServer											_servers;
 		char												**_envp;
 		std::string											_conf_file_path;
-		std::vector<Server>									_servers;
 		std::list<std::string>								_conf_content;
 		std::map<std::string, DirectiveServerHandler>		_global_directives;
 		std::map<std::string, DirectiveServerHandler>		_http_directives;
