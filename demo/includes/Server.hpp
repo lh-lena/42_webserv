@@ -11,30 +11,32 @@ class Server
 {
 	public:
 		Server();
-		// Server( Server const & src );
+		Server( Server const & src );
 		~Server();
-		// Server &		operator=( Server const & rhs );
+		Server &		operator=( Server const & rhs );
 
-		void								setWorkCont(int connections);
 		void								setLocationNbr(int value);
 		void								setClientMaxBody(int value);
+		void								setWorkCont(int connections);
 		void								setHost(const std::string &arg);
+		void								setPort(const std::string &arg);
 		void								setRoot(const std::string &arg);
 		void								setErrorLog(const std::string &arg);
 		void								setErrorPage(const std::string &key, const std::string &value);
 		void								setIndex(const std::string &arg);
 		void								setServerName(const std::string &arg);
 		void								setLocation(Location &src);
-		int									getWorkCont( void );
-		int									getLocationNbr( void );
-		int									getClientMaxBody( void );
-		std::string							getHost( void );
-		std::string							getRoot( void );
-		std::string							getErrorLog( void );
-		std::string							getErrorPage( const std::string &key, const std::string &value );
-		std::vector<std::string>			getIndex( void );
-		std::vector<std::string>			getServerName( void );
-		// std::vector<Location>			getLocation( void );
+		int									getLocationNbr( void ) const;
+		int									getClientMaxBody( void ) const;
+		int									getWorkCont( void )  const;
+		std::string							getHost( void ) const;
+		std::string							getPort( void ) const;
+		std::string							getRoot( void ) const;
+		std::string							getErrorLog( void ) const;
+		std::vector<Location>				getLocations( void ) const;
+		std::vector<std::string>			getIndexes( void ) const;
+		std::vector<std::string>			getServerNames( void ) const;
+		std::map<std::string, std::string>	getErrorPages( void ) const;
 
 	private:
 		int									_location_nbr;

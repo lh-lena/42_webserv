@@ -18,9 +18,10 @@ Server::Server()
 	_indexes.push_back("index.htm");
 }
 
-/* Server::Server( const Server & src )
+Server::Server( const Server & src )
 {
-} */
+	*this = src;
+}
 
 
 /*
@@ -36,79 +37,34 @@ Server::~Server()
 ** --------------------------------- OVERLOAD ---------------------------------
 */
 
-/* Server &				Server::operator=( Server const & rhs )
+Server &				Server::operator=( Server const & rhs )
 {
-	//if ( this != &rhs )
-	//{
-		//this->_value = rhs.getValue();
-	//}
+	if ( this != &rhs )
+	{
+		this->_location_nbr = rhs.getLocationNbr();
+		this->_client_max_body_size = rhs.getClientMaxBody();
+		this->_worker_connections = rhs.getWorkCont();
+		this->_host = rhs.getHost();
+		this->_port = rhs.getPort();
+		this->_root = rhs.getRoot();
+		this->_error_log = rhs.getErrorLog();
+		this->_error_pages = rhs.getErrorPages();
+		this->_indexes = rhs.getIndexes();
+		this->_server_names  = rhs.getServerNames();
+		this->_locations = getLocations();
+	}
 	return *this;
-} */
+}
 
 
 /*
 ** --------------------------------- METHODS ----------------------------------
 */
 
-void	Location::setRoot(const std::string &arg)
-{
-	_root = arg;
-}
-
-std::string	Location::getRoot( void )
-{
-	return (_root);
-}
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
 */
-
-int Server::getWorkCont( void )
-{
-	return (_worker_connections);
-}
-
-int Server::getLocationNbr( void )
-{
-	return (_location_nbr);
-}
-
-int	Server::getClientMaxBody( void )
-{
-	return (_client_max_body_size);
-}
-
-std::string	Server::getHost( void )
-{
-	return (_host);
-}
-
-std::string	Server::getRoot( void )
-{
-	return (_root);
-}
-
-std::string	Server::getErrorLog( void )
-{
-	return (_error_log);
-}
-
-std::string	Server::getErrorPage( const std::string &key, const std::string &value )
-{
-	return (_error_pages[key]);
-}
-
-std::vector<std::string>	Server::getIndex( void )
-{
-	return (_indexes);
-}
-
-std::vector<std::string>	Server::getServerName( void )
-{
-	return (_server_names);
-}
-
 
 void Server::setWorkCont(int connections)
 {
@@ -128,6 +84,11 @@ void	Server::setClientMaxBody(int value)
 void	Server::setHost(const std::string &arg)
 {
 	_host = arg;
+}
+
+void	Server::setPort(const std::string &arg)
+{
+	_port = arg;
 }
 
 void	Server::setRoot(const std::string &arg)
@@ -159,6 +120,62 @@ void	Server::setLocation(Location &src)
 {
 	_locations.push_back(src);
 }
+
+int Server::getWorkCont( void ) const
+{
+	return (_worker_connections);
+}
+
+int Server::getLocationNbr( void ) const
+{
+	return (_location_nbr);
+}
+
+int	Server::getClientMaxBody( void ) const
+{
+	return (_client_max_body_size);
+}
+
+std::string	Server::getHost( void ) const
+{
+	return (_host);
+}
+
+std::string	Server::getPort( void ) const
+{
+	return (_port);
+}
+
+std::string	Server::getRoot( void ) const
+{
+	return (_root);
+}
+
+std::string	Server::getErrorLog( void ) const
+{
+	return (_error_log);
+}
+
+std::map<std::string, std::string>	Server::getErrorPages( void ) const
+{
+	return (_error_pages);
+}
+
+std::vector<std::string>	Server::getIndexes( void ) const
+{
+	return (_indexes);
+}
+
+std::vector<std::string>	Server::getServerNames( void ) const
+{
+	return (_server_names);
+}
+
+std::vector<Location>	Server::getLocations( void ) const
+{
+	return (_locations);
+}
+
 
 
 /* ************************************************************************** */
