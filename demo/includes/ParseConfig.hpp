@@ -24,18 +24,20 @@ class ParseConfig
 		ParseConfig(std::string file_path, char **envp);
 		~ParseConfig();
 
-		typedef void		(ParseConfig::*DirectiveServerHandler)(const std::string&, Server*);
-		typedef void		(ParseConfig::*DirectiveLocationHandler)(const std::string&, Location*);
-		void				setGlobalDirective(const std::string &directive, DirectiveServerHandler handler);
-		void				setHttpDirective(const std::string &directive, DirectiveServerHandler handler);
-		void				setServerDirective(const std::string &directive, DirectiveServerHandler handler);
-		void				setLocationDirective(const std::string &directive, DirectiveLocationHandler handler);
-		void				readFileContent( void );
-		void				parseConfigContent( void );
-		static bool			isDirectory(const std::string& path);
-		int					exceptTocken(std::list<std::string> *src, std::string tocken);
 
-		static std::string	getEnvValue(char **envp, const std::string &variable);
+		typedef void					(ParseConfig::*DirectiveServerHandler)(const std::string&, Server*);
+		typedef void					(ParseConfig::*DirectiveLocationHandler)(const std::string&, Location*);
+		void							setGlobalDirective(const std::string &directive, DirectiveServerHandler handler);
+		void							setHttpDirective(const std::string &directive, DirectiveServerHandler handler);
+		void							setServerDirective(const std::string &directive, DirectiveServerHandler handler);
+		void							setLocationDirective(const std::string &directive, DirectiveLocationHandler handler);
+		void							readFileContent( void );
+		void							parseConfigContent( void );
+		std::string						getToken(std::list<std::string> *src);
+		static bool						isDirectory(const std::string& path);
+		int								exceptTocken(std::list<std::string> *src, std::string tocken);
+		std::map<std::string, bool>		block_dir;
+		static std::string				getEnvValue(char **envp, const std::string &variable);
 		
 		class ParseException : public std::exception
 		{

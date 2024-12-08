@@ -34,6 +34,9 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _conf_file_path("
 		_conf_file_path = file_path;
 	HttpServer httpServer;
 	_servers = httpServer;
+	block_dir["http"] = true;
+	block_dir["server"] = true;
+	block_dir["location"] = false;
 	this->setGlobalDirective("worker_connections", &ParseConfig::handleWorkCont);
 	this->setGlobalDirective("http", &ParseConfig::handleHttpBlock);
 	// this->setHttpDirective("server", &ParseConfig::handleServerBlock);
@@ -102,9 +105,20 @@ void ParseConfig::readFileContent( void )
 		std::string			word;
 		while (stream >> word)
 		{
-			if (word == "#" || word[0] == '#')
+			size_t last_char_pos = word.size() - 1;
+			char last_char = word[last_char_pos];
+
+			if (word.size() - 1 > 0 && (last_char == ';' || last_char  == '{' || last_char == '}'))
+			{
+				std::string symbol(1, last_char);
+                word.erase(last_char_pos);
+				_conf_content.push_back(word);
+                _conf_content.push_back(symbol);
+			}
+			else if (word == "#" || word[0] == '#')
 				break;
-			_conf_content.push_back(word);
+			else
+				_conf_content.push_back(word);
 		}
 	}
 	conf_file.close();
@@ -112,43 +126,50 @@ void ParseConfig::readFileContent( void )
 
 void ParseConfig::parseConfigContent( void )
 {
-	std::list<std::string>::iterator it = _conf_content.begin();
-	std::list<std::string>::iterator it_end = _conf_content.end();
 	std::string directive;
 	std::string value;
 	Server server;
-	while (it != it_end)
+	try
 	{
-		directive = *it;
-		std::cout << "[LOG] directive " << directive << "  " <<(_global_directives.find(directive) != _global_directives.end()) << std::endl;
-
-		if (_global_directives.find(directive) != _global_directives.end())
+		while (!_conf_content.empty())
 		{
+			directive = getToken(&_conf_content);
+			std::cout << "[LOG] parseConfigContent directive: " << directive << std::endl;
+			if (_global_directives.find(directive) == _global_directives.end())
+			{
+				std::cerr << "[ERROR] parseConfigContent Unknown directive: " << directive << std::endl;
+				return ;
+			}
 			exceptTocken(&_conf_content, directive);
-			it = _conf_content.begin();
-			value = *it;
-			std::cout << "value" << value << std::endl;
-			
-			// while (it != it_end)
-			// {
-				// value = value.substr(0, value.size()-1);
-				// if (value.find(";") != std::string::npos)
-				// 	;
-			// }
+			value = getToken(&_conf_content);
+			std::cout << "[LOG] parseConfigContent value: " << value << std::endl;
 			DirectiveServerHandler serv_handler = _global_directives[directive];
 			(this->*serv_handler)(value, (Server*)&server);
-			_servers.setServer(server);
+			if (block_dir.find(directive) == block_dir.end())
+			{
+				exceptTocken(&_conf_content, value);
+				exceptTocken(&_conf_content, ";");
+			}
 		}
-		else
-		{
-			std::cerr << "Unknown directive: " << directive << std::endl;
-		}
+		_servers.setServer(server);
 	}
+	catch (std::exception &e)
+	{
+		std::cerr << e.what() << std::endl;
+	}
+}
+
+std::string ParseConfig::getToken(std::list<std::string> *src)
+{
+	if (src->empty())
+		throw ParseConfig::ParseException("[emrge] : Unexpected end of configuration content in " + _conf_file_path);
+	std::string token = src->front();
+	return token;
 }
 
 template<typename T> void	ParseConfig::handleWorkCont(const std::string& value, T* instance)
 {
-	std::cout << "[LOG] processing value: " << value << std::endl;
+	std::cout << "[LOG] handleWorkCont processing value: " << value << std::endl;
 	std::istringstream iss(value);
 	int val = 0;
 	iss >> val;
@@ -157,33 +178,75 @@ template<typename T> void	ParseConfig::handleWorkCont(const std::string& value, 
 	instance->setWorkCont(val);
 }
 
+/* TODO:
+- change [T* instance] from [Server] to [HttpServer]
+- replace _server_directives to _http_directives
+- to handle global data to classes
+*/
+
 template<typename T> void	ParseConfig::handleHttpBlock(const std::string& value, T* instance)
 {
-	std::cout << "[LOG] processing value: " << value << std::endl;
-	if (_servers.size() == 0)
-		Server server;
-
+	std::cout << "[LOG] handleHttpBlock: processing value: " << value << std::endl;
+	Server server;
+	if (_servers.getServer().size() != 0)
+		server = _servers.getServer().front();
+	std::string directive;
+	std::string val;
+	exceptTocken(&_conf_content, "{");
+	try
+	{
+		while (!_conf_content.empty())
+		{
+			directive = getToken(&_conf_content);
+			std::cout << "[handleHttpBlock] directive : " << directive << std::endl;
+			if (directive == "}")
+				break;
+			if (_server_directives.find(directive) == _server_directives.end())
+				throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path);
+			exceptTocken(&_conf_content, directive);
+			val = getToken(&_conf_content);
+			std::cout << "[handleHttpBlock] processing value : " << val << std::endl;
+			while (val != ";")
+			{
+				DirectiveServerHandler serv_handler = _server_directives[directive];
+				(this->*serv_handler)(val, (Server*)&server);
+				exceptTocken(&_conf_content, val);
+				val = getToken(&_conf_content);
+			}
+			exceptTocken(&_conf_content, val);
+		}
+		_servers.setServer(server);
+		exceptTocken(&_conf_content, "}");
+	}
+	catch(const std::exception& e)
+	{
+		throw ParseException(e.what());
+	}
+	
 }
 
 template<typename T> void	ParseConfig::handleServerBlock(const std::string& value, T* instance)
 {
-	std::cout << "[LOG] processing value: " << value << std::endl;
+	std::cout << "[handleServerBlock] processing value: " << value << std::endl;
 
 }
 
 template<typename T> void	ParseConfig::handleRoot(const std::string& value, T* instance)
 {
-	std::cout << "[LOG] processing value: " << value << std::endl;
+	std::cout << "[handleRoot] processing value: " << value << std::endl;
 	instance->setRoot(value);
 }
 
 int	ParseConfig::exceptTocken(std::list<std::string> *src, std::string tocken)
 {
-	if ((*src).front() == tocken)
+	if (!src->empty() && src->front() == tocken)
 	{
-		(*src).pop_front();
+		std::cout << "[exceptTocken] : " << (*src).front() << std::endl;
+		src->pop_front();
 		return 1;
 	}
+	else
+		std::cout << "[emerg] : unexpected " << tocken << "\" in " << _conf_file_path << std::endl;
 	return 0;
 }
 
@@ -214,6 +277,7 @@ bool ParseConfig::isDirectory(const std::string& path)
 	}
 	return S_ISDIR(path_stat.st_mode);
 }
+
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
@@ -254,7 +318,6 @@ int main(int argc, char *argv[], char* envp[])
 	try
 	{
 		config.readFileContent();
-		// config.printConfigContent();
 		config.parseConfigContent();
 	}
 	catch (std::exception &e)
