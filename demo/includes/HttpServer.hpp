@@ -13,10 +13,10 @@ class HttpServer
 	public:
 
 		HttpServer();
-		// HttpServer( HttpServer const & src );
+		HttpServer( HttpServer const & src );
 		~HttpServer();
 
-		// HttpServer &		operator=( HttpServer const & rhs );
+		HttpServer &			operator=( HttpServer const & rhs );
 		void					setServer(Server instance);
 		std::vector<Server>		getServer( void );
 

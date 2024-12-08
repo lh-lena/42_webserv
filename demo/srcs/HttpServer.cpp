@@ -1,4 +1,4 @@
-#include "HttpServer.hpp"
+#include "../includes/HttpServer.hpp"
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
@@ -10,6 +10,7 @@ HttpServer::HttpServer()
 
 HttpServer::HttpServer( const HttpServer & src )
 {
+	*this = src;
 }
 
 
@@ -28,10 +29,10 @@ HttpServer::~HttpServer()
 
 HttpServer &				HttpServer::operator=( HttpServer const & rhs )
 {
-	//if ( this != &rhs )
-	//{
-		//this->_value = rhs.getValue();
-	//}
+	if ( this != &rhs )
+	{
+		this->_server = rhs._server;
+	}
 	return *this;
 }
 
