@@ -55,5 +55,14 @@ Location::~Location()
 ** --------------------------------- ACCESSOR ---------------------------------
 */
 
+void	Location::setRoot(const std::string &arg)
+{
+	_root = arg;
+}
+
+std::string	Location::getRoot( void )
+{
+	return (_root);
+}
 
 /* ************************************************************************** */
