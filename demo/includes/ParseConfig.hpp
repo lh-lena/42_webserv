@@ -33,12 +33,15 @@ class ParseConfig
 		void							setLocationDirective(const std::string &directive, DirectiveLocationHandler handler);
 		void							readFileContent( void );
 		void							parseConfigContent( void );
-		std::string						getToken(std::list<std::string> *src);
-		static bool						isDirectory(const std::string& path);
 		int								exceptTocken(std::list<std::string> *src, std::string tocken);
-		std::map<std::string, bool>		block_dir;
+		std::string						getToken(std::list<std::string> *src);
+		std::string						processEnvVar(const std::string &input);
+		static bool						isDirectory(const std::string& path);
 		static std::string				getEnvValue(char **envp, const std::string &variable);
-		
+
+		std::map<std::string, bool>		block_dir;
+		std::map<std::string, bool>		allowed_methods;
+
 		class ParseException : public std::exception
 		{
 			public:
@@ -50,6 +53,8 @@ class ParseConfig
 		};
 
 	private:
+		ParseConfig( ParseConfig const & src ); // not implemented
+		ParseConfig &		operator=( ParseConfig const & rhs ); // not implemented
 		HttpServer											_servers;
 		char												**_envp;
 		std::string											_conf_file_path;
@@ -62,21 +67,23 @@ class ParseConfig
 		template<typename T> void	handleWorkCont(const std::string& value, T* instance);
 		template<typename T> void	handleHttpBlock(const std::string& value, T* instance);
 		template<typename T> void	handleServerBlock(const std::string& value, T* instance);
-		/* TODO */
-		// template<typename T> void	handleErrorLog(const std::string& value, T* instance);
-		// template<typename T> void	handleClientBodySize(const std::string& value, T* instance);
+		template<typename T> void	handleErrorLog(const std::string& value, T* instance);
+		template<typename T> void	handleClientBodySize(const std::string& value, T* instance);
 		template<typename T> void	handleRoot(const std::string& value, T* instance);
-		// template<typename T> void	handleIndex(const std::string& value, T* instance);
-		// template<typename T> void	handleListen(const std::string& value, T* instance);
+		/* TODO */
+		template<typename T> void	handleIndex(const std::string& value, T* instance);
+		template<typename T> void	handleListen(const std::string& value, T* instance);
 		// template<typename T> void	handleTimeout(const std::string& value, T* instance);
-		// template<typename T> void	handleLocationBlock(const std::string& value, T* instance);
-		// template<typename T> void	handleErrorPage(const std::string& value, T* instance);
-		// template<typename T> void	handleServerName(const std::string& value, T* instance);
+		template<typename T> void	handleLocationBlock(const std::string& value, T* instance);
+		// template<typename T> void	handleErrorPage(const std::string& value, T* instance); // to change
+		template<typename T> void	handleServerName(const std::string& value, T* instance);
 		// template<typename T> void	handleReturn(const std::string& value, T* instance);
 		// template<typename T> void	handleTimeout(const std::string& value, T* instance);
-		// template<typename T> void	handleAutoindex(const std::string& value, T* instance);
-		// template<typename T> void	handleAllowedMethods(const std::string& value, T* instance);
-		// template<typename T> void	handleUploadDir(const std::string& value, T* instance);
+		template<typename T> void	handleAutoindex(const std::string& value, T* instance);
+		template<typename T> void	handleAllowedMethods(const std::string& value, T* instance);
+		template<typename T> void	handleUploadDir(const std::string& value, T* instance);
 };
+
+bool	is_digits(const std::string& str);
 
 #endif /* ******************************************************** PARSECONFIG_HPP */

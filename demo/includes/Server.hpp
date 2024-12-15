@@ -12,8 +12,8 @@ class Server
 	public:
 		Server();
 		Server( Server const & src );
-		~Server();
 		Server &		operator=( Server const & rhs );
+		~Server();
 
 		void								setLocationNbr(int value);
 		void								setClientMaxBody(int value);
@@ -25,7 +25,7 @@ class Server
 		void								setErrorPage(const std::string &key, const std::string &value);
 		void								setIndex(const std::string &arg);
 		void								setServerName(const std::string &arg);
-		void								setLocation(Location &src);
+		void								setLocation(const Location &src);
 		int									getLocationNbr( void ) const;
 		int									getClientMaxBody( void ) const;
 		int									getWorkCont( void )  const;
@@ -51,5 +51,7 @@ class Server
 		std::vector<std::string>			_server_names;
 		std::map<std::string, std::string>	_error_pages;
 };
+
+std::ostream &			operator<<( std::ostream & o, Server const & i );
 
 #endif /* ******************************************************** SERVER_HPP */

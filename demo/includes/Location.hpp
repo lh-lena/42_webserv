@@ -17,15 +17,27 @@ class Location
 
 		// Location &		operator=( Location const & rhs );
 
+		void								setPath(const std::string &arg);
 		void								setRoot(const std::string &arg);
-		std::string							getRoot( void );
-		
+		void								setIndex(const std::string &arg);
+		void								setAutoindex(bool arg);
+		void								setAllowedMethod(const std::string &arg);
+		void								setClientMaxBody(int arg);
+		void								setUploadDir(const std::string &arg);
+		bool								getAutoindex( void ) const;
+		int									getClientMaxBody( void ) const;
+		std::string							getPath( void ) const;
+		std::string							getRoot( void ) const;
+		std::string							getUploadDir( void ) const;
+		std::vector<std::string>			getIndexes( void ) const;
+		std::vector<std::string>			getAllowedMethods( void ) const;
+
 	private:
 
 		bool								_autoindex;
 		int									_timeout;
 		int									_client_max_body_size;
-		std::string							_name;
+		std::string							_path;
 		std::string							_root;
 		std::string							_upload_dir;
 		std::string							_cgi_extension;
@@ -37,4 +49,4 @@ class Location
 
 // std::ostream &			operator<<( std::ostream & o, Location const & i );
 
-#endif /* ******************************************************** LOCATION_H */
+#endif /* ******************************************************** LOCATION_HPP */

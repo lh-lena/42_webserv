@@ -7,7 +7,7 @@
 Server::Server()
 	:	
 		_location_nbr(0),
-		_client_max_body_size(1048576), //1M
+		_client_max_body_size(1 * 1024 * 1024), //1M
 		_worker_connections(1024),
 		_host("localhost"),
 		_port("8080"),
@@ -56,6 +56,24 @@ Server &				Server::operator=( Server const & rhs )
 	return *this;
 }
 
+std::ostream&			operator<<( std::ostream & o, Server const& i )
+{
+	o	<< "\n\t** Server **" << std::endl
+		<<  "worker_connection " << i.getWorkCont() << std::endl
+		<<  "client_max_body_size " << i.getClientMaxBody() << std::endl
+		<< "host " << i.getHost() << std::endl
+		<< "port " << i.getPort() << std::endl
+		<< "root " << i.getRoot() << std::endl
+		<< "indexes <vector>: " << std::endl; 
+	for (std::string s : i.getIndexes())
+		o << s << " ";
+	o	<< "\nserver names <vector>: " << std::endl;
+	for (std::string s : i.getServerNames())
+		o << s << " ";
+	o << std::endl;
+	/** TODO: for Location class */
+	return o;
+}
 
 /*
 ** --------------------------------- METHODS ----------------------------------
@@ -116,7 +134,7 @@ void	Server::setServerName(const std::string &arg)
 	_server_names.push_back(arg);
 }
 
-void	Server::setLocation(Location &src)
+void	Server::setLocation(const Location &src)
 {
 	_locations.push_back(src);
 }

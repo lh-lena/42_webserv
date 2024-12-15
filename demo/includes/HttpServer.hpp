@@ -16,15 +16,15 @@ class HttpServer
 		HttpServer( HttpServer const & src );
 		~HttpServer();
 
-		HttpServer &			operator=( HttpServer const & rhs );
-		void					setServer(Server instance);
-		std::vector<Server>		getServer( void );
+		HttpServer&					operator=( HttpServer const & rhs );
+		void						setServer(Server instance);
+		const std::vector<Server>&	getServers( void ) const;
 
 	private:
 		std::vector<Server>		_server;
 
 };
 
-// std::ostream &			operator<<( std::ostream & o, HttpServer const & i );
+std::ostream &			operator<<( std::ostream & o, HttpServer const & i );
 
-#endif /* ****************************************************** HTTPSERVER_H */
+#endif /* ****************************************************** HTTPSERVER_HPP */

@@ -8,7 +8,7 @@ HttpServer::HttpServer()
 {
 }
 
-HttpServer::HttpServer( const HttpServer & src )
+HttpServer::HttpServer( const HttpServer& src )
 {
 	*this = src;
 }
@@ -27,7 +27,7 @@ HttpServer::~HttpServer()
 ** --------------------------------- OVERLOAD ---------------------------------
 */
 
-HttpServer &				HttpServer::operator=( HttpServer const & rhs )
+HttpServer&				HttpServer::operator=( HttpServer const& rhs )
 {
 	if ( this != &rhs )
 	{
@@ -36,9 +36,13 @@ HttpServer &				HttpServer::operator=( HttpServer const & rhs )
 	return *this;
 }
 
-std::ostream &			operator<<( std::ostream & o, HttpServer const & i )
+std::ostream&			operator<<( std::ostream & o, HttpServer const& i )
 {
-	//o << "Value = " << i.getValue();
+	std::vector<Server> servers = i.getServers();
+	for (Server server : servers)
+	{
+    	o << server << std::endl;
+	}
 	return o;
 }
 
@@ -57,7 +61,7 @@ void	HttpServer::setServer(Server instance)
 	_server.push_back(instance);
 }
 
-std::vector<Server>	HttpServer::getServer( void )
+const std::vector<Server>&	HttpServer::getServers( void ) const
 {
 	return (_server);
 }

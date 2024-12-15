@@ -4,25 +4,26 @@
 ** ------------------------------ DECLARATION ---------------------------------
 */
 
-template void	ParseConfig::handleWorkCont<Server>(const std::string&, Server*);
-template void	ParseConfig::handleHttpBlock<Server>(const std::string&, Server*);
+template void	ParseConfig::handleClientBodySize<Server>(const std::string&, Server*);
 template void	ParseConfig::handleServerBlock<Server>(const std::string&, Server*);
-// template void	ParseConfig::handleErrorLog<Server>(const std::string&, Server*);
-// template void	ParseConfig::handleClientBodySize<Server>(const std::string&, Server*);
-// template void	ParseConfig::handleListen<Server>(const std::string&, Server*);
-// template void	ParseConfig::handleLocationBlock<Server>(const std::string&, Server*);
-// template void	ParseConfig::handleServerName<Server>(const std::string&, Server*);
-template void	ParseConfig::handleRoot<Location>(const std::string&, Location*);
-template void	ParseConfig::handleRoot<Server>(const std::string&, Server*);
-// template void	ParseConfig::handleIndex<Location>(const std::string&, Location*);
-// template void	ParseConfig::handleIndex<Server>(const std::string&, Server*);
-// template void	ParseConfig::handleTimeout<Location>(const std::string&, Location*);
-// template void	ParseConfig::handleTimeout<Server>(const std::string&, Server*);
-// template void	ParseConfig::handleErrorPage<Location>(const std::string&, Location*);
+template void	ParseConfig::handleServerName<Server>(const std::string&, Server*);
+template void	ParseConfig::handleHttpBlock<Server>(const std::string&, Server*);
 // template void	ParseConfig::handleErrorPage<Server>(const std::string&, Server*);
-// template void	ParseConfig::handleAllowedMethods<Location>(const std::string&, Location*);
-// template void	ParseConfig::handleUploadDir<Location>(const std::string&, Location*);
-// template void	ParseConfig::handleAutoindex<Location>(const std::string&, Location*);
+template void	ParseConfig::handleWorkCont<Server>(const std::string&, Server*);
+template void	ParseConfig::handleErrorLog<Server>(const std::string&, Server*);
+// template void	ParseConfig::handleTimeout<Server>(const std::string&, Server*);
+template void	ParseConfig::handleListen<Server>(const std::string&, Server*);
+template void	ParseConfig::handleIndex<Server>(const std::string&, Server*);
+template void	ParseConfig::handleRoot<Server>(const std::string&, Server*);
+template void	ParseConfig::handleAllowedMethods<Location>(const std::string&, Location*);
+template void	ParseConfig::handleLocationBlock<Location>(const std::string&, Location*);
+// template void	ParseConfig::handleErrorPage<Location>(const std::string&, Location*);
+template void	ParseConfig::handleUploadDir<Location>(const std::string&, Location*);
+template void	ParseConfig::handleAutoindex<Location>(const std::string&, Location*);
+// template void	ParseConfig::handleReturn<Location>(const std::string&, Location*);
+// template void	ParseConfig::handleTimeout<Location>(const std::string&, Location*);
+template void	ParseConfig::handleIndex<Location>(const std::string&, Location*);
+template void	ParseConfig::handleRoot<Location>(const std::string&, Location*);
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
@@ -36,28 +37,32 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _conf_file_path("
 	_servers = httpServer;
 	block_dir["http"] = true;
 	block_dir["server"] = true;
-	block_dir["location"] = false;
+	block_dir["location"] = true;
+	allowed_methods["GET"] = true;
+	allowed_methods["POST"] = true;
+	allowed_methods["DELETE"] = true;
 	this->setGlobalDirective("worker_connections", &ParseConfig::handleWorkCont);
 	this->setGlobalDirective("http", &ParseConfig::handleHttpBlock);
-	// this->setHttpDirective("server", &ParseConfig::handleServerBlock);
-	// this->setHttpDirective("error_log", &ParseConfig::handleErrorLog);
-	// this->setHttpDirective("client_max_body_size", &ParseConfig::handleClientBodySize);
+	this->setHttpDirective("server", &ParseConfig::handleServerBlock);
+	this->setHttpDirective("error_log", &ParseConfig::handleErrorLog);
+	this->setHttpDirective("client_max_body_size", &ParseConfig::handleClientBodySize);
 	this->setServerDirective("root", &ParseConfig::handleRoot);
-	// this->setServerDirective("index", &ParseConfig::handleIndex);
-	// this->setServerDirective("listen", &ParseConfig::handleListen);
+	this->setServerDirective("index", &ParseConfig::handleIndex);
+	this->setServerDirective("listen", &ParseConfig::handleListen);
 	// this->setServerDirective("timeout", &ParseConfig::handleTimeout);
-	// this->setServerDirective("location", &ParseConfig::handleLocationBlock);
 	// this->setServerDirective("error_page", &ParseConfig::handleErrorPage);
-	// this->setServerDirective("server_name", &ParseConfig::handleServerName);
-	// this->setServerDirective("client_max_body_size", &ParseConfig::handleClientBodySize);
+	this->setLocationDirective("location", &ParseConfig::handleLocationBlock);
+	this->setServerDirective("location", &ParseConfig::handleServerBlock);
+	this->setServerDirective("server_name", &ParseConfig::handleServerName);
+	this->setServerDirective("client_max_body_size", &ParseConfig::handleClientBodySize);
 	this->setLocationDirective("root", &ParseConfig::handleRoot);
-	// this->setLocationDirective("index", &ParseConfig::handleIndex);
+	this->setLocationDirective("index", &ParseConfig::handleIndex);
 	// this->setLocationDirective("return", &ParseConfig::handleReturn);
 	// this->setLocationDirective("timeout", &ParseConfig::handleTimeout);
-	// this->setLocationDirective("autoindex", &ParseConfig::handleAutoindex);
+	this->setLocationDirective("autoindex", &ParseConfig::handleAutoindex);
 	// this->setLocationDirective("error_page", &ParseConfig::handleErrorPage);
-	// this->setLocationDirective("allowed_methods", &ParseConfig::handleAllowedMethods);
-	// this->setLocationDirective("upload_directory", &ParseConfig::handleUploadDir);
+	this->setLocationDirective("allowed_methods", &ParseConfig::handleAllowedMethods);
+	this->setLocationDirective("upload_directory", &ParseConfig::handleUploadDir);
 }
 
 /*
@@ -126,15 +131,15 @@ void ParseConfig::readFileContent( void )
 
 void ParseConfig::parseConfigContent( void )
 {
-	std::string directive;
-	std::string value;
-	Server server;
+	std::string	directive;
+	std::string	value;
+	Server		server;
+
 	try
 	{
 		while (!_conf_content.empty())
 		{
 			directive = getToken(&_conf_content);
-			std::cout << "[LOG] parseConfigContent directive: " << directive << std::endl;
 			if (_global_directives.find(directive) == _global_directives.end())
 			{
 				std::cerr << "[ERROR] parseConfigContent Unknown directive: " << directive << std::endl;
@@ -142,7 +147,6 @@ void ParseConfig::parseConfigContent( void )
 			}
 			exceptTocken(&_conf_content, directive);
 			value = getToken(&_conf_content);
-			std::cout << "[LOG] parseConfigContent value: " << value << std::endl;
 			DirectiveServerHandler serv_handler = _global_directives[directive];
 			(this->*serv_handler)(value, (Server*)&server);
 			if (block_dir.find(directive) == block_dir.end())
@@ -151,7 +155,7 @@ void ParseConfig::parseConfigContent( void )
 				exceptTocken(&_conf_content, ";");
 			}
 		}
-		_servers.setServer(server);
+		std::cout << this->_servers << std::endl;
 	}
 	catch (std::exception &e)
 	{
@@ -159,82 +163,236 @@ void ParseConfig::parseConfigContent( void )
 	}
 }
 
-std::string ParseConfig::getToken(std::list<std::string> *src)
-{
-	if (src->empty())
-		throw ParseConfig::ParseException("[emrge] : Unexpected end of configuration content in " + _conf_file_path);
-	std::string token = src->front();
-	return token;
-}
-
-template<typename T> void	ParseConfig::handleWorkCont(const std::string& value, T* instance)
-{
-	std::cout << "[LOG] handleWorkCont processing value: " << value << std::endl;
-	std::istringstream iss(value);
-	int val = 0;
-	iss >> val;
-	// if (iss.bad()) /*TODO: -error checking */
-
-	instance->setWorkCont(val);
-}
-
-/* TODO:
-- change [T* instance] from [Server] to [HttpServer]
-- replace _server_directives to _http_directives
-- to handle global data to classes
-*/
-
 template<typename T> void	ParseConfig::handleHttpBlock(const std::string& value, T* instance)
 {
-	std::cout << "[LOG] handleHttpBlock: processing value: " << value << std::endl;
-	Server server;
-	if (_servers.getServer().size() != 0)
-		server = _servers.getServer().front();
 	std::string directive;
 	std::string val;
-	exceptTocken(&_conf_content, "{");
+
 	try
 	{
+		exceptTocken(&_conf_content, "{");
 		while (!_conf_content.empty())
 		{
 			directive = getToken(&_conf_content);
-			std::cout << "[handleHttpBlock] directive : " << directive << std::endl;
 			if (directive == "}")
 				break;
-			if (_server_directives.find(directive) == _server_directives.end())
+			if (_http_directives.find(directive) == _http_directives.end())
 				throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path);
 			exceptTocken(&_conf_content, directive);
+			if (block_dir.find(directive) != block_dir.end())
+			{
+				Server server(*instance);
+				DirectiveServerHandler serv_handler = _http_directives[directive];
+				(this->*serv_handler)(val, (Server*)&server);
+				_servers.setServer(server);
+				continue;
+			}
 			val = getToken(&_conf_content);
-			std::cout << "[handleHttpBlock] processing value : " << val << std::endl;
 			while (val != ";")
 			{
-				DirectiveServerHandler serv_handler = _server_directives[directive];
-				(this->*serv_handler)(val, (Server*)&server);
+				DirectiveServerHandler serv_handler = _http_directives[directive];
+				(this->*serv_handler)(val, instance);
 				exceptTocken(&_conf_content, val);
 				val = getToken(&_conf_content);
 			}
-			exceptTocken(&_conf_content, val);
+			exceptTocken(&_conf_content, ";");
 		}
-		_servers.setServer(server);
 		exceptTocken(&_conf_content, "}");
 	}
 	catch(const std::exception& e)
 	{
 		throw ParseException(e.what());
 	}
-	
 }
 
 template<typename T> void	ParseConfig::handleServerBlock(const std::string& value, T* instance)
 {
-	std::cout << "[handleServerBlock] processing value: " << value << std::endl;
+	try
+	{
+		exceptTocken(&_conf_content, "{");
+		while (!_conf_content.empty())
+		{
+			std::string directive;
+			std::string val;
+			directive = getToken(&_conf_content);
+			if (directive == "}")
+				break;
+			if (_server_directives.find(directive) == _server_directives.end())
+				throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path);
+			exceptTocken(&_conf_content, directive);
+			val = getToken(&_conf_content);
+			if (block_dir.find(directive) != block_dir.end())
+			{
+				/** TODO: to test */
+				Location location;
+				DirectiveLocationHandler loc_handler = _location_directives[directive];
+				(this->*loc_handler)(val, (Location*)&location);
+				instance->setLocation(location);
+				continue;
+			}
+			while (val != ";")
+			{
+				DirectiveServerHandler serv_handler = _server_directives[directive];
+				(this->*serv_handler)(val, instance);
+				exceptTocken(&_conf_content, val);
+				val = getToken(&_conf_content);
+				if (val == ";")
+					break;
+			}
+			exceptTocken(&_conf_content, ";");
+		}
+		exceptTocken(&_conf_content, "}");
+	}
+	catch(const std::exception& e)
+	{
+		throw ParseException(e.what());
+	}
+}
 
+/** TODO: */
+template<typename T> void	ParseConfig::handleLocationBlock(const std::string& value, T* instance)
+{
+	try
+	{
+		exceptTocken(&_conf_content, "{");
+		while (!_conf_content.empty())
+		{
+			std::string directive;
+			std::string val;
+			directive = getToken(&_conf_content);
+			if (directive == "}")
+				break;
+			if (_location_directives.find(directive) == _location_directives.end())
+				throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path);
+			exceptTocken(&_conf_content, directive);
+			val = getToken(&_conf_content);
+			while (val != ";")
+			{
+				DirectiveLocationHandler loc_handler = _location_directives[directive];
+				(this->*loc_handler)(val, instance);
+				exceptTocken(&_conf_content, val);
+				val = getToken(&_conf_content);
+				if (val == ";")
+					break;
+			}
+			exceptTocken(&_conf_content, ";");
+		}
+		exceptTocken(&_conf_content, "}");
+	}
+	catch(const std::exception& e)
+	{
+		throw ParseException(e.what());
+	}
+}
+
+template<typename T> void	ParseConfig::handleWorkCont(const std::string& value, T* instance)
+{
+	int val = 0;
+
+	if (!is_digits(value))
+		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required only digits in " + _conf_file_path);
+	std::istringstream iss(value);
+	iss >> val;
+	if (iss.bad() || val <= 0)
+		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required a positive number in " + _conf_file_path);
+
+	instance->setWorkCont(val);
 }
 
 template<typename T> void	ParseConfig::handleRoot(const std::string& value, T* instance)
 {
-	std::cout << "[handleRoot] processing value: " << value << std::endl;
 	instance->setRoot(value);
+}
+
+template<typename T> void	ParseConfig::handleErrorLog(const std::string& value, T* instance)
+{
+	instance->setErrorLog(value);
+}
+
+template<typename T> void	ParseConfig::handleClientBodySize(const std::string& value, T* instance)
+{
+	int val = 0;
+	std::string unit = value.substr(value.length() - 1);
+	value.substr(0, value.length() - 1);
+	if (!is_digits(value))
+		throw ParseException("[emerg] : directive \"client_max_body_size\" required only digits in " + _conf_file_path);
+	std::istringstream iss(value);
+	iss >> val;
+	if (iss.bad() || val <= 0)
+		throw ParseException("[emerg] : directive \"client_max_body_size\" required a positive number in " + _conf_file_path);
+	if (val > 100)
+		throw ParseException("[emerg] : directive \"client_max_body_size\" limited size up to 100 Megabytes in " + _conf_file_path);
+	if (unit != "M")
+		throw ParseException("[emerg] : directive \"client_max_body_size\" required a number's unit in Megabytes in " + _conf_file_path);
+	val = val * 1024 * 1024;
+	instance->setClientMaxBody(val);
+}
+template<typename T> void	ParseConfig::handleIndex(const std::string& value, T* instance)
+{
+	instance->setIndex(value);
+}
+
+template<typename T> void	ParseConfig::handleListen(const std::string& value, T* instance)
+{
+	size_t pos = value.find(":");
+	if (pos == std::string::npos)
+	{
+		instance->setPort(value);
+		return;
+	}
+	std::string host = value.substr(0, pos);
+	if	(host[0] == '{')
+		host = getEnvValue(_envp, host);
+	instance->setHost(host);
+	std::string port = value.substr(pos + 1);
+	if (port[0] == '{')
+		port = getEnvValue(_envp, port);
+	instance->setPort(port);
+}
+
+
+template<typename T> void	ParseConfig::handleServerName(const std::string& value, T* instance)
+{
+	instance->setServerName(value);
+}
+
+template<typename T> void	ParseConfig::handleAutoindex(const std::string& value, T* instance)
+{
+	if (value == "on")
+		instance->setAutoindex(true);
+	else if (value == "off")
+		instance->setAutoindex(false);
+	else
+		throw ParseException("[emerg] : directive \"autoindex\" misses 'on' or 'off' statement in " + _conf_file_path);
+}
+
+template<typename T> void	ParseConfig::handleAllowedMethods(const std::string& value, T* instance)
+{
+	if (this->allowed_methods.find(value) != this->allowed_methods.end())
+	{
+		instance->setAllowedMethod(value);
+	}
+	else
+	{
+		throw ParseException("[emerg] : method \"" + value + "\" not allowed in " + _conf_file_path);
+	}
+}
+/** TODO: */
+/* template<typename T> void	ParseConfig::handleReturn(const std::string& value, T* instance)
+{
+
+} */
+
+/** TODO: */
+/* template<typename T> void	ParseConfig::handleErrorPage(const std::string& value, T* instance)
+{
+
+} */
+
+
+template<typename T> void	ParseConfig::handleUploadDir(const std::string& value, T* instance)
+{
+	instance->setUploadDir(value);
 }
 
 int	ParseConfig::exceptTocken(std::list<std::string> *src, std::string tocken)
@@ -246,10 +404,25 @@ int	ParseConfig::exceptTocken(std::list<std::string> *src, std::string tocken)
 		return 1;
 	}
 	else
-		std::cout << "[emerg] : unexpected " << tocken << "\" in " << _conf_file_path << std::endl;
+		std::cout << "[emerg] : unexpected \"" << tocken << "\" in " << _conf_file_path << std::endl;
 	return 0;
 }
 
+std::string ParseConfig::processEnvVar(const std::string &input)
+{
+	size_t start = input.find("${");
+	size_t end = input.find("}");
+
+	if (start != std::string::npos && end != std::string::npos && (start + 2) != end)
+	{
+		std::string var = input.substr(start + 2, end - start - 2);
+		return (getEnvValue(_envp, var));
+	}
+	else
+	{
+		throw ParseException("[emerg] \"" + input + "\" invalid input in " + _conf_file_path);
+	}
+}
 
 std::string ParseConfig::getEnvValue(char **envp, const std::string &variable)
 {
@@ -268,7 +441,6 @@ std::string ParseConfig::getEnvValue(char **envp, const std::string &variable)
 
 bool ParseConfig::isDirectory(const std::string& path)
 {
-	std::cout << path << std::endl;
 	struct stat path_stat;
 	if (stat(path.c_str(), &path_stat) != 0)
 	{
@@ -278,10 +450,29 @@ bool ParseConfig::isDirectory(const std::string& path)
 	return S_ISDIR(path_stat.st_mode);
 }
 
+std::string ParseConfig::getToken(std::list<std::string> *src)
+{
+	if (src->empty())
+		throw ParseConfig::ParseException("[emerg] : Unexpected end of configuration content in " + _conf_file_path);
+	std::string token = src->front();
+	return token;
+}
+
+bool	is_digits(const std::string& str)
+{
+    for (char c : str)
+	{
+        if (!std::isdigit(c))
+            return false;
+    }
+    return true;
+}
+
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
 */
+
 
 void ParseConfig::setGlobalDirective(const std::string &directive, DirectiveServerHandler handler)
 {
