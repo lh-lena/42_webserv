@@ -33,8 +33,6 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _conf_file_path("
 {
 	if (!file_path.empty())
 		_conf_file_path = file_path;
-	HttpServer httpServer;
-	_servers = httpServer;
 	block_dir["http"] = true;
 	block_dir["server"] = true;
 	block_dir["location"] = true;
@@ -155,7 +153,7 @@ void ParseConfig::parseConfigContent( void )
 				exceptTocken(&_conf_content, ";");
 			}
 		}
-		std::cout << this->_servers << std::endl;
+		std::cout << _serverControler << std::endl;
 	}
 	catch (std::exception &e)
 	{
@@ -184,7 +182,7 @@ template<typename T> void	ParseConfig::handleHttpBlock(const std::string& value,
 				Server server(*instance);
 				DirectiveServerHandler serv_handler = _http_directives[directive];
 				(this->*serv_handler)(val, (Server*)&server);
-				_servers.setServer(server);
+				_serverControler.setServer(server);
 				continue;
 			}
 			val = getToken(&_conf_content);

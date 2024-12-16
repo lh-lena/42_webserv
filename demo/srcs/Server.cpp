@@ -14,8 +14,8 @@ Server::Server()
 		_root("./var/www/html"),
 		_error_log("error.log")
 {
-	_indexes.push_back("index.html");
-	_indexes.push_back("index.htm");
+	// _indexes.push_back("index.html");
+	// _indexes.push_back("index.htm");
 }
 
 Server::Server( const Server & src )

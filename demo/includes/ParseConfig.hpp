@@ -12,7 +12,7 @@
 # include <iterator>
 # include <sys/stat.h>
 # include <exception>
-# include "HttpServer.hpp"
+# include "ServerControler.hpp"
 # include "Server.hpp"
 # include "Location.hpp"
 
@@ -55,7 +55,7 @@ class ParseConfig
 	private:
 		ParseConfig( ParseConfig const & src ); // not implemented
 		ParseConfig &		operator=( ParseConfig const & rhs ); // not implemented
-		HttpServer											_servers;
+		ServerControler										_serverControler;
 		char												**_envp;
 		std::string											_conf_file_path;
 		std::list<std::string>								_conf_content;
