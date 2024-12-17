@@ -72,13 +72,13 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 		o << s << " ";
 	
 	o << std::endl;
-
-	std::vector<Location> servers = i.getLocations();
-	for (Location server : servers)
+	o << "Locations:" << std::endl;
+	std::vector<Location> locations = i.getLocations();
+	for (Location loc : locations)
 	{
-		o << server << std::endl;
+		o << "LOCATION:\n" << loc << std::endl;
 	}
-	
+
 	return o;
 }
 

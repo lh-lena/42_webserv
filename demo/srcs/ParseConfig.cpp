@@ -4,19 +4,10 @@
 ** ------------------------------ DECLARATION ---------------------------------
 */
 
-template void	ParseConfig::handleClientBodySize<Server>(const std::string&, Server*);
-template void	ParseConfig::handleServerName<Server>(const std::string&, Server*);
 // template void	ParseConfig::handleErrorPage<Server>(const std::string&, Server*);
-template void	ParseConfig::handleWorkCont<Server>(const std::string&, Server*);
-template void	ParseConfig::handleErrorLog<Server>(const std::string&, Server*);
-template void	ParseConfig::handleListen<Server>(const std::string&, Server*);
 template void	ParseConfig::handleIndex<Server>(const std::string&, Server*);
 template void	ParseConfig::handleRoot<Server>(const std::string&, Server*);
-template void	ParseConfig::handleAllowedMethods<Location>(const std::string&, Location*);
 // template void	ParseConfig::handleErrorPage<Location>(const std::string&, Location*);
-template void	ParseConfig::handleUploadDir<Location>(const std::string&, Location*);
-template void	ParseConfig::handleAutoindex<Location>(const std::string&, Location*);
-// template void	ParseConfig::handleReturn<Location>(const std::string&, Location*);
 template void	ParseConfig::handleIndex<Location>(const std::string&, Location*);
 template void	ParseConfig::handleRoot<Location>(const std::string&, Location*);
 
@@ -48,12 +39,14 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _conf_file_path("
 	this->setServerDirective("server_name", &ParseConfig::handleServerName);
 	this->setServerDirective("client_max_body_size", &ParseConfig::handleClientBodySize);
 	this->setLocationDirective("root", &ParseConfig::handleRoot);
+	this->setLocationDirective("path", &ParseConfig::handlePath);
 	this->setLocationDirective("index", &ParseConfig::handleIndex);
-	// this->setLocationDirective("return", &ParseConfig::handleReturn);
+	// this->setLocationDirective("return", &ParseConfig::handleRedirect);
 	this->setLocationDirective("autoindex", &ParseConfig::handleAutoindex);
 	// this->setLocationDirective("error_page", &ParseConfig::handleErrorPage);
 	this->setLocationDirective("allowed_methods", &ParseConfig::handleAllowedMethods);
 	this->setLocationDirective("upload_directory", &ParseConfig::handleUploadDir);
+	this->setLocationDirective("cgi_extension", &ParseConfig::handleCgiExtension);
 }
 
 /*
@@ -84,10 +77,10 @@ ParseConfig::ParseException::~ParseException() throw() {};
 ** --------------------------------- METHODS ----------------------------------
 */
 
-void ParseConfig::readFileContent( void )
+void		ParseConfig::readFileContent( void )
 {
 	if (ParseConfig::isDirectory(_conf_file_path))
-		throw ParseException("[emerg] :  open() " + _conf_file_path + " failed (Is a directory)");
+		throw ParseException("[emerg] : open() " + _conf_file_path + " failed (Is a directory)");
 
 	std::ifstream conf_file(_conf_file_path.c_str());
 
@@ -120,7 +113,11 @@ void ParseConfig::readFileContent( void )
 	conf_file.close();
 }
 
-void ParseConfig::parseConfigContent( void )
+/**
+ * The function `parseConfigContent` parses configuration content by reading directives and values,
+ * handling them accordingly, and catching any exceptions that may occur.
+ */
+void 		ParseConfig::parseConfigContent( void )
 {
 	std::string	directive;
 	std::string	value;
@@ -154,7 +151,7 @@ void ParseConfig::parseConfigContent( void )
 	}
 }
 
-void			ParseConfig::handleHttpBlock(const std::string& value, Server* instance)
+void		ParseConfig::handleHttpBlock(const std::string& value, Server* instance)
 {
 	std::string directive;
 	std::string val;
@@ -196,7 +193,7 @@ void			ParseConfig::handleHttpBlock(const std::string& value, Server* instance)
 	}
 }
 
-void			ParseConfig::handleServerBlock(const std::string& value, Server* instance)
+void		ParseConfig::handleServerBlock(const std::string& value, Server* instance)
 {
 	try
 	{
@@ -214,10 +211,10 @@ void			ParseConfig::handleServerBlock(const std::string& value, Server* instance
 			val = getToken(&_conf_content);
 			if (block_dir.find(directive) != block_dir.end())
 			{
-				/** TODO: to test */
 				Location location;
 				DirectiveLocationHandler loc_handler = _location_directives[directive];
 				(this->*loc_handler)(val, (Location*)&location);
+				std::cout << "location: " << location << std::endl;
 				instance->setLocation(location);
 				continue;
 			}
@@ -240,8 +237,11 @@ void			ParseConfig::handleServerBlock(const std::string& value, Server* instance
 	}
 }
 
-void			ParseConfig::handleLocationBlock(const std::string& value, Location* instance)
+void		ParseConfig::handleLocationBlock(const std::string& value, Location* instance)
 {
+	DirectiveLocationHandler loc_handler = _location_directives["path"];
+	(this->*loc_handler)(value, instance);
+	exceptTocken(&_conf_content, value);
 	try
 	{
 		exceptTocken(&_conf_content, "{");
@@ -275,7 +275,7 @@ void			ParseConfig::handleLocationBlock(const std::string& value, Location* inst
 	}
 }
 
-template<typename T> void	ParseConfig::handleWorkCont(const std::string& value, T* instance)
+void		ParseConfig::handleWorkCont(const std::string& value, Server* instance)
 {
 	int val = 0;
 
@@ -294,19 +294,24 @@ template<typename T> void	ParseConfig::handleRoot(const std::string& value, T* i
 	instance->setRoot(value);
 }
 
-template<typename T> void	ParseConfig::handleErrorLog(const std::string& value, T* instance)
+void		ParseConfig::handlePath(const std::string& value, Location* instance)
+{
+	instance->setPath(value);
+}
+
+void		ParseConfig::handleErrorLog(const std::string& value, Server* instance)
 {
 	instance->setErrorLog(value);
 }
 
-template<typename T> void	ParseConfig::handleClientBodySize(const std::string& value, T* instance)
+void		ParseConfig::handleClientBodySize(const std::string& value, Server* instance)
 {
 	int val = 0;
 	std::string unit = value.substr(value.length() - 1);
-	value.substr(0, value.length() - 1);
-	if (!is_digits(value))
+	std::string nbr = value.substr(0, value.length() - 1);
+	if (!is_digits(nbr))
 		throw ParseException("[emerg] : directive \"client_max_body_size\" required only digits in " + _conf_file_path);
-	std::istringstream iss(value);
+	std::istringstream iss(nbr);
 	iss >> val;
 	if (iss.bad() || val <= 0)
 		throw ParseException("[emerg] : directive \"client_max_body_size\" required a positive number in " + _conf_file_path);
@@ -322,7 +327,7 @@ template<typename T> void	ParseConfig::handleIndex(const std::string& value, T* 
 	instance->setIndex(value);
 }
 
-template<typename T> void	ParseConfig::handleListen(const std::string& value, T* instance)
+void		ParseConfig::handleListen(const std::string& value, Server* instance)
 {
 	size_t pos = value.find(":");
 	if (pos == std::string::npos)
@@ -341,12 +346,12 @@ template<typename T> void	ParseConfig::handleListen(const std::string& value, T*
 }
 
 
-template<typename T> void	ParseConfig::handleServerName(const std::string& value, T* instance)
+void		ParseConfig::handleServerName(const std::string& value, Server* instance)
 {
 	instance->setServerName(value);
 }
 
-template<typename T> void	ParseConfig::handleAutoindex(const std::string& value, T* instance)
+void		ParseConfig::handleAutoindex(const std::string& value, Location* instance)
 {
 	if (value == "on")
 		instance->setAutoindex(true);
@@ -356,7 +361,7 @@ template<typename T> void	ParseConfig::handleAutoindex(const std::string& value,
 		throw ParseException("[emerg] : directive \"autoindex\" misses 'on' or 'off' statement in " + _conf_file_path);
 }
 
-template<typename T> void	ParseConfig::handleAllowedMethods(const std::string& value, T* instance)
+void		ParseConfig::handleAllowedMethods(const std::string& value, Location* instance)
 {
 	if (this->allowed_methods.find(value) != this->allowed_methods.end())
 	{
@@ -368,7 +373,7 @@ template<typename T> void	ParseConfig::handleAllowedMethods(const std::string& v
 	}
 }
 /** TODO: */
-/* template<typename T> void	ParseConfig::handleReturn(const std::string& value, T* instance)
+/* void	ParseConfig::handleRedirect(const std::string& value, Location* instance)
 {
 
 } */
@@ -380,12 +385,32 @@ template<typename T> void	ParseConfig::handleAllowedMethods(const std::string& v
 } */
 
 
-template<typename T> void	ParseConfig::handleUploadDir(const std::string& value, T* instance)
+void		ParseConfig::handleUploadDir(const std::string& value, Location* instance)
 {
 	instance->setUploadDir(value);
 }
 
-int	ParseConfig::exceptTocken(std::list<std::string> *src, std::string tocken)
+void		ParseConfig::handleCgiExtension(const std::string& value, Location* instance)
+{
+	instance->setCgiExtension(value);
+}
+
+/**
+ * The function `exceptTocken` checks if the front element of a list matches a given token and prints a
+ * message accordingly.
+ * 
+ * @param src The `src` parameter is a pointer to a `std::list` of `std::string` objects. It is used to
+ * store a list of strings that are being parsed or processed.
+ * @param tocken The `tocken` parameter in the `exceptTocken` function is a `std::string` that
+ * represents the token that is expected to be at the front of the list `src`. The function checks if
+ * the list is not empty and if the front element of the list matches the `
+ * 
+ * @return The function `exceptTocken` returns an integer value. If the condition `!src->empty() &&
+ * src->front() == tocken` is true, it returns 1 after printing the message "[exceptTocken] : "
+ * followed by the front element of the list `src`. If the condition is false, it prints "[emerg] :
+ * unexpected " followed by the file name`
+ */
+int		ParseConfig::exceptTocken(std::list<std::string> *src, std::string tocken)
 {
 	if (!src->empty() && src->front() == tocken)
 	{
@@ -398,6 +423,19 @@ int	ParseConfig::exceptTocken(std::list<std::string> *src, std::string tocken)
 	return 0;
 }
 
+
+/**
+ * The function `processEnvVar` parses a string input to extract and return the value of an environment
+ * variable specified within `${}`.
+ * 
+ * @param input The `processEnvVar` function takes a string `input` as a parameter. This function is
+ * designed to extract and process environment variables enclosed within `${}` in the input string.
+ * 
+ * @return The `processEnvVar` function returns the value of an environment variable specified within
+ * `${}` in the input string. If the input string contains `${}` with a valid variable name inside, it
+ * will return the value of that environment variable. Otherwise, it will throw a `ParseException` with
+ * an error message indicating that the input is invalid.
+ */
 std::string ParseConfig::processEnvVar(const std::string &input)
 {
 	size_t start = input.find("${");
