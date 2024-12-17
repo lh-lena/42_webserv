@@ -27,6 +27,9 @@ class ParseConfig
 
 		typedef void					(ParseConfig::*DirectiveServerHandler)(const std::string&, Server*);
 		typedef void					(ParseConfig::*DirectiveLocationHandler)(const std::string&, Location*);
+		void							handleHttpBlock(const std::string& value, Server* instance);
+		void							handleServerBlock(const std::string& value, Server* instance);
+		void							handleLocationBlock(const std::string& value, Location* instance);
 		void							setGlobalDirective(const std::string &directive, DirectiveServerHandler handler);
 		void							setHttpDirective(const std::string &directive, DirectiveServerHandler handler);
 		void							setServerDirective(const std::string &directive, DirectiveServerHandler handler);
@@ -65,22 +68,16 @@ class ParseConfig
 		std::map<std::string, DirectiveLocationHandler>		_location_directives;
 
 		template<typename T> void	handleWorkCont(const std::string& value, T* instance);
-		template<typename T> void	handleHttpBlock(const std::string& value, T* instance);
-		template<typename T> void	handleServerBlock(const std::string& value, T* instance);
-		template<typename T> void	handleErrorLog(const std::string& value, T* instance);
 		template<typename T> void	handleClientBodySize(const std::string& value, T* instance);
+		template<typename T> void	handleErrorLog(const std::string& value, T* instance);
 		template<typename T> void	handleRoot(const std::string& value, T* instance);
-		/* TODO */
 		template<typename T> void	handleIndex(const std::string& value, T* instance);
 		template<typename T> void	handleListen(const std::string& value, T* instance);
-		// template<typename T> void	handleTimeout(const std::string& value, T* instance);
-		template<typename T> void	handleLocationBlock(const std::string& value, T* instance);
+		template<typename T> void	handleAllowedMethods(const std::string& value, T* instance);
 		// template<typename T> void	handleErrorPage(const std::string& value, T* instance); // to change
 		template<typename T> void	handleServerName(const std::string& value, T* instance);
 		// template<typename T> void	handleReturn(const std::string& value, T* instance);
-		// template<typename T> void	handleTimeout(const std::string& value, T* instance);
 		template<typename T> void	handleAutoindex(const std::string& value, T* instance);
-		template<typename T> void	handleAllowedMethods(const std::string& value, T* instance);
 		template<typename T> void	handleUploadDir(const std::string& value, T* instance);
 };
 

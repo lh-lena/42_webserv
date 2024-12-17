@@ -5,23 +5,18 @@
 */
 
 template void	ParseConfig::handleClientBodySize<Server>(const std::string&, Server*);
-template void	ParseConfig::handleServerBlock<Server>(const std::string&, Server*);
 template void	ParseConfig::handleServerName<Server>(const std::string&, Server*);
-template void	ParseConfig::handleHttpBlock<Server>(const std::string&, Server*);
 // template void	ParseConfig::handleErrorPage<Server>(const std::string&, Server*);
 template void	ParseConfig::handleWorkCont<Server>(const std::string&, Server*);
 template void	ParseConfig::handleErrorLog<Server>(const std::string&, Server*);
-// template void	ParseConfig::handleTimeout<Server>(const std::string&, Server*);
 template void	ParseConfig::handleListen<Server>(const std::string&, Server*);
 template void	ParseConfig::handleIndex<Server>(const std::string&, Server*);
 template void	ParseConfig::handleRoot<Server>(const std::string&, Server*);
 template void	ParseConfig::handleAllowedMethods<Location>(const std::string&, Location*);
-template void	ParseConfig::handleLocationBlock<Location>(const std::string&, Location*);
 // template void	ParseConfig::handleErrorPage<Location>(const std::string&, Location*);
 template void	ParseConfig::handleUploadDir<Location>(const std::string&, Location*);
 template void	ParseConfig::handleAutoindex<Location>(const std::string&, Location*);
 // template void	ParseConfig::handleReturn<Location>(const std::string&, Location*);
-// template void	ParseConfig::handleTimeout<Location>(const std::string&, Location*);
 template void	ParseConfig::handleIndex<Location>(const std::string&, Location*);
 template void	ParseConfig::handleRoot<Location>(const std::string&, Location*);
 
@@ -47,7 +42,6 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _conf_file_path("
 	this->setServerDirective("root", &ParseConfig::handleRoot);
 	this->setServerDirective("index", &ParseConfig::handleIndex);
 	this->setServerDirective("listen", &ParseConfig::handleListen);
-	// this->setServerDirective("timeout", &ParseConfig::handleTimeout);
 	// this->setServerDirective("error_page", &ParseConfig::handleErrorPage);
 	this->setLocationDirective("location", &ParseConfig::handleLocationBlock);
 	this->setServerDirective("location", &ParseConfig::handleServerBlock);
@@ -56,7 +50,6 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _conf_file_path("
 	this->setLocationDirective("root", &ParseConfig::handleRoot);
 	this->setLocationDirective("index", &ParseConfig::handleIndex);
 	// this->setLocationDirective("return", &ParseConfig::handleReturn);
-	// this->setLocationDirective("timeout", &ParseConfig::handleTimeout);
 	this->setLocationDirective("autoindex", &ParseConfig::handleAutoindex);
 	// this->setLocationDirective("error_page", &ParseConfig::handleErrorPage);
 	this->setLocationDirective("allowed_methods", &ParseConfig::handleAllowedMethods);
@@ -81,7 +74,7 @@ ParseConfig::ParseException::ParseException(const std::string &message) : _msg(m
 
 const char *ParseConfig::ParseException::what() const throw()
 {
-    return (_msg.c_str());
+	return (_msg.c_str());
 }
 
 ParseConfig::ParseException::~ParseException() throw() {};
@@ -114,9 +107,9 @@ void ParseConfig::readFileContent( void )
 			if (word.size() - 1 > 0 && (last_char == ';' || last_char  == '{' || last_char == '}'))
 			{
 				std::string symbol(1, last_char);
-                word.erase(last_char_pos);
+				word.erase(last_char_pos);
 				_conf_content.push_back(word);
-                _conf_content.push_back(symbol);
+				_conf_content.push_back(symbol);
 			}
 			else if (word == "#" || word[0] == '#')
 				break;
@@ -161,7 +154,7 @@ void ParseConfig::parseConfigContent( void )
 	}
 }
 
-template<typename T> void	ParseConfig::handleHttpBlock(const std::string& value, T* instance)
+void			ParseConfig::handleHttpBlock(const std::string& value, Server* instance)
 {
 	std::string directive;
 	std::string val;
@@ -203,7 +196,7 @@ template<typename T> void	ParseConfig::handleHttpBlock(const std::string& value,
 	}
 }
 
-template<typename T> void	ParseConfig::handleServerBlock(const std::string& value, T* instance)
+void			ParseConfig::handleServerBlock(const std::string& value, Server* instance)
 {
 	try
 	{
@@ -247,8 +240,7 @@ template<typename T> void	ParseConfig::handleServerBlock(const std::string& valu
 	}
 }
 
-/** TODO: */
-template<typename T> void	ParseConfig::handleLocationBlock(const std::string& value, T* instance)
+void			ParseConfig::handleLocationBlock(const std::string& value, Location* instance)
 {
 	try
 	{
