@@ -35,15 +35,15 @@ Location &				Location::operator=( Location const & rhs )
 {
 	if ( this != &rhs )
 	{
-		this->_allowed_methods = rhs.getAllowedMethods();
-		this->_autoindex = rhs.getAutoindex();
-		// this->_cgi_extension = rhs.getCgiExtension();
-		// this->_error_pages - rhs.getErrorPages();
-		// this->_redir = rhs.getRedirect();
-		this->_indexes = rhs.getIndexes();
-		this->_path = rhs.getPath();
-		this->_upload_dir = rhs.getUploadDir();
 		this->_root = rhs.getRoot();
+		this->_path = rhs.getPath();
+		this->_redir = rhs.getRedirect();
+		this->_indexes = rhs.getIndexes();
+		this->_autoindex = rhs.getAutoindex();
+		this->_upload_dir = rhs.getUploadDir();
+		this->_error_pages = rhs.getErrorPages();
+		this->_cgi_extension = rhs.getCgiExtension();
+		this->_allowed_methods = rhs.getAllowedMethods();
 	}
 	return *this;
 }
@@ -51,11 +51,24 @@ Location &				Location::operator=( Location const & rhs )
 std::ostream&			operator<<( std::ostream & o, Location const& i )
 {
 	o	<< "\n\t** Location **" << std::endl
+		<< "path " << i.getPath() << std::endl
 		<< "root " << i.getRoot() << std::endl
 		<< "autoindex " << i.getAutoindex() << std::endl
+		<< "CGI ext " << i.getCgiExtension() << std::endl
+		<< "upload dir " << i.getUploadDir() << std::endl
 		<< "indexes <vector>: " << std::endl; 
 	for (std::string s : i.getIndexes())
 		o << s << " ";
+	o	<< "\nallowed methods: \n";
+	for (std::string s : i.getAllowedMethods())
+		o << s << " ";
+	// o	<< "\nerror pages: \n";
+	// for (const auto& pair : i.getErrorPages())
+	// 	std::cout << pair.first << ": " << pair.second << std::endl;
+	// o	<< "\nredirection: \n";
+	// for (const auto& pair : i.getRedirect())
+	// 	std::cout << pair.first << ": " << pair.second << std::endl;
+
 	o << std::endl;
 	return o;
 }
@@ -115,12 +128,12 @@ void	Location::setCgiExtension( const std::string &arg )
 	_cgi_extension = arg;
 }
 
-std::string	Location::getPath( void ) const
+std::string		Location::getPath( void ) const
 {
 	return (_path);
 }
 
-std::string	Location::getRoot( void ) const
+std::string		Location::getRoot( void ) const
 {
 	return (_root);
 }
