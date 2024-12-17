@@ -41,7 +41,7 @@ std::ostream&			operator<<( std::ostream & o, ServerControler const& i )
 	std::vector<Server> servers = i.getServers();
 	for (Server server : servers)
 	{
-    	o << server << std::endl;
+		o << server << std::endl;
 	}
 	return o;
 }

@@ -70,8 +70,15 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 	o	<< "\nserver names <vector>: " << std::endl;
 	for (std::string s : i.getServerNames())
 		o << s << " ";
+	
 	o << std::endl;
-	/** TODO: for Location class */
+
+	std::vector<Location> servers = i.getLocations();
+	for (Location server : servers)
+	{
+		o << server << std::endl;
+	}
+	
 	return o;
 }
 
