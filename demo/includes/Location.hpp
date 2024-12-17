@@ -12,31 +12,33 @@ class Location
 	public:
 
 		Location();
-		// Location( Location const & src );
+		Location( Location const & src );
 		~Location();
 
-		// Location &		operator=( Location const & rhs );
+		Location &		operator=( Location const & rhs );
 
 		void								setPath(const std::string &arg);
 		void								setRoot(const std::string &arg);
 		void								setIndex(const std::string &arg);
 		void								setAutoindex(bool arg);
 		void								setAllowedMethod(const std::string &arg);
-		void								setClientMaxBody(int arg);
 		void								setUploadDir(const std::string &arg);
+		void								setErrorPages(const std::string &key, const std::string &val);
+		void								setRedirect( const std::string &key, const std::string &val );
+		void								setCgiExtension(const std::string &arg);
 		bool								getAutoindex( void ) const;
-		int									getClientMaxBody( void ) const;
 		std::string							getPath( void ) const;
 		std::string							getRoot( void ) const;
 		std::string							getUploadDir( void ) const;
+		std::string							getCgiExtension( void ) const;
 		std::vector<std::string>			getIndexes( void ) const;
 		std::vector<std::string>			getAllowedMethods( void ) const;
+		std::map<std::string, std::string>	getErrorPages( void ) const;
+		std::map<std::string, std::string>	getRedirect( void ) const;
 
 	private:
 
 		bool								_autoindex;
-		int									_timeout;
-		int									_client_max_body_size;
 		std::string							_path;
 		std::string							_root;
 		std::string							_upload_dir;
@@ -47,6 +49,6 @@ class Location
 		std::map<std::string, std::string>	_redir;
 };
 
-// std::ostream &			operator<<( std::ostream & o, Location const & i );
+std::ostream &			operator<<( std::ostream & o, Location const & i );
 
 #endif /* ******************************************************** LOCATION_HPP */

@@ -6,20 +6,16 @@
 
 Location::Location() 
 	:	_autoindex(false),
-		_timeout(60),
-		_client_max_body_size(1048576), // 1MB
-		_path(""),
-		_root("./var/www/html"),
-		_upload_dir(""),
-		_cgi_extension("")
+		_root("./var/www/html")
 {
 	// _indexes.push_back("index.html");
 	// _indexes.push_back("index.htm");
 }
 
-/* Location::Location( const Location & src )
+Location::Location( const Location & src )
 {
-} */
+	*this = src;
+}
 
 
 /*
@@ -35,15 +31,34 @@ Location::~Location()
 ** --------------------------------- OVERLOAD ---------------------------------
 */
 
-/* Location &				Location::operator=( Location const & rhs )
+Location &				Location::operator=( Location const & rhs )
 {
-	//if ( this != &rhs )
-	//{
-		//this->_value = rhs.getValue();
-	//}
+	if ( this != &rhs )
+	{
+		this->_allowed_methods = rhs.getAllowedMethods();
+		this->_autoindex = rhs.getAutoindex();
+		// this->_cgi_extension = rhs.getCgiExtension();
+		// this->_error_pages - rhs.getErrorPages();
+		// this->_redir = rhs.getRedirect();
+		this->_indexes = rhs.getIndexes();
+		this->_path = rhs.getPath();
+		this->_upload_dir = rhs.getUploadDir();
+		this->_root = rhs.getRoot();
+	}
 	return *this;
-} */
+}
 
+std::ostream&			operator<<( std::ostream & o, Location const& i )
+{
+	o	<< "\n\t** Location **" << std::endl
+		<< "root " << i.getRoot() << std::endl
+		<< "autoindex " << i.getAutoindex() << std::endl
+		<< "indexes <vector>: " << std::endl; 
+	for (std::string s : i.getIndexes())
+		o << s << " ";
+	o << std::endl;
+	return o;
+}
 
 /*
 ** --------------------------------- METHODS ----------------------------------
@@ -80,14 +95,24 @@ void	Location::setAllowedMethod(const std::string &arg)
 	_allowed_methods.push_back(arg);
 }
 
-void	Location::setClientMaxBody(int arg)
-{
-	_client_max_body_size = arg;
-}
-
 void	Location::setUploadDir(const std::string &arg)
 {
 	_upload_dir = arg;
+}
+
+void	Location::setErrorPages(const std::string &key, const std::string &val)
+{
+	_error_pages[key] = val;
+}
+
+void	Location::setRedirect( const std::string &key, const std::string &val ) 
+{
+	_redir[key] = val;
+}
+
+void	Location::setCgiExtension( const std::string &arg )
+{
+	_cgi_extension = arg;
 }
 
 std::string	Location::getPath( void ) const
@@ -115,14 +140,26 @@ std::vector<std::string>	Location::getAllowedMethods( void ) const
 	return (_allowed_methods);
 }
 
-int	Location::getClientMaxBody( void ) const
-{
-	return (_client_max_body_size);
-}
-
 std::string	Location::getUploadDir( void ) const
 {
 	return (_upload_dir);
 }
+
+
+std::map<std::string, std::string>	Location::getErrorPages( void ) const
+{
+	return (_error_pages);
+}
+
+std::map<std::string, std::string>	Location::getRedirect( void ) const
+{
+	return (_redir);
+}
+
+std::string		Location::getCgiExtension( void ) const
+{
+	return (_cgi_extension);
+}
+
 
 /* ************************************************************************** */
