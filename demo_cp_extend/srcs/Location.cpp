@@ -1,0 +1,178 @@
+#include "../includes/Location.hpp"
+
+/*
+** ------------------------------- CONSTRUCTOR --------------------------------
+*/
+
+Location::Location() 
+	:	_autoindex(false),
+		_root("./var/www/html")
+{
+	// _indexes.push_back("index.html");
+	// _indexes.push_back("index.htm");
+}
+
+Location::Location( const Location & src )
+{
+	*this = src;
+}
+
+
+/*
+** -------------------------------- DESTRUCTOR --------------------------------
+*/
+
+Location::~Location()
+{
+}
+
+
+/*
+** --------------------------------- OVERLOAD ---------------------------------
+*/
+
+Location &				Location::operator=( Location const & rhs )
+{
+	if ( this != &rhs )
+	{
+		this->_root = rhs.getRoot();
+		this->_path = rhs.getPath();
+		this->_redir = rhs.getRedirect();
+		this->_indexes = rhs.getIndexes();
+		this->_autoindex = rhs.getAutoindex();
+		this->_upload_dir = rhs.getUploadDir();
+		this->_error_pages = rhs.getErrorPages();
+		this->_cgi_extension = rhs.getCgiExtension();
+		this->_allowed_methods = rhs.getAllowedMethods();
+	}
+	return *this;
+}
+
+std::ostream&			operator<<( std::ostream & o, Location const& i )
+{
+	o	<< "\n\t** Location **" << std::endl
+		<< "path " << i.getPath() << std::endl
+		<< "root " << i.getRoot() << std::endl
+		<< "autoindex " << i.getAutoindex() << std::endl
+		<< "CGI ext " << i.getCgiExtension() << std::endl
+		<< "upload dir " << i.getUploadDir() << std::endl
+		<< "indexes <vector>: " << std::endl; 
+	for (std::string s : i.getIndexes())
+		o << s << " ";
+	o	<< "\nallowed methods: \n";
+	for (std::string s : i.getAllowedMethods())
+		o << s << " ";
+	// o	<< "\nerror pages: \n";
+	// for (const auto& pair : i.getErrorPages())
+	// 	std::cout << pair.first << ": " << pair.second << std::endl;
+	// o	<< "\nredirection: \n";
+	// for (const auto& pair : i.getRedirect())
+	// 	std::cout << pair.first << ": " << pair.second << std::endl;
+
+	o << std::endl;
+	return o;
+}
+
+/*
+** --------------------------------- METHODS ----------------------------------
+*/
+
+
+
+/*
+** --------------------------------- ACCESSOR ---------------------------------
+*/
+
+void	Location::setPath(const std::string &arg)
+{
+	_path = arg;
+}
+
+void	Location::setRoot(const std::string &arg)
+{
+	_root = arg;
+}
+
+void	Location::setIndex(const std::string &arg)
+{
+	_indexes.push_back(arg);
+}
+
+void	Location::setAutoindex(bool arg)
+{
+	_autoindex = arg;
+}
+
+void	Location::setAllowedMethod(const std::string &arg)
+{
+	_allowed_methods.push_back(arg);
+}
+
+void	Location::setUploadDir(const std::string &arg)
+{
+	_upload_dir = arg;
+}
+
+void	Location::setErrorPages(const std::string &key, const std::string &val)
+{
+	_error_pages[key] = val;
+}
+
+void	Location::setRedirect( const std::string &key, const std::string &val ) 
+{
+	_redir[key] = val;
+}
+
+void	Location::setCgiExtension( const std::string &arg )
+{
+	_cgi_extension = arg;
+}
+
+std::string		Location::getPath( void ) const
+{
+	return (_path);
+}
+
+std::string		Location::getRoot( void ) const
+{
+	return (_root);
+}
+
+std::vector<std::string>	Location::getIndexes( void ) const
+{
+	return (_indexes);
+}
+
+bool	Location::getAutoindex( void ) const
+{
+	return (_autoindex);
+}
+
+std::vector<std::string>	Location::getAllowedMethods( void ) const
+{
+	return (_allowed_methods);
+}
+
+std::string	Location::getUploadDir( void ) const
+{
+	return (_upload_dir);
+}
+
+
+std::map<std::string, std::string>	Location::getErrorPages( void ) const
+{
+	return (_error_pages);
+}
+
+std::map<std::string, std::string>	Location::getRedirect( void ) const
+{
+	return (_redir);
+}
+
+std::string		Location::getCgiExtension( void ) const
+{
+	return (_cgi_extension);
+}
+
+
+/* ************************************************************************** */
