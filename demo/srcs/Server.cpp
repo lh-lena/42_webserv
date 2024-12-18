@@ -51,7 +51,7 @@ Server &				Server::operator=( Server const & rhs )
 		this->_error_pages = rhs.getErrorPages();
 		this->_indexes = rhs.getIndexes();
 		this->_server_names  = rhs.getServerNames();
-		this->_locations = getLocations();
+		this->_locations = rhs.getLocations();
 	}
 	return *this;
 }
@@ -70,13 +70,14 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 	o	<< "\nserver names <vector>: " << std::endl;
 	for (std::string s : i.getServerNames())
 		o << s << " ";
-	
+
 	o << std::endl;
-	o << "Locations:" << std::endl;
+
 	std::vector<Location> locations = i.getLocations();
+	o << "Locations:  " << locations.size() << std::endl;
 	for (Location loc : locations)
 	{
-		o << "LOCATION:\n" << loc << std::endl;
+		o << loc << std::endl;
 	}
 
 	return o;
@@ -96,9 +97,9 @@ void Server::setWorkCont(int connections)
 	_worker_connections = connections;
 }
 
-void Server::setLocationNbr(int value)
+void Server::addLocationNbr(int value)
 {
-	_location_nbr = value;
+	_location_nbr += value;
 }
 
 void	Server::setClientMaxBody(int value)
@@ -196,7 +197,7 @@ std::vector<std::string>	Server::getServerNames( void ) const
 	return (_server_names);
 }
 
-std::vector<Location>	Server::getLocations( void ) const
+const std::vector<Location>&	Server::getLocations( void ) const
 {
 	return (_locations);
 }

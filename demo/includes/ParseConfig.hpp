@@ -8,6 +8,7 @@
 # include <fstream>
 # include <sstream>
 # include <cstring>
+# include <utility>
 # include <iostream>
 # include <iterator>
 # include <sys/stat.h>
@@ -23,7 +24,6 @@ class ParseConfig
 	public:
 		ParseConfig(std::string file_path, char **envp);
 		~ParseConfig();
-
 
 		typedef void					(ParseConfig::*DirectiveServerHandler)(const std::string&, Server*);
 		typedef void					(ParseConfig::*DirectiveLocationHandler)(const std::string&, Location*);
@@ -47,10 +47,10 @@ class ParseConfig
 		void							setLocationDirective(const std::string &directive, DirectiveLocationHandler handler);
 		void							readFileContent( void );
 		void							parseConfigContent( void );
-		int								exceptTocken(std::list<std::string> *src, std::string tocken);
-		std::string						getToken(std::list<std::string> *src);
+		int								exceptTocken(std::list<std::pair<std::string, int>> *src, std::pair<std::string, int> tocken, int expected);
 		std::string						processEnvVar(const std::string &input);
 		static bool						isDirectory(const std::string& path);
+		std::pair<std::string, int> 	getToken(std::list<std::pair<std::string, int>>*src);
 		static std::string				getEnvValue(char **envp, const std::string &variable);
 		ServerControler & 				getServControler();
 
@@ -73,7 +73,7 @@ class ParseConfig
 		ServerControler										_serverControler;
 		char												**_envp;
 		std::string											_conf_file_path;
-		std::list<std::string>								_conf_content;
+		std::list<std::pair<std::string, int>>				_conf_content;
 		std::map<std::string, DirectiveServerHandler>		_global_directives;
 		std::map<std::string, DirectiveServerHandler>		_http_directives;
 		std::map<std::string, DirectiveServerHandler>		_server_directives;
@@ -83,7 +83,6 @@ class ParseConfig
 		template<typename T> void	handleRoot(const std::string& value, T* instance);
 		template<typename T> void	handleIndex(const std::string& value, T* instance);
 		// template<typename T> void	handleErrorPage(const std::string& value, T* instance); // to change
-
 };
 
 bool	is_digits(const std::string& str);

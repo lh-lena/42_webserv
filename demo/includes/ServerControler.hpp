@@ -17,7 +17,7 @@ class ServerControler
 		~ServerControler();
 
 		ServerControler&					operator=( ServerControler const & rhs );
-		void								setServer(Server instance);
+		void								setServer( const Server& instance );
 		const std::vector<Server>&			getServers( void ) const;
 
 	private:

@@ -56,7 +56,7 @@ std::ostream&			operator<<( std::ostream & o, ServerControler const& i )
 ** --------------------------------- ACCESSOR ---------------------------------
 */
 
-void	ServerControler::setServer(Server instance)
+void	ServerControler::setServer(const Server& instance)
 {
 	_server.push_back(instance);
 }

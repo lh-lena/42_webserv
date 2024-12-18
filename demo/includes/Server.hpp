@@ -15,7 +15,7 @@ class Server
 		Server &		operator=( Server const & rhs );
 		~Server();
 
-		void								setLocationNbr(int value);
+		void								addLocationNbr(int value);
 		void								setClientMaxBody(int value);
 		void								setWorkCont(int connections);
 		void								setHost(const std::string &arg);
@@ -33,7 +33,7 @@ class Server
 		std::string							getPort( void ) const;
 		std::string							getRoot( void ) const;
 		std::string							getErrorLog( void ) const;
-		std::vector<Location>				getLocations( void ) const;
+		const std::vector<Location>&		getLocations( void ) const;
 		std::vector<std::string>			getIndexes( void ) const;
 		std::vector<std::string>			getServerNames( void ) const;
 		std::map<std::string, std::string>	getErrorPages( void ) const;
