@@ -55,6 +55,7 @@ class ParseConfig
 		ServerControler & 				getServControler();
 
 		std::map<std::string, bool>		block_dir;
+		std::map<std::string, bool>		map_template_dir;
 		std::map<std::string, bool>		allowed_methods;
 
 		class ParseException : public std::exception
@@ -79,10 +80,9 @@ class ParseConfig
 		std::map<std::string, DirectiveServerHandler>		_server_directives;
 		std::map<std::string, DirectiveLocationHandler>		_location_directives;
 
-		// template<typename T> void	handleErrorLog(const std::string& value, T* instance);
 		template<typename T> void	handleRoot(const std::string& value, T* instance);
 		template<typename T> void	handleIndex(const std::string& value, T* instance);
-		// template<typename T> void	handleErrorPage(const std::string& value, T* instance); // to change
+		template<typename T> void	handleErrorPage(const std::string& value, T* instance); // to change
 };
 
 bool	is_digits(const std::string& str);
