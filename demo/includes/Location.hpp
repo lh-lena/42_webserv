@@ -24,7 +24,7 @@ class Location
 		void								setAllowedMethod(const std::string &arg);
 		void								setUploadDir(const std::string &arg);
 		void								setErrorPages(const std::string &key, const std::string &val);
-		void								setRedirect( const std::string &key, const std::string &val );
+		void								setReturn( const std::string &key, const std::string &val );
 		void								setCgiExtension(const std::string &arg);
 		bool								getAutoindex( void ) const;
 		std::string							getPath( void ) const;
@@ -34,7 +34,7 @@ class Location
 		std::vector<std::string>			getIndexes( void ) const;
 		std::vector<std::string>			getAllowedMethods( void ) const;
 		std::map<std::string, std::string>	getErrorPages( void ) const;
-		std::map<std::string, std::string>	getRedirect( void ) const;
+		std::map<std::string, std::string>	getReturn( void ) const;
 
 	private:
 
@@ -46,7 +46,7 @@ class Location
 		std::vector<std::string>			_indexes;
 		std::vector<std::string>			_allowed_methods;
 		std::map<std::string, std::string>	_error_pages;
-		std::map<std::string, std::string>	_redir;
+		std::map<std::string, std::string>	_return;
 };
 
 std::ostream &			operator<<( std::ostream & o, Location const & i );

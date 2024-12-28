@@ -1,4 +1,5 @@
 #include "../includes/ParseConfig.hpp"
+#include "../includes/utils.hpp"
 
 /*
 ** ------------------------------ DECLARATION ---------------------------------
@@ -43,7 +44,7 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _conf_file_path("
 	this->setLocationDirective("root", &ParseConfig::handleRoot);
 	this->setLocationDirective("path", &ParseConfig::handlePath);
 	this->setLocationDirective("index", &ParseConfig::handleIndex);
-	this->setLocationDirective("return", &ParseConfig::handleRedirect);
+	this->setLocationDirective("return", &ParseConfig::handleReturn);
 	this->setLocationDirective("autoindex", &ParseConfig::handleAutoindex);
 	this->setLocationDirective("error_page", &ParseConfig::handleErrorPage);
 	this->setLocationDirective("allowed_methods", &ParseConfig::handleAllowedMethods);
@@ -81,7 +82,7 @@ ParseConfig::ParseException::~ParseException() throw() {};
 
 void		ParseConfig::readFileContent( void )
 {
-	if (ParseConfig::isDirectory(_conf_file_path))
+	if (is_directory(_conf_file_path))
 		throw ParseException("[emerg] : open() " + _conf_file_path + " failed (Is a directory)");
 
 	std::ifstream conf_file(_conf_file_path.c_str());
@@ -177,117 +178,107 @@ void		ParseConfig::handleHttpBlock(const std::string& value, Server* instance)
 	std::string 				directive;
 	std::string 				val;
 
-	try
+	el = getToken(&_conf_content);
+	el.first = "{";
+	exceptTocken(&_conf_content, el, 1);
+	while (!_conf_content.empty())
 	{
 		el = getToken(&_conf_content);
-		el.first = "{";
-		exceptTocken(&_conf_content, el, 1);
-		while (!_conf_content.empty())
+		directive = el.first;
+		if (directive == "}")
+			break;
+		if (_http_directives.find(directive) == _http_directives.end())
+			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path);
+		exceptTocken(&_conf_content, el, 0);
+		el = getToken(&_conf_content);
+		val = el.first;
+		if (block_dir.find(directive) != block_dir.end())
 		{
-			el = getToken(&_conf_content);
-			directive = el.first;
-			if (directive == "}")
-				break;
-			if (_http_directives.find(directive) == _http_directives.end())
-				throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path);
+			Server server(*instance);
+			DirectiveServerHandler serv_handler = _http_directives[directive];
+			(this->*serv_handler)(val, &server);
+			_serverControler.setServer(server);
+			continue;
+		}
+		while (val != ";" && (_http_directives.find(val) == _http_directives.end()))
+		{
+			DirectiveServerHandler serv_handler = _http_directives[directive];
+			(this->*serv_handler)(val, instance);
 			exceptTocken(&_conf_content, el, 0);
 			el = getToken(&_conf_content);
 			val = el.first;
-			if (block_dir.find(directive) != block_dir.end())
-			{
-				Server server(*instance);
-				DirectiveServerHandler serv_handler = _http_directives[directive];
-				(this->*serv_handler)(val, &server);
-				_serverControler.setServer(server);
-				continue;
-			}
-			while (val != ";" && (_http_directives.find(val) == _http_directives.end()))
-			{
-				DirectiveServerHandler serv_handler = _http_directives[directive];
-				(this->*serv_handler)(val, instance);
-				exceptTocken(&_conf_content, el, 0);
-				el = getToken(&_conf_content);
-				val = el.first;
-			}
-			el.first = ";";
-			el.second -= 1;
-			exceptTocken(&_conf_content, el, 1);
 		}
-		el = getToken(&_conf_content);
-		el.first = "}";
+		el.first = ";";
 		el.second -= 1;
 		exceptTocken(&_conf_content, el, 1);
 	}
-	catch(const std::exception& e)
-	{
-		throw ParseException(e.what());
-	}
+	el = getToken(&_conf_content);
+	el.first = "}";
+	el.second -= 1;
+	exceptTocken(&_conf_content, el, 1);
 }
 
 void		ParseConfig::handleServerBlock(const std::string& value, Server* instance)
 {
 	std::pair<std::string, int>	el;
-	std::string 				directive;
-	std::string 				val;
-	std::string 				map_val;
+	std::string					directive;
+	std::string					val;
+	std::string					map_val;
 
-	try
+	el = getToken(&_conf_content);
+	el.first = "{";
+	exceptTocken(&_conf_content, el, 2);
+	while (!_conf_content.empty())
 	{
 		el = getToken(&_conf_content);
-		el.first = "{";
-		exceptTocken(&_conf_content, el, 2);
-		while (!_conf_content.empty())
+		directive = el.first;
+		if (directive == "}")
+			break;
+		if (_server_directives.find(directive) == _server_directives.end())
+			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path);
+		exceptTocken(&_conf_content, el, 0);
+		el = getToken(&_conf_content);
+		val = el.first;
+		if (block_dir.find(directive) != block_dir.end())
 		{
-			el = getToken(&_conf_content);
-			directive = el.first;
-			if (directive == "}")
-				break;
-			if (_server_directives.find(directive) == _server_directives.end())
-				throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path);
+			Location location;
+			DirectiveLocationHandler loc_handler = _location_directives[directive];
+			(this->*loc_handler)(val, &location);
+			instance->setLocation(location);
+			continue;
+		}
+		if (map_template_dir.find(directive) != map_template_dir.end())
+		{
+			std::string tmp = val;
+			while (tmp != ";"  && _server_directives.find(val) == _server_directives.end())
+			{
+				exceptTocken(&_conf_content, el, 0);
+				el = getToken(&_conf_content);
+				tmp = el.first;
+				if (tmp == ";")
+					break ;
+				val.append(" " + tmp);
+			}
+			DirectiveServerHandler serv_handler = _server_directives[directive];
+			(this->*serv_handler)(val, instance);
+		}
+		val = el.first;
+		while (val != ";" && (_server_directives.find(val) == _server_directives.end()))
+		{
+			DirectiveServerHandler serv_handler = _server_directives[directive];
+			(this->*serv_handler)(val, instance);
 			exceptTocken(&_conf_content, el, 0);
 			el = getToken(&_conf_content);
 			val = el.first;
-			// if (map_template_dir.find(directive) != map_template_dir.end() && _server_directives.find(directive) != _server_directives.end())
-			// {
-			// 	val = hadleMapTemplateData(&_conf_content, );
-			// 	DirectiveServerHandler serv_handler = _server_directives[directive];
-			// 	(this->*serv_handler)(val, instance);
-			// 	continue;
-			// }
-			if (block_dir.find(directive) != block_dir.end())
-			{
-				Location location;
-				DirectiveLocationHandler loc_handler = _location_directives[directive];
-				(this->*loc_handler)(val, &location);
-				instance->addLocationNbr(1);
-				instance->setLocation(location);
-				continue;
-			}
-			while (val != ";" && (_server_directives.find(val) == _server_directives.end()))
-			{
-				/* if (map_template_dir.find(directive) != map_template_dir.end())
-				{
-					
-				} */
-				DirectiveServerHandler serv_handler = _server_directives[directive];
-				(this->*serv_handler)(val, instance);
-				exceptTocken(&_conf_content, el, 0);
-				el = getToken(&_conf_content);
-				val = el.first;
-			}
-			el.first = ";";
-			el.second -= 1;
-			exceptTocken(&_conf_content, el, 1);
 		}
-		el = getToken(&_conf_content);
-		el.first = "}";
+		el.first = ";";
 		el.second -= 1;
 		exceptTocken(&_conf_content, el, 1);
 	}
-	catch(const std::exception& e)
-	{
-		throw ParseException(e.what());
-	}
+	el = getToken(&_conf_content);
+	el.first = "}";
+	el.second -= 1;
+	exceptTocken(&_conf_content, el, 1);
 }
 
 void		ParseConfig::handleLocationBlock(const std::string& value, Location* instance)
@@ -301,50 +292,54 @@ void		ParseConfig::handleLocationBlock(const std::string& value, Location* insta
 	(this->*loc_handler)(value, instance);
 	el = getToken(&_conf_content);
 	exceptTocken(&_conf_content, el, 0);
-	try
+	el = getToken(&_conf_content);
+	el.first = "{";
+	exceptTocken(&_conf_content, el, 2);
+	while (!_conf_content.empty())
 	{
 		el = getToken(&_conf_content);
-		el.first = "{";
-		exceptTocken(&_conf_content, el, 2);
-		while (!_conf_content.empty())
+		directive = el.first;
+		if (directive == "}")
+			break;
+		if (_location_directives.find(directive) == _location_directives.end())
+			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path);
+		exceptTocken(&_conf_content, el, 0);
+		el = getToken(&_conf_content);
+		val = el.first;
+		if (map_template_dir.find(directive) != map_template_dir.end())
 		{
-			el = getToken(&_conf_content);
-			directive = el.first;
-			if (directive == "}")
-				break;
-			if (_location_directives.find(directive) == _location_directives.end())
-				throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path);
+			std::string tmp = val;
+			while (tmp != ";"  && _location_directives.find(val) == _location_directives.end())
+			{
+				exceptTocken(&_conf_content, el, 0);
+				el = getToken(&_conf_content);
+				tmp = el.first;
+				if (tmp == ";")
+					break ;
+				val.append(" " + tmp);
+			}
+			DirectiveLocationHandler loc_handler = _location_directives[directive];
+			(this->*loc_handler)(val, instance);
+		}
+		val = el.first;
+		while (val != ";" && (_location_directives.find(val) == _location_directives.end()))
+		{
+			DirectiveLocationHandler loc_handler = _location_directives[directive];
+			(this->*loc_handler)(val, instance);
 			exceptTocken(&_conf_content, el, 0);
 			el = getToken(&_conf_content);
 			val = el.first;
-			while (val != ";" && (_location_directives.find(val) == _location_directives.end()))
-			{
-				DirectiveLocationHandler loc_handler = _location_directives[directive];
-				(this->*loc_handler)(val, instance);
-				exceptTocken(&_conf_content, el, 0);
-				el = getToken(&_conf_content);
-				val = el.first;
-			}
-			el = getToken(&_conf_content);
-			el.first = ";";
-			el.second -= 1;
-			exceptTocken(&_conf_content, el, 1);
 		}
 		el = getToken(&_conf_content);
-		el.first = "}";
+		el.first = ";";
 		el.second -= 1;
 		exceptTocken(&_conf_content, el, 1);
 	}
-	catch(const std::exception& e)
-	{
-		throw ParseException(e.what());
-	}
+	el = getToken(&_conf_content);
+	el.first = "}";
+	el.second -= 1;
+	exceptTocken(&_conf_content, el, 1);
 }
-
-/* std::string&		ParseConfig::concatinateMapTemplateData(std::list<std::pair<std::string, int>> *src)
-{
-
-} */
 
 void		ParseConfig::handleWorkCont(const std::string& value, Server* instance)
 {
@@ -444,18 +439,49 @@ void		ParseConfig::handleAllowedMethods(const std::string& value, Location* inst
 	}
 }
 
-/** TODO: */
-void	ParseConfig::handleRedirect(const std::string& value, Location* instance)
+void	ParseConfig::handleReturn(const std::string& value, Location* instance)
 {
+	std::cout << "handleReturn " << value << std::endl;
+	std::string	s = value;
+	std::vector<std::string>	vals = ft_split(s, " ");
+	std::string		path;
+	size_t size = vals.size();
 
+	if (vals.empty())
+		throw ParseException("[emerg] : invalid number of arguments in \"return\" directive in " + _conf_file_path);
+	for (std::string st : vals)
+		std::cout << st << std::endl;
+	if (is_regular_file(vals[size - 1]) && size > 1)
+		path = vals[size - 1];
+	instance->setReturn(vals[0], path);
 }
 
-/** TODO: */
 template<typename T> void	ParseConfig::handleErrorPage(const std::string& value, T* instance)
 {
+	std::cout << "handleErrorPage " << value << std::endl;
+	std::string					s = value;
+	std::vector<std::string>	vals;
+	std::string					path;
 
+	vals = ft_split(s, " ");
+	size_t size = vals.size();
+
+	if (vals.empty())
+		throw ParseException("[emerg] : invalid number of arguments in \"error_page\" directive in " + _conf_file_path);
+	for (std::string st : vals)
+		std::cout << st << std::endl;
+	if (is_regular_file(vals[size - 1]))
+		path = vals[size - 1];
+	else
+	{
+		path = "";
+	}
+
+	// for (int i = 0; i < size; i++)
+	// {
+		
+	// }
 }
-
 
 void		ParseConfig::handleUploadDir(const std::string& value, Location* instance)
 {
@@ -470,14 +496,6 @@ void		ParseConfig::handleCgiExtension(const std::string& value, Location* instan
 /**
  * The function `exceptTocken` checks if the front element of a list matches a given token and prints a
  * message accordingly.
- *
- * @param src The `src` parameter is a pointer to a `std::list` of `std::string` objects. It is used to
- * store a list of strings that are being parsed or processed.
- * @param tocken The `tocken` parameter in the `exceptTocken` function is a `std::string` that
- * represents the token that is expected to be at the front of the list `src`. The function checks if
- * the list is not empty and if the front element of the list matches the `
- *
- * @return The function `exceptTocken` returns an integer value.
  */
 int		ParseConfig::exceptTocken(std::list<std::pair<std::string, int>> *src, std::pair<std::string, int> tocken, int expected)
 {
@@ -503,14 +521,6 @@ int		ParseConfig::exceptTocken(std::list<std::pair<std::string, int>> *src, std:
 /**
  * The function `processEnvVar` parses a string input to extract and return the value of an environment
  * variable specified within `${}`.
- *
- * @param input The `processEnvVar` function takes a string `input` as a parameter. This function is
- * designed to extract and process environment variables enclosed within `${}` in the input string.
- *
- * @return The `processEnvVar` function returns the value of an environment variable specified within
- * `${}` in the input string. If the input string contains `${}` with a valid variable name inside, it
- * will return the value of that environment variable. Otherwise, it will throw a `ParseException` with
- * an error message indicating that the input is invalid.
  */
 std::string ParseConfig::processEnvVar(const std::string &input)
 {
@@ -520,38 +530,12 @@ std::string ParseConfig::processEnvVar(const std::string &input)
 	if (start != std::string::npos && end != std::string::npos && (start + 2) != end)
 	{
 		std::string var = input.substr(start + 2, end - start - 2);
-		return (getEnvValue(_envp, var));
+		return (get_env_value(_envp, var));
 	}
 	else
 	{
 		throw ParseException("[emerg] \"" + input + "\" invalid input in " + _conf_file_path);
 	}
-}
-
-std::string ParseConfig::getEnvValue(char **envp, const std::string &variable)
-{
-	std::string value = "";
-	size_t var_len = variable.length();
-	for (int i = 0; envp[i] != NULL; i++)
-	{
-		if (std::strncmp(envp[i], variable.c_str(), var_len) == 0 && envp[i][var_len] == '=')
-		{
-			value = envp[i] + var_len + 1;
-			break;
-		}
-	}
-	return value;
-}
-
-bool ParseConfig::isDirectory(const std::string& path)
-{
-	struct stat path_stat;
-	if (stat(path.c_str(), &path_stat) != 0)
-	{
-		std::cerr << "[ERROR]: Accessing path failed: " << std::strerror(errno) << std::endl;
-		return false;
-	}
-	return S_ISDIR(path_stat.st_mode);
 }
 
 std::pair<std::string, int> ParseConfig::getToken(std::list<std::pair<std::string, int>> *src)
@@ -561,17 +545,6 @@ std::pair<std::string, int> ParseConfig::getToken(std::list<std::pair<std::strin
 	std::pair<std::string, int> token = src->front();
 	return token;
 }
-
-bool	is_digits(const std::string& str)
-{
-    for (char c : str)
-	{
-        if (!std::isdigit(c))
-            return false;
-    }
-    return true;
-}
-
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------

@@ -59,15 +59,15 @@ Server &				Server::operator=( Server const & rhs )
 std::ostream&			operator<<( std::ostream & o, Server const& i )
 {
 	o	<< "\n\t** Server **" << std::endl
-		<<  "worker_connection " << i.getWorkCont() << std::endl
-		<<  "client_max_body_size " << i.getClientMaxBody() << std::endl
-		<< "host " << i.getHost() << std::endl
-		<< "port " << i.getPort() << std::endl
-		<< "root " << i.getRoot() << std::endl
-		<< "indexes <vector>: " << std::endl; 
+		<<  "worker_connection: " << i.getWorkCont() << std::endl
+		<<  "client_max_body_size: " << i.getClientMaxBody() << std::endl
+		<< "host: " << i.getHost() << std::endl
+		<< "port: " << i.getPort() << std::endl
+		<< "root: " << i.getRoot() << std::endl
+		<< "indexes: \n\t"; 
 	for (std::string s : i.getIndexes())
 		o << s << " ";
-	o	<< "\nserver names <vector>: " << std::endl;
+	o	<< "\nserver names: \n\t";
 	for (std::string s : i.getServerNames())
 		o << s << " ";
 
@@ -145,6 +145,7 @@ void	Server::setServerName(const std::string &arg)
 void	Server::setLocation(const Location &src)
 {
 	_locations.push_back(src);
+	_location_nbr += 1;
 }
 
 int Server::getWorkCont( void ) const

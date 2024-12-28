@@ -17,8 +17,6 @@
 # include "Server.hpp"
 # include "Location.hpp"
 
-# define BLOCK "block"
-
 class ParseConfig
 {
 	public:
@@ -39,7 +37,7 @@ class ParseConfig
 		void							handleAutoindex(const std::string& value, Location* instance);
 		void							handleUploadDir(const std::string& value, Location* instance);
 		void							handlePath(const std::string& value, Location* instance);
-		void							handleRedirect(const std::string& value, Location* instance);
+		void							handleReturn(const std::string& value, Location* instance);
 		void							handleCgiExtension(const std::string& value, Location* instance);
 		void							setGlobalDirective(const std::string &directive, DirectiveServerHandler handler);
 		void							setHttpDirective(const std::string &directive, DirectiveServerHandler handler);
@@ -49,9 +47,7 @@ class ParseConfig
 		void							parseConfigContent( void );
 		int								exceptTocken(std::list<std::pair<std::string, int>> *src, std::pair<std::string, int> tocken, int expected);
 		std::string						processEnvVar(const std::string &input);
-		static bool						isDirectory(const std::string& path);
 		std::pair<std::string, int> 	getToken(std::list<std::pair<std::string, int>>*src);
-		static std::string				getEnvValue(char **envp, const std::string &variable);
 		ServerControler & 				getServControler();
 
 		std::map<std::string, bool>		block_dir;

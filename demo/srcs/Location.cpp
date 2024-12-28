@@ -37,7 +37,7 @@ Location &				Location::operator=( Location const & rhs )
 	{
 		this->_root = rhs.getRoot();
 		this->_path = rhs.getPath();
-		this->_redir = rhs.getRedirect();
+		this->_return = rhs.getReturn();
 		this->_indexes = rhs.getIndexes();
 		this->_autoindex = rhs.getAutoindex();
 		this->_upload_dir = rhs.getUploadDir();
@@ -51,23 +51,23 @@ Location &				Location::operator=( Location const & rhs )
 std::ostream&			operator<<( std::ostream & o, Location const& i )
 {
 	o	<< "\n\t** Location **" << std::endl
-		<< "path " << i.getPath() << std::endl
-		<< "root " << i.getRoot() << std::endl
-		<< "autoindex " << i.getAutoindex() << std::endl
-		<< "CGI ext " << i.getCgiExtension() << std::endl
-		<< "upload dir " << i.getUploadDir() << std::endl
-		<< "indexes <vector>: " << std::endl; 
+		<< "path: " << i.getPath() << std::endl
+		<< "root: " << i.getRoot() << std::endl
+		<< "autoindex: " << i.getAutoindex() << std::endl
+		<< "CGI extention: " << i.getCgiExtension() << std::endl
+		<< "upload dir: " << i.getUploadDir() << std::endl
+		<< "indexes: \n\t"; 
 	for (std::string s : i.getIndexes())
 		o << s << " ";
-	o	<< "\nallowed methods: \n";
+	o	<< "\nallowed methods: \n\t";
 	for (std::string s : i.getAllowedMethods())
 		o << s << " ";
-	// o	<< "\nerror pages: \n";
-	// for (const auto& pair : i.getErrorPages())
-	// 	std::cout << pair.first << ": " << pair.second << std::endl;
-	// o	<< "\nredirection: \n";
-	// for (const auto& pair : i.getRedirect())
-	// 	std::cout << pair.first << ": " << pair.second << std::endl;
+	o	<< "\nerror pages: \n";
+	for (const auto& pair : i.getErrorPages())
+		std::cout  << "\t" << pair.first << ": " << pair.second << std::endl;
+	o	<< "\nredirection: \n";
+	for (const auto& pair : i.getReturn())
+		std::cout << "\t" << pair.first << ": " << pair.second << std::endl;
 
 	o << std::endl;
 	return o;
@@ -118,9 +118,9 @@ void	Location::setErrorPages(const std::string &key, const std::string &val)
 	_error_pages[key] = val;
 }
 
-void	Location::setRedirect( const std::string &key, const std::string &val ) 
+void	Location::setReturn( const std::string &key, const std::string &val ) 
 {
-	_redir[key] = val;
+	_return[key] = val;
 }
 
 void	Location::setCgiExtension( const std::string &arg )
@@ -164,9 +164,9 @@ std::map<std::string, std::string>	Location::getErrorPages( void ) const
 	return (_error_pages);
 }
 
-std::map<std::string, std::string>	Location::getRedirect( void ) const
+std::map<std::string, std::string>	Location::getReturn( void ) const
 {
-	return (_redir);
+	return (_return);
 }
 
 std::string		Location::getCgiExtension( void ) const
