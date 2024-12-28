@@ -5,12 +5,12 @@
 ** ------------------------------ DECLARATION ---------------------------------
 */
 
-template void	ParseConfig::handleErrorPage<Server>(const std::string&, Server*);
-template void	ParseConfig::handleIndex<Server>(const std::string&, Server*);
-template void	ParseConfig::handleRoot<Server>(const std::string&, Server*);
-template void	ParseConfig::handleErrorPage<Location>(const std::string&, Location*);
-template void	ParseConfig::handleIndex<Location>(const std::string&, Location*);
-template void	ParseConfig::handleRoot<Location>(const std::string&, Location*);
+template void	ParseConfig::handleErrorPage<Server>(const std::pair<std::string, int>&, Server*);
+template void	ParseConfig::handleIndex<Server>(const std::pair<std::string, int>&, Server*);
+template void	ParseConfig::handleRoot<Server>(const std::pair<std::string, int>&, Server*);
+template void	ParseConfig::handleErrorPage<Location>(const std::pair<std::string, int>&, Location*);
+template void	ParseConfig::handleIndex<Location>(const std::pair<std::string, int>&, Location*);
+template void	ParseConfig::handleRoot<Location>(const std::pair<std::string, int>&, Location*);
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
@@ -154,7 +154,7 @@ void 		ParseConfig::parseConfigContent( void )
 			el = getToken(&_conf_content);
 			value = el.first;
 			DirectiveServerHandler serv_handler = _global_directives[directive];
-			(this->*serv_handler)(value, (Server*)&server);
+			(this->*serv_handler)(el, (Server*)&server);
 			if (block_dir.find(directive) == block_dir.end())
 			{
 				exceptTocken(&_conf_content, el, 0);
@@ -172,7 +172,7 @@ void 		ParseConfig::parseConfigContent( void )
 	}
 }
 
-void		ParseConfig::handleHttpBlock(const std::string& value, Server* instance)
+void		ParseConfig::handleHttpBlock(const std::pair<std::string, int>& value, Server* instance)
 {
 	std::pair<std::string, int>	el;
 	std::string 				directive;
@@ -188,7 +188,7 @@ void		ParseConfig::handleHttpBlock(const std::string& value, Server* instance)
 		if (directive == "}")
 			break;
 		if (_http_directives.find(directive) == _http_directives.end())
-			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path);
+			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path + ":" + std::to_string(value.second));
 		exceptTocken(&_conf_content, el, 0);
 		el = getToken(&_conf_content);
 		val = el.first;
@@ -196,14 +196,14 @@ void		ParseConfig::handleHttpBlock(const std::string& value, Server* instance)
 		{
 			Server server(*instance);
 			DirectiveServerHandler serv_handler = _http_directives[directive];
-			(this->*serv_handler)(val, &server);
+			(this->*serv_handler)(el, &server);
 			_serverControler.setServer(server);
 			continue;
 		}
 		while (val != ";" && (_http_directives.find(val) == _http_directives.end()))
 		{
 			DirectiveServerHandler serv_handler = _http_directives[directive];
-			(this->*serv_handler)(val, instance);
+			(this->*serv_handler)(el, instance);
 			exceptTocken(&_conf_content, el, 0);
 			el = getToken(&_conf_content);
 			val = el.first;
@@ -218,7 +218,7 @@ void		ParseConfig::handleHttpBlock(const std::string& value, Server* instance)
 	exceptTocken(&_conf_content, el, 1);
 }
 
-void		ParseConfig::handleServerBlock(const std::string& value, Server* instance)
+void		ParseConfig::handleServerBlock(const std::pair<std::string, int>& value, Server* instance)
 {
 	std::pair<std::string, int>	el;
 	std::string					directive;
@@ -235,7 +235,7 @@ void		ParseConfig::handleServerBlock(const std::string& value, Server* instance)
 		if (directive == "}")
 			break;
 		if (_server_directives.find(directive) == _server_directives.end())
-			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path);
+			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path + ":" + std::to_string(value.second));
 		exceptTocken(&_conf_content, el, 0);
 		el = getToken(&_conf_content);
 		val = el.first;
@@ -243,30 +243,33 @@ void		ParseConfig::handleServerBlock(const std::string& value, Server* instance)
 		{
 			Location location;
 			DirectiveLocationHandler loc_handler = _location_directives[directive];
-			(this->*loc_handler)(val, &location);
+			(this->*loc_handler)(el, &location);
 			instance->setLocation(location);
 			continue;
 		}
 		if (map_template_dir.find(directive) != map_template_dir.end())
 		{
-			std::string tmp = val;
-			while (tmp != ";"  && _server_directives.find(val) == _server_directives.end())
+			std::pair<std::string, int> tmp;
+			tmp.first = val;
+			while (_server_directives.find(tmp.first) == _server_directives.end())
 			{
 				exceptTocken(&_conf_content, el, 0);
 				el = getToken(&_conf_content);
-				tmp = el.first;
-				if (tmp == ";")
+				tmp = el;
+				if (tmp.first == ";")
 					break ;
-				val.append(" " + tmp);
+				val.append(" " + tmp.first);
 			}
+			tmp.first = val;
+			tmp.second -= 1;
 			DirectiveServerHandler serv_handler = _server_directives[directive];
-			(this->*serv_handler)(val, instance);
+			(this->*serv_handler)(tmp, instance);
 		}
 		val = el.first;
 		while (val != ";" && (_server_directives.find(val) == _server_directives.end()))
 		{
 			DirectiveServerHandler serv_handler = _server_directives[directive];
-			(this->*serv_handler)(val, instance);
+			(this->*serv_handler)(el, instance);
 			exceptTocken(&_conf_content, el, 0);
 			el = getToken(&_conf_content);
 			val = el.first;
@@ -281,7 +284,7 @@ void		ParseConfig::handleServerBlock(const std::string& value, Server* instance)
 	exceptTocken(&_conf_content, el, 1);
 }
 
-void		ParseConfig::handleLocationBlock(const std::string& value, Location* instance)
+void		ParseConfig::handleLocationBlock(const std::pair<std::string, int>& value, Location* instance)
 {
 	std::pair<std::string, int>	el;
 	std::string					map_el;
@@ -302,30 +305,33 @@ void		ParseConfig::handleLocationBlock(const std::string& value, Location* insta
 		if (directive == "}")
 			break;
 		if (_location_directives.find(directive) == _location_directives.end())
-			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path);
+			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path + ":" + std::to_string(value.second));
 		exceptTocken(&_conf_content, el, 0);
 		el = getToken(&_conf_content);
 		val = el.first;
 		if (map_template_dir.find(directive) != map_template_dir.end())
 		{
-			std::string tmp = val;
-			while (tmp != ";"  && _location_directives.find(val) == _location_directives.end())
+			std::pair<std::string, int> tmp;
+			tmp.first = val;
+			while ( _location_directives.find(tmp.first) == _location_directives.end())
 			{
 				exceptTocken(&_conf_content, el, 0);
 				el = getToken(&_conf_content);
-				tmp = el.first;
-				if (tmp == ";")
+				tmp = el;
+				if (tmp.first == ";")
 					break ;
-				val.append(" " + tmp);
+				val.append(" " + tmp.first);
 			}
+			tmp.first = val;
+			tmp.second -= 1;
 			DirectiveLocationHandler loc_handler = _location_directives[directive];
-			(this->*loc_handler)(val, instance);
+			(this->*loc_handler)(tmp, instance);
 		}
 		val = el.first;
 		while (val != ";" && (_location_directives.find(val) == _location_directives.end()))
 		{
 			DirectiveLocationHandler loc_handler = _location_directives[directive];
-			(this->*loc_handler)(val, instance);
+			(this->*loc_handler)(el, instance);
 			exceptTocken(&_conf_content, el, 0);
 			el = getToken(&_conf_content);
 			val = el.first;
@@ -341,114 +347,122 @@ void		ParseConfig::handleLocationBlock(const std::string& value, Location* insta
 	exceptTocken(&_conf_content, el, 1);
 }
 
-void		ParseConfig::handleWorkCont(const std::string& value, Server* instance)
+void		ParseConfig::handleWorkCont(const std::pair<std::string, int>& value, Server* instance)
 {
 	int val = 0;
 
-	if (!is_digits(value))
-		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required only digits in " + _conf_file_path);
-	std::istringstream iss(value);
+	std::string s = value.first;
+
+	if (!is_digits(s))
+		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required only digits in " + _conf_file_path + ":" + std::to_string(value.second));
+	std::istringstream iss(s);
 	iss >> val;
 	if (iss.bad() || val <= 0)
-		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required a positive number in " + _conf_file_path);
+		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required a positive number in " + _conf_file_path + ":" + std::to_string(value.second));
 
 	instance->setWorkCont(val);
 }
 
-template<typename T> void	ParseConfig::handleRoot(const std::string& value, T* instance)
+template<typename T> void	ParseConfig::handleRoot(const std::pair<std::string, int>& value, T* instance)
 {
-	instance->setRoot(value);
+	instance->setRoot(value.first);
 }
 
-void		ParseConfig::handlePath(const std::string& value, Location* instance)
+void		ParseConfig::handlePath(const std::pair<std::string, int>& value, Location* instance)
 {
-	instance->setPath(value);
+	instance->setPath(value.first);
 }
 
-void		ParseConfig::handleErrorLog(const std::string& value, Server* instance)
+void		ParseConfig::handleErrorLog(const std::pair<std::string, int>& value, Server* instance)
 {
-	instance->setErrorLog(value);
+	instance->setErrorLog(value.first);
 }
 
-void		ParseConfig::handleClientBodySize(const std::string& value, Server* instance)
+void		ParseConfig::handleClientBodySize(const std::pair<std::string, int>& value, Server* instance)
 {
 	int val = 0;
-	std::string unit = value.substr(value.length() - 1);
-	std::string nbr = value.substr(0, value.length() - 1);
+	std::string s = value.first;
+
+	std::string unit = s.substr(s.length() - 1);
+	std::string nbr = s.substr(0, s.length() - 1);
 	if (!is_digits(nbr))
-		throw ParseException("[emerg] : directive \"client_max_body_size\" required only digits in " + _conf_file_path);
+		throw ParseException("[emerg] : directive \"client_max_body_size\" required only digits in " + _conf_file_path + ":" + std::to_string(value.second));
 	std::istringstream iss(nbr);
 	iss >> val;
 	if (iss.bad() || val <= 0)
-		throw ParseException("[emerg] : directive \"client_max_body_size\" required a positive number in " + _conf_file_path);
+		throw ParseException("[emerg] : directive \"client_max_body_size\" required a positive number in " + _conf_file_path + ":" + std::to_string(value.second));
 	if (val > 100)
-		throw ParseException("[emerg] : directive \"client_max_body_size\" limited size up to 100 Megabytes in " + _conf_file_path);
+		throw ParseException("[emerg] : directive \"client_max_body_size\" limited size up to 100 Megabytes in " + _conf_file_path + ":" + std::to_string(value.second));
 	if (unit != "M")
-		throw ParseException("[emerg] : directive \"client_max_body_size\" required a number's unit in Megabytes in " + _conf_file_path);
+		throw ParseException("[emerg] : directive \"client_max_body_size\" required a number's unit in Megabytes in " + _conf_file_path + ":" + std::to_string(value.second));
 	val = val * 1024 * 1024;
 	instance->setClientMaxBody(val);
 }
 
-template<typename T> void	ParseConfig::handleIndex(const std::string& value, T* instance)
+template<typename T> void	ParseConfig::handleIndex(const std::pair<std::string, int>& value, T* instance)
 {
-	instance->setIndex(value);
+	instance->setIndex(value.first);
 }
 
-void		ParseConfig::handleListen(const std::string& value, Server* instance)
+void		ParseConfig::handleListen(const std::pair<std::string, int>& value, Server* instance)
 {
-	size_t pos = value.find(":");
+	std::string s = value.first;
+	size_t pos = s.find(":");
 	if (pos == std::string::npos)
 	{
-		instance->setPort(value);
+		instance->setPort(s);
 		return;
 	}
-	std::string host = value.substr(0, pos);
+	std::string host = s.substr(0, pos);
 	if	(host[0] == '$')
 		host = processEnvVar(host);
 	instance->setHost(host);
-	std::string port = value.substr(pos + 1);
+	std::string port = s.substr(pos + 1);
 	if (port[0] == '$')
 		port = processEnvVar(port);
 	instance->setPort(port);
 }
 
-void		ParseConfig::handleServerName(const std::string& value, Server* instance)
+void		ParseConfig::handleServerName(const std::pair<std::string, int>& value, Server* instance)
 {
-	instance->setServerName(value);
+	instance->setServerName(value.first);
 }
 
-void		ParseConfig::handleAutoindex(const std::string& value, Location* instance)
+void		ParseConfig::handleAutoindex(const std::pair<std::string, int>& value, Location* instance)
 {
-	if (value == "on")
+	std::string s = value.first;
+
+	if (s == "on")
 		instance->setAutoindex(true);
-	else if (value == "off")
+	else if (s == "off")
 		instance->setAutoindex(false);
 	else
-		throw ParseException("[emerg] : directive \"autoindex\" misses 'on' or 'off' statement in " + _conf_file_path);
+		throw ParseException("[emerg] : directive \"autoindex\" misses 'on' or 'off' statement in " + _conf_file_path + ":" + std::to_string(value.second));
 }
 
-void		ParseConfig::handleAllowedMethods(const std::string& value, Location* instance)
+void		ParseConfig::handleAllowedMethods(const std::pair<std::string, int>& value, Location* instance)
 {
-	if (this->allowed_methods.find(value) != this->allowed_methods.end())
+	std::string s = value.first;
+
+	if (this->allowed_methods.find(s) != this->allowed_methods.end())
 	{
-		instance->setAllowedMethod(value);
+		instance->setAllowedMethod(s);
 	}
 	else
 	{
-		throw ParseException("[emerg] : method \"" + value + "\" not allowed in " + _conf_file_path);
+		throw ParseException("[emerg] : method \"" + s + "\" not allowed in " + _conf_file_path);
 	}
 }
 
-void	ParseConfig::handleReturn(const std::string& value, Location* instance)
+void	ParseConfig::handleReturn(const std::pair<std::string, int>& value, Location* instance)
 {
-	std::cout << "handleReturn " << value << std::endl;
-	std::string	s = value;
+	std::string s = value.first;
 	std::vector<std::string>	vals = ft_split(s, " ");
 	std::string		path;
 	size_t size = vals.size();
 
 	if (vals.empty())
-		throw ParseException("[emerg] : invalid number of arguments in \"return\" directive in " + _conf_file_path);
+		throw ParseException("[emerg] : invalid number of arguments in \"return\" directive in " + _conf_file_path + ":" + std::to_string(value.second));
 	for (std::string st : vals)
 		std::cout << st << std::endl;
 	if (is_regular_file(vals[size - 1]) && size > 1)
@@ -456,10 +470,9 @@ void	ParseConfig::handleReturn(const std::string& value, Location* instance)
 	instance->setReturn(vals[0], path);
 }
 
-template<typename T> void	ParseConfig::handleErrorPage(const std::string& value, T* instance)
+template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::string, int>& value, T* instance)
 {
-	std::cout << "handleErrorPage " << value << std::endl;
-	std::string					s = value;
+	std::string					s = value.first;
 	std::vector<std::string>	vals;
 	std::string					path;
 
@@ -467,7 +480,7 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::string& value,
 	size_t size = vals.size();
 
 	if (vals.empty())
-		throw ParseException("[emerg] : invalid number of arguments in \"error_page\" directive in " + _conf_file_path);
+		throw ParseException("[emerg] : invalid number of arguments in \"error_page\" directive in " + _conf_file_path + ":" + std::to_string(value.second));
 	for (std::string st : vals)
 		std::cout << st << std::endl;
 	if (is_regular_file(vals[size - 1]))
@@ -483,21 +496,21 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::string& value,
 	// }
 }
 
-void		ParseConfig::handleUploadDir(const std::string& value, Location* instance)
+void		ParseConfig::handleUploadDir(const std::pair<std::string, int>& value, Location* instance)
 {
-	instance->setUploadDir(value);
+	instance->setUploadDir(value.first);
 }
 
-void		ParseConfig::handleCgiExtension(const std::string& value, Location* instance)
+void		ParseConfig::handleCgiExtension(const std::pair<std::string, int>& value, Location* instance)
 {
-	instance->setCgiExtension(value);
+	instance->setCgiExtension(value.first);
 }
 
 /**
  * The function `exceptTocken` checks if the front element of a list matches a given token and prints a
  * message accordingly.
  */
-int		ParseConfig::exceptTocken(std::list<std::pair<std::string, int>> *src, std::pair<std::string, int> tocken, int expected)
+int		ParseConfig::exceptTocken(std::list<std::pair<std::string, int> > *src, std::pair<std::string, int> tocken, int expected)
 {
 	if (src->empty())
 		throw ParseException("[emerg] : Unexpected end of configuration file " + _conf_file_path);
@@ -538,7 +551,7 @@ std::string ParseConfig::processEnvVar(const std::string &input)
 	}
 }
 
-std::pair<std::string, int> ParseConfig::getToken(std::list<std::pair<std::string, int>> *src)
+std::pair<std::string, int> ParseConfig::getToken(std::list<std::pair<std::string, int> > *src)
 {
 	if (src->empty())
 		throw ParseConfig::ParseException("[emerg] : Unexpected end of configuration content in " + _conf_file_path);

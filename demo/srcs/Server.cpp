@@ -71,6 +71,10 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 	for (std::string s : i.getServerNames())
 		o << s << " ";
 
+	o	<< "\nerror pages: \n\t";
+	for (const auto& pair : i.getErrorPages())
+		std::cout  << "\t" << pair.first << ": " << pair.second << std::endl;
+
 	o << std::endl;
 
 	std::vector<Location> locations = i.getLocations();
