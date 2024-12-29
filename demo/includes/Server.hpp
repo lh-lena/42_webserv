@@ -22,7 +22,7 @@ class Server
 		void								setPort(const std::string &arg);
 		void								setRoot(const std::string &arg);
 		void								setErrorLog(const std::string &arg);
-		void								setErrorPage(const std::string &key, const std::string &value);
+		void								addErrorPage(const std::string &key, const std::string &value);
 		void								setIndex(const std::string &arg);
 		void								setServerName(const std::string &arg);
 		void								setLocation(const Location &src);

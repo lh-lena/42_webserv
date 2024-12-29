@@ -22,12 +22,13 @@ std::vector<std::string>	ft_split(std::string& s, std::string delimeter)
 
 bool		is_digits(const std::string& str)
 {
-    for (char c : str)
+	size_t len = str.size();
+	for (int i = 0; i < len; i++)
 	{
-        if (!std::isdigit(c))
-            return false;
-    }
-    return true;
+		if (!std::isdigit(str[i]))
+			return false;
+	}
+	return true;
 }
 
 bool		is_directory(const std::string& path)
@@ -73,3 +74,14 @@ bool		is_path_exists(const std::string& path)
 	return file.is_open();
 }
 
+std::string generate_path(const std::string& base_path, const std::string& status_code)
+{
+	std::string p = base_path;
+	size_t pos = p.find('x');
+	if (pos != std::string::npos)
+	{
+		p.replace(pos, 1, status_code);
+	}
+
+	return p;
+}

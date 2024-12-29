@@ -23,7 +23,7 @@ class Location
 		void								setAutoindex(bool arg);
 		void								setAllowedMethod(const std::string &arg);
 		void								setUploadDir(const std::string &arg);
-		void								setErrorPages(const std::string &key, const std::string &val);
+		void								addErrorPage(const std::string &key, const std::string &val);
 		void								setReturn( const std::string &key, const std::string &val );
 		void								setCgiExtension(const std::string &arg);
 		bool								getAutoindex( void ) const;

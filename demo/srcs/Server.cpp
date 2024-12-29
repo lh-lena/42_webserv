@@ -64,14 +64,14 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 		<< "host: " << i.getHost() << std::endl
 		<< "port: " << i.getPort() << std::endl
 		<< "root: " << i.getRoot() << std::endl
-		<< "indexes: \n\t"; 
+		<< "indexes: \n\t";
 	for (std::string s : i.getIndexes())
 		o << s << " ";
 	o	<< "\nserver names: \n\t";
 	for (std::string s : i.getServerNames())
 		o << s << " ";
 
-	o	<< "\nerror pages: \n\t";
+	o	<< "\nerror pages: \n";
 	for (const auto& pair : i.getErrorPages())
 		std::cout  << "\t" << pair.first << ": " << pair.second << std::endl;
 
@@ -131,7 +131,7 @@ void	Server::setErrorLog(const std::string &arg)
 	_error_log = arg;
 }
 
-void	Server::setErrorPage(const std::string &key, const std::string &value)
+void	Server::addErrorPage(const std::string &key, const std::string &value)
 {
 	_error_pages[key] = value;
 }

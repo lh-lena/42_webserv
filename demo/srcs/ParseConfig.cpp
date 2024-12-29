@@ -450,7 +450,7 @@ void		ParseConfig::handleAllowedMethods(const std::pair<std::string, int>& value
 	}
 	else
 	{
-		throw ParseException("[emerg] : method \"" + s + "\" not allowed in " + _conf_file_path);
+		throw ParseException("[emerg] : method \"" + s + "\" not allowed in " + _conf_file_path + ":" + std::to_string(value.second));
 	}
 }
 
@@ -483,17 +483,16 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 		throw ParseException("[emerg] : invalid number of arguments in \"error_page\" directive in " + _conf_file_path + ":" + std::to_string(value.second));
 	for (std::string st : vals)
 		std::cout << st << std::endl;
-	if (is_regular_file(vals[size - 1]))
-		path = vals[size - 1];
-	else
-	{
-		path = "";
-	}
 
-	// for (int i = 0; i < size; i++)
-	// {
-		
-	// }
+	for (int i = 0; i < size; i++)
+	{
+		path = generate_path(vals[size - 1], vals[i]);
+		if (!is_regular_file(path))
+			path = vals[i] + ".html"; // path to default error page, if none provided
+		if (i == size - 1 && vals[size - 1].find_last_of(".html")) // to break if last element is a path
+			break;
+		instance->addErrorPage(vals[i], path);
+	}
 }
 
 void		ParseConfig::handleUploadDir(const std::pair<std::string, int>& value, Location* instance)

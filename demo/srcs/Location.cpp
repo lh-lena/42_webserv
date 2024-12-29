@@ -113,7 +113,7 @@ void	Location::setUploadDir(const std::string &arg)
 	_upload_dir = arg;
 }
 
-void	Location::setErrorPages(const std::string &key, const std::string &val)
+void	Location::addErrorPage(const std::string &key, const std::string &val)
 {
 	_error_pages[key] = val;
 }
