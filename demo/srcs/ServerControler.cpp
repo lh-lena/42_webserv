@@ -31,7 +31,7 @@ ServerControler&				ServerControler::operator=( ServerControler const& rhs )
 {
 	if ( this != &rhs )
 	{
-		this->_server = rhs._server;
+		this->_servBlocks = rhs._servBlocks;
 	}
 	return *this;
 }
@@ -51,6 +51,10 @@ std::ostream&			operator<<( std::ostream & o, ServerControler const& i )
 ** --------------------------------- METHODS ----------------------------------
 */
 
+size_t		ServerControler::getServBlockNbr( void )
+{
+	return _servBlocks.size();
+}
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
@@ -58,12 +62,12 @@ std::ostream&			operator<<( std::ostream & o, ServerControler const& i )
 
 void	ServerControler::setServer(const Server& instance)
 {
-	_server.push_back(instance);
+	_servBlocks.push_back(instance);
 }
 
 const std::vector<Server>&	ServerControler::getServers( void ) const
 {
-	return (_server);
+	return (_servBlocks);
 }
 
 /* ************************************************************************** */

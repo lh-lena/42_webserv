@@ -19,9 +19,10 @@ class ServerControler
 		ServerControler&					operator=( ServerControler const & rhs );
 		void								setServer( const Server& instance );
 		const std::vector<Server>&			getServers( void ) const;
+		size_t								getServBlockNbr( void );
 
 	private:
-		std::vector<Server>					_server;
+		std::vector<Server>					_servBlocks;
 
 };
 

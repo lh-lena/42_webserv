@@ -19,7 +19,7 @@ class Server
 		void								setClientMaxBody(int value);
 		void								setWorkCont(int connections);
 		void								setHost(const std::string &arg);
-		void								setPort(const std::string &arg);
+		void								setPort( int val );
 		void								setRoot(const std::string &arg);
 		void								setErrorLog(const std::string &arg);
 		void								addErrorPage(const std::string &key, const std::string &value);
@@ -29,21 +29,24 @@ class Server
 		int									getLocationNbr( void ) const;
 		int									getClientMaxBody( void ) const;
 		int									getWorkCont( void )  const;
+		int									getPort( void ) const;
 		std::string							getHost( void ) const;
-		std::string							getPort( void ) const;
 		std::string							getRoot( void ) const;
 		std::string							getErrorLog( void ) const;
 		const std::vector<Location>&		getLocations( void ) const;
 		std::vector<std::string>			getIndexes( void ) const;
 		std::vector<std::string>			getServerNames( void ) const;
 		std::map<std::string, std::string>	getErrorPages( void ) const;
+		void								hadleGET();
+		void								hadlePOST();
+		void								hadleDELETE();
 
 	private:
 		int									_location_nbr;
 		int									_client_max_body_size;
 		int									_worker_connections;
+		int									_port;
 		std::string							_host;
-		std::string							_port;
 		std::string							_root;
 		std::string							_error_log;
 		std::vector<Location>				_locations;

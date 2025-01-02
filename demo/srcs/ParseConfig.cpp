@@ -164,6 +164,10 @@ void 		ParseConfig::parseConfigContent( void )
 		}
 		if (!_conf_content.empty())
 			throw ParseException("[emerg] : Unexpected data in configuration file " + _conf_file_path);
+		if (_serverControler.getServBlockNbr() <= 0)
+		{
+			_serverControler.setServer(server);
+		}
 		std::cout << _serverControler << std::endl;
 	}
 	catch (std::exception &e)
@@ -408,9 +412,18 @@ void		ParseConfig::handleListen(const std::pair<std::string, int>& value, Server
 {
 	std::string s = value.first;
 	size_t pos = s.find(":");
+	int	port_val;
+
 	if (pos == std::string::npos)
 	{
-		instance->setPort(s);
+		std::istringstream ss(s);
+		ss >> port_val;
+		if(ss.fail())
+		{
+			ss.clear();
+			throw  ParseException("[emerg] : directive \"port\" required a numbers only in " + _conf_file_path + ":" + std::to_string(value.second));
+		}
+		instance->setPort(port_val);
 		return;
 	}
 	std::string host = s.substr(0, pos);
@@ -420,7 +433,16 @@ void		ParseConfig::handleListen(const std::pair<std::string, int>& value, Server
 	std::string port = s.substr(pos + 1);
 	if (port[0] == '$')
 		port = processEnvVar(port);
-	instance->setPort(port);
+	if (host.empty() || port.empty())
+		throw ParseException("[emerg] \"" + value.first + "\" invalid input in " + _conf_file_path + ":" + std::to_string(value.second));
+	std::istringstream ss(port);
+	ss >> port_val;
+	if(ss.fail())
+	{
+		ss.clear();
+		throw  ParseException("[emerg] : directive \"port\" required numbers only in " + _conf_file_path + ":" + std::to_string(value.second));
+	}
+	instance->setPort(port_val);
 }
 
 void		ParseConfig::handleServerName(const std::pair<std::string, int>& value, Server* instance)
@@ -538,16 +560,16 @@ std::string ParseConfig::processEnvVar(const std::string &input)
 {
 	size_t start = input.find("${");
 	size_t end = input.find("}");
+	std::string	res;
 
 	if (start != std::string::npos && end != std::string::npos && (start + 2) != end)
 	{
 		std::string var = input.substr(start + 2, end - start - 2);
-		return (get_env_value(_envp, var));
+		res = get_env_value(_envp, var);
+		return res;
 	}
 	else
-	{
-		throw ParseException("[emerg] \"" + input + "\" invalid input in " + _conf_file_path);
-	}
+		return res;
 }
 
 std::pair<std::string, int> ParseConfig::getToken(std::list<std::pair<std::string, int> > *src)

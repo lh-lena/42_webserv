@@ -10,12 +10,11 @@ Server::Server()
 		_client_max_body_size(1 * 1024 * 1024), //1M
 		_worker_connections(1024),
 		_host("localhost"),
-		_port("8080"),
+		_port(80),
 		_root("./var/www/html"),
 		_error_log("error.log")
 {
-	// _indexes.push_back("index.html");
-	// _indexes.push_back("index.htm");
+	_indexes.push_back("index.html");
 }
 
 Server::Server( const Server & src )
@@ -116,9 +115,9 @@ void	Server::setHost(const std::string &arg)
 	_host = arg;
 }
 
-void	Server::setPort(const std::string &arg)
+void	Server::setPort( int val )
 {
-	_port = arg;
+	_port = val;
 }
 
 void	Server::setRoot(const std::string &arg)
@@ -172,7 +171,7 @@ std::string	Server::getHost( void ) const
 	return (_host);
 }
 
-std::string	Server::getPort( void ) const
+int		Server::getPort( void ) const
 {
 	return (_port);
 }
