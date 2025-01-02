@@ -23,6 +23,10 @@ class ServerControler
 
 	private:
 		std::vector<Server>					_servBlocks;
+		std::vector<int>	_socketFds; // array of listening sockets identifiers (server_fds)
+
+		void	createListeningSockets(); // fill _socketFds
+		void	processRequest(char *buf); // parse request and pass it to the rigth server block to get response
 
 };
 
