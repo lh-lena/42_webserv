@@ -21,6 +21,8 @@ class ServerControler
 		const std::vector<Server>&			getServers( void ) const;
 		size_t								getServBlockNbr( void );
 
+		void							startServing();
+
 	private:
 		std::vector<Server>					_servBlocks;
 		std::vector<int>	_socketFds; // array of listening sockets identifiers (server_fds)

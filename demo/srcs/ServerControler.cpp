@@ -84,6 +84,12 @@ static std::vector<int>	getPorts(std::vector<Server> & servers)
 /*
 ** --------------------------------- METHODS ----------------------------------
 */
+void	ServerControler::startServing()
+{
+	this->createListeningSockets();
+	return;
+}
+
 void	ServerControler::createListeningSockets()
 {
 	std::vector<int> ports = getPorts(this->_servBlocks);
@@ -114,6 +120,7 @@ void	ServerControler::createListeningSockets()
 
 		/* Initialize the socket address structure */
 		// bind the socket to a IP / port
+		std::cout << "Port " << i << " :" << ports[i] << std::endl;
 		memset(&socket_addr, 0, sizeof(socket_addr));
 		socket_addr.sin_family = AF_INET;
 		socket_addr.sin_port = htons(ports[i]);
@@ -143,6 +150,11 @@ void	ServerControler::createListeningSockets()
 		_socketFds.push_back(server_fd);
 		std::cout << "Server " << i << " listening on port: " << ports[i] << std::endl;
 	}
+
+}
+
+void	ServerControler::processRequest(char *buf)
+{
 
 }
 

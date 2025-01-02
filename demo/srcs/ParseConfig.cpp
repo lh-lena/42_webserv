@@ -626,6 +626,8 @@ int main(int argc, char *argv[], char* envp[])
 	{
 		config.readFileContent();
 		config.parseConfigContent();
+		ServerControler & controler = config.getServControler();
+		controler.startServing();
 	}
 	catch (std::exception &e)
 	{
