@@ -22,7 +22,7 @@ class Server
 		void								setPort( int val );
 		void								setRoot(const std::string &arg);
 		void								setErrorLog(const std::string &arg);
-		void								addErrorPage(const std::string &key, const std::string &value);
+		void								addErrorPage(int key, const std::string &value);
 		void								setIndex(const std::string &arg);
 		void								setServerName(const std::string &arg);
 		void								setLocation(const Location &src);
@@ -36,7 +36,7 @@ class Server
 		const std::vector<Location>&		getLocations( void ) const;
 		std::vector<std::string>			getIndexes( void ) const;
 		std::vector<std::string>			getServerNames( void ) const;
-		std::map<std::string, std::string>	getErrorPages( void ) const;
+		std::map<int, std::string>			getErrorPages( void ) const;
 		void								hadleGET();
 		void								hadlePOST();
 		void								hadleDELETE();
@@ -52,7 +52,7 @@ class Server
 		std::vector<Location>				_locations;
 		std::vector<std::string>			_indexes;
 		std::vector<std::string>			_server_names;
-		std::map<std::string, std::string>	_error_pages;
+		std::map<int, std::string>			_error_pages;
 };
 
 std::ostream &			operator<<( std::ostream & o, Server const & i );

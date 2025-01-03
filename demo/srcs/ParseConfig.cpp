@@ -359,9 +359,8 @@ void		ParseConfig::handleWorkCont(const std::pair<std::string, int>& value, Serv
 
 	if (!is_digits(s))
 		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required only digits in " + _conf_file_path + ":" + std::to_string(value.second));
-	std::istringstream iss(s);
-	iss >> val;
-	if (iss.bad() || val <= 0)
+	val = strToUint(s);
+	if (val <= 0)
 		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required a positive number in " + _conf_file_path + ":" + std::to_string(value.second));
 
 	instance->setWorkCont(val);
@@ -391,9 +390,8 @@ void		ParseConfig::handleClientBodySize(const std::pair<std::string, int>& value
 	std::string nbr = s.substr(0, s.length() - 1);
 	if (!is_digits(nbr))
 		throw ParseException("[emerg] : directive \"client_max_body_size\" required only digits in " + _conf_file_path + ":" + std::to_string(value.second));
-	std::istringstream iss(nbr);
-	iss >> val;
-	if (iss.bad() || val <= 0)
+	val = strToUint(nbr);
+	if (val <= 0)
 		throw ParseException("[emerg] : directive \"client_max_body_size\" required a positive number in " + _conf_file_path + ":" + std::to_string(value.second));
 	if (val > 100)
 		throw ParseException("[emerg] : directive \"client_max_body_size\" limited size up to 100 Megabytes in " + _conf_file_path + ":" + std::to_string(value.second));
@@ -416,12 +414,10 @@ void		ParseConfig::handleListen(const std::pair<std::string, int>& value, Server
 
 	if (pos == std::string::npos)
 	{
-		std::istringstream ss(s);
-		ss >> port_val;
-		if(ss.fail())
+		port_val = strToUint(s);
+		if(port_val <= 0)
 		{
-			ss.clear();
-			throw  ParseException("[emerg] : directive \"port\" required a numbers only in " + _conf_file_path + ":" + std::to_string(value.second));
+			throw  ParseException("[emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + std::to_string(value.second));
 		}
 		instance->setPort(port_val);
 		return;
@@ -435,12 +431,10 @@ void		ParseConfig::handleListen(const std::pair<std::string, int>& value, Server
 		port = processEnvVar(port);
 	if (host.empty() || port.empty())
 		throw ParseException("[emerg] \"" + value.first + "\" invalid input in " + _conf_file_path + ":" + std::to_string(value.second));
-	std::istringstream ss(port);
-	ss >> port_val;
-	if(ss.fail())
+	port_val = strToUint(port);
+	if(port_val <= 0)
 	{
-		ss.clear();
-		throw  ParseException("[emerg] : directive \"port\" required numbers only in " + _conf_file_path + ":" + std::to_string(value.second));
+		throw  ParseException("[emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + std::to_string(value.second));
 	}
 	instance->setPort(port_val);
 }
@@ -497,23 +491,29 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 	std::string					s = value.first;
 	std::vector<std::string>	vals;
 	std::string					path;
+	int 						val;
 
 	vals = ft_split(s, " ");
 	size_t size = vals.size();
 
 	if (vals.empty())
+	{
 		throw ParseException("[emerg] : invalid number of arguments in \"error_page\" directive in " + _conf_file_path + ":" + std::to_string(value.second));
-	for (std::string st : vals)
-		std::cout << st << std::endl;
+	}
 
 	for (int i = 0; i < size; i++)
 	{
+		val = strToUint(vals[i]);
+		if (val <= 0 || !is_status_code(val))
+		{
+			throw ParseException("[emerg] : invalid status code in \"error_page\" directive in " + _conf_file_path + ":" + std::to_string(value.second));
+		}
 		path = generate_path(vals[size - 1], vals[i]);
 		if (!is_regular_file(path))
 			path = vals[i] + ".html"; // path to default error page, if none provided
 		if (i == size - 1 && vals[size - 1].find_last_of(".html")) // to break if last element is a path
 			break;
-		instance->addErrorPage(vals[i], path);
+		instance->addErrorPage(val, path);
 	}
 }
 

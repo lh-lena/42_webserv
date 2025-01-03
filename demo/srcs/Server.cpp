@@ -130,7 +130,7 @@ void	Server::setErrorLog(const std::string &arg)
 	_error_log = arg;
 }
 
-void	Server::addErrorPage(const std::string &key, const std::string &value)
+void	Server::addErrorPage(int key, const std::string &value)
 {
 	_error_pages[key] = value;
 }
@@ -186,7 +186,7 @@ std::string	Server::getErrorLog( void ) const
 	return (_error_log);
 }
 
-std::map<std::string, std::string>	Server::getErrorPages( void ) const
+std::map<int, std::string>	Server::getErrorPages( void ) const
 {
 	return (_error_pages);
 }

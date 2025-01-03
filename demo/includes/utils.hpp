@@ -10,6 +10,8 @@
 # include <iostream>
 # include <sys/stat.h>
 
+int                 		strToUint(std::string s);
+bool		                is_status_code(int code);
 bool						is_directory(const std::string& path);
 bool						is_regular_file(const std::string& path);
 bool						is_digits(const std::string& str);
