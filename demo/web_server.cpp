@@ -47,22 +47,23 @@ std::string error_404 = "./error_pages/404.html";
 
 std::string extractPath(std::string const &request);
 int forward_message(int fd, std::string partPath);
+
 std::vector<std::string> split(std::string &s, std::string delimeter)
 {
-    size_t pos = 0;
-    std::vector<std::string> parts;
+	size_t pos = 0;
+	std::vector<std::string> parts;
 	if ((pos = s.find(delimeter)) == std::string::npos)
 		parts.push_back(s);
-    while ((pos = s.find(delimeter)) != std::string::npos)
-    {
-        std::string tocken = s.substr(0, pos);
-        if (tocken.size() > 0)
-        {
+	while ((pos = s.find(delimeter)) != std::string::npos)
+	{
+		std::string tocken = s.substr(0, pos);
+		if (tocken.size() > 0)
+		{
 			parts.push_back(tocken);
-            s.erase(0, pos + delimeter.length());
+			s.erase(0, pos + delimeter.length());
 		}
-    }
-    return parts;
+	}
+	return parts;
 }
 
 std::string intToString(int num)
@@ -190,7 +191,6 @@ std::string getContentType(std::string const &path)
 {
 	DIR *dir;
     struct dirent *dp;
-
 
 } */
 
@@ -403,21 +403,8 @@ int main(int argc, char *argv[], char* envp[])
 	(void)argc;
 	(void)argv;
 
-	std::string configFilePath;
-	configFilePath = "serv.conf";
-	ParseConfig config(envp);
-	try
-	{
-		// config.readFileContent(configFilePath);
-	}
-	catch (std::exception &e)
-	{
-		std::cerr << e.what() << std::endl;
-		return (1);
-	}
-
 	/* create listening socket */
-   /*  int server_fd = create_tcp_server_socket();
+    int server_fd = create_tcp_server_socket();
 	if (!server_fd)
 		return (server_fd);
 	
@@ -425,7 +412,7 @@ int main(int argc, char *argv[], char* envp[])
 		return -8;
 	
 	if (create_epoll(server_fd) < 0)
-		return -1; */
+		return -1;
 
 	return (0);
 }

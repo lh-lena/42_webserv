@@ -174,5 +174,4 @@ std::string		Location::getCgiExtension( void ) const
 	return (_cgi_extension);
 }
 
-
 /* ************************************************************************** */

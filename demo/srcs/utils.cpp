@@ -172,3 +172,37 @@ std::string	reasonPhrase(int code)
 		default: return std::string();
 	}
 }
+
+std::string		MIME_type(std::string path)
+{
+	size_t pos = path.rfind(".");
+
+	if (pos == std::string::npos)
+	{
+		return std::string(); 
+	}
+	std::string res = path.substr(pos);
+
+	if(std::strcmp(res.c_str(), ".htm"))  return "text/html";
+    if(std::strcmp(res.c_str(), ".html")) return "text/html";
+    if(std::strcmp(res.c_str(), ".php"))  return "text/html";
+	if(std::strcmp(res.c_str(), ".css"))  return "text/css";
+    if(std::strcmp(res.c_str(), ".txt"))  return "text/plain";
+    if(std::strcmp(res.c_str(), ".js"))   return "application/javascript";
+    if(std::strcmp(res.c_str(), ".json")) return "application/json";
+    if(std::strcmp(res.c_str(), ".xml"))  return "application/xml";
+    if(std::strcmp(res.c_str(), ".swf"))  return "application/x-shockwave-flash";
+    if(std::strcmp(res.c_str(), ".flv"))  return "video/x-flv";
+    if(std::strcmp(res.c_str(), ".png"))  return "image/png";
+    if(std::strcmp(res.c_str(), ".jpe"))  return "image/jpeg";
+    if(std::strcmp(res.c_str(), ".jpeg")) return "image/jpeg";
+    if(std::strcmp(res.c_str(), ".jpg"))  return "image/jpeg";
+    if(std::strcmp(res.c_str(), ".gif"))  return "image/gif";
+    if(std::strcmp(res.c_str(), ".bmp"))  return "image/bmp";
+    if(std::strcmp(res.c_str(), ".ico"))  return "image/vnd.microsoft.icon";
+    if(std::strcmp(res.c_str(), ".tiff")) return "image/tiff";
+    if(std::strcmp(res.c_str(), ".tif"))  return "image/tiff";
+    if(std::strcmp(res.c_str(), ".svg"))  return "image/svg+xml";
+    if(std::strcmp(res.c_str(), ".svgz")) return "image/svg+xml";
+    return "application/text";
+}

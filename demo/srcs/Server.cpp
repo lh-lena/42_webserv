@@ -90,6 +90,39 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 ** --------------------------------- METHODS ----------------------------------
 */
 
+int		Server::handleRequestedURI(std::string base_path, std::string* path)
+{
+	if (base_path.empty())
+	{
+		base_path = "/";
+	}
+
+	for(int i = 0; i < this->_location_nbr; i++)
+	{
+		/** TODO:
+		 * - find location which will start same
+		 * - to ensure to check error_pages path for redirections
+		 * Consider this example:
+
+root /var/www/main;
+
+location / {
+    error_page 404 /another/whoops.html;
+}
+
+location /another {
+    root /var/www;
+}
+
+Every request (other than those starting with /another) will be handled by the first block, which will serve files out of /var/www/main. However, if a file is not found (a 404 status),
+ an internal redirect to /another/whoops.html will occur, leading to a new location search that will eventually land on the second block. This file will be served out of /var/www/another/whoops.html.
+		 */
+	}
+
+	return 0;
+}
+
+
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
