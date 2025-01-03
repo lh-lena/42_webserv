@@ -22,6 +22,7 @@ class ServerControler
 		size_t								getServBlockNbr( void );
 
 		void							startServing();
+		bool	servEnd;
 
 	private:
 		std::vector<Server>					_servBlocks;

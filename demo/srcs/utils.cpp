@@ -6,7 +6,7 @@ std::vector<std::string>	ft_split(std::string& s, std::string delimeter)
 	std::vector<std::string> parts;
 
 	if (delimeter.empty())
-		return parts;		
+		return parts;
 	while ((pos = s.find(delimeter)) != std::string::npos)
 	{
 		std::string part = s.substr(0, pos);
@@ -16,7 +16,7 @@ std::vector<std::string>	ft_split(std::string& s, std::string delimeter)
 			s.erase(0, pos + delimeter.length());
 		}
 	}
-    parts.push_back(s);
+	parts.push_back(s);
 	return parts;
 }
 
@@ -97,6 +97,7 @@ std::string generate_path(const std::string& base_path, const std::string& statu
 
 	return p;
 }
+
 
 bool		is_status_code(int code)
 {

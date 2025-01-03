@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <netdb.h>
+#include <netinet/in.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <fcntl.h>
@@ -15,7 +16,7 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-ServerControler::ServerControler()
+ServerControler::ServerControler(): servEnd(false)
 {
 }
 
@@ -60,26 +61,83 @@ std::ostream&			operator<<( std::ostream & o, ServerControler const& i )
 /*
 ** --------------------------------- STATIC -----------------------------------
 */
-static std::vector<int>	getPorts(std::vector<Server> & servers)
+static int	set_to_nonblocking(int server_fd)
 {
-	std::vector<int> ports;
-	int	port;
-
-	int	size = servers.size();
-
-	if (!size)
-		throw std::invalid_argument("Bad configuration file"); // check for parcing error
-
-	ports.push_back(servers[0].getPort());
-
-	for (int i = 1; i < size; i++)
+	// Set server socket to non-blocking
+	int flags = fcntl(server_fd, F_GETFL, 0);
+	if (flags == -1)
 	{
-		port = servers[i].getPort();
-		if (port != ports[i - 1])
-			ports.push_back(port);
+		std::cerr << "Error: " << strerror(errno) << std::endl;
+		close(server_fd);
+		return -6;
 	}
-	return ports;
+	int res = fcntl(server_fd, F_SETFL, flags | O_NONBLOCK);
+	if (res == -1)
+	{
+		std::cerr << "Error: " << strerror(errno) << std::endl;
+		close(server_fd);
+		return -7;
+	}
+	return 1;
 }
+
+static int	create_tcp_server_socket(int port)
+{
+	int server_fd;
+	int reuse = 1; // Allow socket address reuse
+	struct sockaddr_in socket_addr; // represents IPv4 socket addresses
+
+	/* Step1: create a TCP socket */
+	server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (server_fd == -1)
+	{
+		std::cerr << "Error: creation socket failed: " << strerror(errno) << std::endl;
+		return -2;
+	}
+
+	/*This helps in manipulating options for the socket referred by the file descriptor sockfd. Optional*/
+	int res = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &reuse, sizeof(reuse));
+
+	if (res == -1)
+	{
+		std::cerr << "Error: set socket options failed" << std::endl;
+		close(server_fd);
+		return -3;
+	}
+
+	/* Initialize the socket address structure */
+	// bind the socket to a IP / port
+	memset(&socket_addr, 0, sizeof(socket_addr));
+	socket_addr.sin_family = AF_INET;
+	socket_addr.sin_port = htons(port);
+	socket_addr.sin_addr.s_addr = INADDR_ANY; // Bind to any available interface
+	/*
+	//ip address of www.msn.com (get by doing a ping www.msn.com at terminal)
+	server.sin_addr.s_addr = inet_addr("131.253.13.140");//INADDR_ANY
+	if (server.sin_addr.s_addr != INADDR_NONE) // good
+	*/
+	if (!set_to_nonblocking(server_fd))
+		return -8;
+	// associates the socket with a specific IP address and port number
+	if (bind(server_fd, (sockaddr*)&socket_addr, sizeof(sockaddr)) == -1)
+	{
+		std::cerr << "Error: binding socket failed: " << strerror(errno) << std::endl;
+		close(server_fd);
+		return -4;
+	}
+
+	// Listen for connections. Max connections is 5 LISTEN_BACKLOG
+	if (listen(server_fd, SOMAXCONN) == -1)
+	{
+		std::cerr << "Error listening on socket: " << strerror(errno) << std::endl;
+		close(server_fd);
+		return -5;
+	}
+
+	//std::cout << "Server listening on port " << port << std::endl;
+	return (server_fd);
+}
+
 
 /*
 ** --------------------------------- METHODS ----------------------------------
@@ -87,68 +145,32 @@ static std::vector<int>	getPorts(std::vector<Server> & servers)
 void	ServerControler::startServing()
 {
 	this->createListeningSockets();
+	// while (!servEnd)
+	// {
+	// 	//poll
+	// }
 	return;
 }
 
 void	ServerControler::createListeningSockets()
 {
-	std::vector<int> ports = getPorts(this->_servBlocks);
-	int size = ports.size();
 	int server_fd;
-	int reuse = 1; // Allow socket address reuse
-	struct sockaddr_in socket_addr; // represents IPv4 socket addresses
+	//std::vector<int> ports;
+	int	temp = 0;
+	int port;
+	int	size = _servBlocks.size();
 
 	for (int i = 0; i < size; i++)
 	{
-		/* Step1: create a TCP socket */
-		server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-		if (server_fd == -1)
+		port = _servBlocks[i].getPort();
+		if (port != temp)
 		{
-			std::cerr << "Error: creation socket failed: " << strerror(errno) << std::endl;
-			return;
+			server_fd = create_tcp_server_socket(port);
+			//std::cout << "Port " << i << " :" << ports[i] << std::endl;
+			_socketFds.push_back(server_fd);
+			std::cout << "Server " << i << " listening on port: " << port << std::endl;
+			temp = port;
 		}
-
-		/*This helps in manipulating options for the socket referred by the file descriptor sockfd. Optional*/
-		int res = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &reuse, sizeof(reuse));
-
-		if (res == -1)
-		{
-			std::cerr << "Error: set socket options failed" << std::endl;
-			close(server_fd);
-			return;
-		}
-
-		/* Initialize the socket address structure */
-		// bind the socket to a IP / port
-		std::cout << "Port " << i << " :" << ports[i] << std::endl;
-		memset(&socket_addr, 0, sizeof(socket_addr));
-		socket_addr.sin_family = AF_INET;
-		socket_addr.sin_port = htons(ports[i]);
-		socket_addr.sin_addr.s_addr = INADDR_ANY; // Bind to any available interface
-		/*
-		//ip address of www.msn.com (get by doing a ping www.msn.com at terminal)
-		server.sin_addr.s_addr = inet_addr("131.253.13.140");//INADDR_ANY
-		if (server.sin_addr.s_addr != INADDR_NONE) // good
-		*/
-
-		// associates the socket with a specific IP address and port number
-		if (bind(server_fd, (sockaddr*)&socket_addr, sizeof(sockaddr)) == -1)
-		{
-			std::cerr << "Error: binding socket failed: " << strerror(errno) << std::endl;
-			close(server_fd);
-			return;
-		}
-
-		// Listen for connections. Max connections is 5 LISTEN_BACKLOG
-		if (listen(server_fd, SOMAXCONN) == -1)
-		{
-			std::cerr << "Error listening on socket: " << strerror(errno) << std::endl;
-			close(server_fd);
-			return;
-		}
-
-		_socketFds.push_back(server_fd);
-		std::cout << "Server " << i << " listening on port: " << ports[i] << std::endl;
 	}
 
 }
