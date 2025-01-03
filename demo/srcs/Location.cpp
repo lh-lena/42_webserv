@@ -118,7 +118,7 @@ void	Location::addErrorPage(int	key, const std::string &val)
 	_error_pages[key] = val;
 }
 
-void	Location::setReturn( const std::string &key, const std::string &val ) 
+void	Location::setReturn( int key, const std::string &val ) 
 {
 	_return[key] = val;
 }
@@ -164,7 +164,7 @@ std::map<int, std::string>	Location::getErrorPages( void ) const
 	return (_error_pages);
 }
 
-std::map<std::string, std::string>	Location::getReturn( void ) const
+std::map<int, std::string>	Location::getReturn( void ) const
 {
 	return (_return);
 }

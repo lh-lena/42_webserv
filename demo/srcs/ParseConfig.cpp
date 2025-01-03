@@ -475,15 +475,22 @@ void	ParseConfig::handleReturn(const std::pair<std::string, int>& value, Locatio
 	std::string s = value.first;
 	std::vector<std::string>	vals = ft_split(s, " ");
 	std::string		path;
+	int				code;
 	size_t size = vals.size();
 
 	if (vals.empty())
+	{
 		throw ParseException("[emerg] : invalid number of arguments in \"return\" directive in " + _conf_file_path + ":" + std::to_string(value.second));
-	for (std::string st : vals)
-		std::cout << st << std::endl;
+	}
+
 	if (is_regular_file(vals[size - 1]) && size > 1)
 		path = vals[size - 1];
-	instance->setReturn(vals[0], path);
+	code = strToUint(vals[0]);
+	if (code <= 0 || !is_status_code(code))
+	{
+		throw ParseException("[emerg] : an invalid status code in \"return\" directive in " + _conf_file_path + ":" + std::to_string(value.second));
+	}
+	instance->setReturn(code, path);
 }
 
 template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::string, int>& value, T* instance)
