@@ -6,6 +6,7 @@
 # include <vector>
 # include <iostream>
 
+extern volatile bool g_serv_end;
 
 class ServerControler
 {
@@ -20,6 +21,7 @@ class ServerControler
 		void								setServer( const Server& instance );
 		const std::vector<Server>&			getServers( void ) const;
 		size_t								getServBlockNbr( void );
+		static void							sig_handler(int sig_num);
 
 		void							startServing();
 		bool	servEnd;

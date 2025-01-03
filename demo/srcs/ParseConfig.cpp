@@ -140,40 +140,33 @@ void 		ParseConfig::parseConfigContent( void )
 	std::string					value;
 	Server						server;
 
-	try
+	if (_conf_content.empty())
+		throw ParseException("[emerg] : Unexpected end of configuration file " + _conf_file_path);
+	while (!_conf_content.empty())
 	{
-		if (_conf_content.empty())
-			throw ParseException("[emerg] : Unexpected end of configuration file " + _conf_file_path);
-		while (!_conf_content.empty())
+		el = getToken(&_conf_content);
+		directive = el.first;
+		if (_global_directives.find(directive) == _global_directives.end())
+			throw ParseException("[ERROR] parseConfigContent Unknown directive: " + directive + " in " + _conf_file_path);
+		exceptTocken(&_conf_content, el, 0);
+		el = getToken(&_conf_content);
+		value = el.first;
+		DirectiveServerHandler serv_handler = _global_directives[directive];
+		(this->*serv_handler)(el, (Server*)&server);
+		if (block_dir.find(directive) == block_dir.end())
 		{
-			el = getToken(&_conf_content);
-			directive = el.first;
-			if (_global_directives.find(directive) == _global_directives.end())
-				throw ParseException("[ERROR] parseConfigContent Unknown directive: " + directive + " in " + _conf_file_path);
 			exceptTocken(&_conf_content, el, 0);
-			el = getToken(&_conf_content);
-			value = el.first;
-			DirectiveServerHandler serv_handler = _global_directives[directive];
-			(this->*serv_handler)(el, (Server*)&server);
-			if (block_dir.find(directive) == block_dir.end())
-			{
-				exceptTocken(&_conf_content, el, 0);
-				el.first = ";";
-				exceptTocken(&_conf_content, el, 1);
-			}
+			el.first = ";";
+			exceptTocken(&_conf_content, el, 1);
 		}
-		if (!_conf_content.empty())
-			throw ParseException("[emerg] : Unexpected data in configuration file " + _conf_file_path);
-		if (_serverControler.getServBlockNbr() <= 0)
-		{
-			_serverControler.setServer(server);
-		}
-		std::cout << _serverControler << std::endl;
 	}
-	catch (std::exception &e)
+	if (!_conf_content.empty())
+		throw ParseException("[emerg] : Unexpected data in configuration file " + _conf_file_path);
+	if (_serverControler.getServBlockNbr() <= 0)
 	{
-		std::cerr << e.what() << std::endl;
+		_serverControler.setServer(server);
 	}
+	std::cout << _serverControler << std::endl;
 }
 
 void		ParseConfig::handleHttpBlock(const std::pair<std::string, int>& value, Server* instance)
@@ -633,6 +626,7 @@ int main(int argc, char *argv[], char* envp[])
 	{
 		config.readFileContent();
 		config.parseConfigContent();
+
 		ServerControler & controler = config.getServControler();
 		controler.startServing();
 	}

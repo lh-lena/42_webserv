@@ -11,6 +11,9 @@
 #include <cstring>
 #include <vector>
 #include <stdexcept>
+#include <csignal>
+
+volatile bool g_serv_end = false;
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
@@ -145,11 +148,19 @@ static int	create_tcp_server_socket(int port)
 void	ServerControler::startServing()
 {
 	this->createListeningSockets();
-	// while (!servEnd)
-	// {
-	// 	//poll
-	// }
+	std::signal(SIGINT, &ServerControler::sig_handler);
+	while (!g_serv_end)
+	{
+		//poll
+	}
 	return;
+}
+
+void	ServerControler::sig_handler(int sig_num)
+{
+	(void)sig_num;
+	g_serv_end = true;
+	std::cout << "\nStoping server gracefully.\n";
 }
 
 void	ServerControler::createListeningSockets()
