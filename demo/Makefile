@@ -14,12 +14,10 @@ SRC_FILES	+= ServerControler.cpp
 SRC_FILES	+= utils.cpp
 
 OBJ_DIR		:= obj/
-# OBJ_FILES	:= $(addprefix $(OBJ_DIR), $(SRC_FILES:.cpp=.o))
-OBJ_FILES		:= $(patsubst %.cpp, $(OBJ_DIR)%.o, $(SRC_FILES))
+OBJ_FILES	:= $(patsubst %.cpp, $(OBJ_DIR)%.o, $(SRC_FILES))
 
 DEP_DIR		:= dep/
-# DEPENDS		:= $(addprefix $(DEP_DIR), $(SRC_FILES:.cpp=.d))
-DEPENDS			:= $(patsubst %.o, $(DEP_DIR)%.d, $(OBJ_FILES))
+DEPENDS		:= $(patsubst %.o, $(DEP_DIR)%.d, $(OBJ_FILES))
 -include $(DEPENDS)
 
 RM			:= /bin/rm -f
