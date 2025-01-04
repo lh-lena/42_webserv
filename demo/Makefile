@@ -1,7 +1,7 @@
 #### MAIN SETTINGS ####
 
-CPP			:= c++  
-# FLAGS		:= -Wall -Wextra -Werror -O3 -std=c++98
+CPP			:= c++ -std=c++98
+FLAGS		:= -Wall -Wextra -Werror -O3
 INCLUDES	:= -I includes/
 
 NAME		:= webserv
