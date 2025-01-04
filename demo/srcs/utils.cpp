@@ -32,10 +32,20 @@ int		strToUint(std::string s)
 	return val;
 }
 
+std::string		intToStr(int i)
+{
+	std::stringstream ss;
+
+	ss << i;
+	std::string str = ss.str();
+
+	return str;
+}
+
 bool		is_digits(const std::string& str)
 {
 	size_t len = str.size();
-	for (int i = 0; i < len; i++)
+	for (size_t i = 0; i < len; i++)
 	{
 		if (!std::isdigit(str[i]))
 			return false;
@@ -82,7 +92,7 @@ std::string		get_env_value(char **envp, const std::string &variable)
 
 bool		is_path_exists(const std::string& path)
 {
-	std::ifstream file(path);
+	std::ifstream file(path.c_str());
 	return file.is_open();
 }
 

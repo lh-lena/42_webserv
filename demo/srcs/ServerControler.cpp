@@ -54,9 +54,9 @@ ServerControler&				ServerControler::operator=( ServerControler const& rhs )
 std::ostream&			operator<<( std::ostream & o, ServerControler const& i )
 {
 	std::vector<Server> servers = i.getServers();
-	for (Server server : servers)
+	for (size_t i = 0; i < servers.size(); i++)
 	{
-		o << server << std::endl;
+		o << servers[i] << std::endl;
 	}
 	return o;
 }
@@ -188,7 +188,7 @@ void	ServerControler::createListeningSockets()
 
 void	ServerControler::processRequest(char *buf)
 {
-
+	(void)buf;
 }
 
 size_t		ServerControler::getServBlockNbr( void )

@@ -55,20 +55,31 @@ std::ostream&			operator<<( std::ostream & o, Location const& i )
 		<< "root: " << i.getRoot() << std::endl
 		<< "autoindex: " << i.getAutoindex() << std::endl
 		<< "CGI extention: " << i.getCgiExtension() << std::endl
-		<< "upload dir: " << i.getUploadDir() << std::endl
-		<< "indexes: \n\t"; 
-	for (std::string s : i.getIndexes())
-		o << s << " ";
-	o	<< "\nallowed methods: \n\t";
-	for (std::string s : i.getAllowedMethods())
-		o << s << " ";
-	o	<< "\nerror pages: \n";
-	for (const auto& pair : i.getErrorPages())
-		std::cout  << "\t" << pair.first << ": " << pair.second << std::endl;
-	o	<< "\nredirection: \n";
-	for (const auto& pair : i.getReturn())
-		std::cout << "\t" << pair.first << ": " << pair.second << std::endl;
+		<< "upload dir: " << i.getUploadDir() << std::endl;
 
+	o	<< "indexes: \n\t";
+	std::vector<std::string>::iterator it_s;
+	for (it_s = i.getIndexes().begin(); it_s != i.getIndexes().end(); ++it_s)
+	{
+		o << *it_s << " ";
+	}
+	o	<< "\nallowed methods: \n\t";
+	for (it_s = i.getAllowedMethods().begin(); it_s != i.getAllowedMethods().end(); ++it_s)
+	{
+		o << *it_s << " ";
+	}
+	o	<< "\nerror pages: \n";
+
+	std::map<int, std::string>::iterator it;
+	for (it = i.getErrorPages().begin(); it != i.getErrorPages().end(); ++it)
+	{
+		std::cout  << "\t" << intToStr(it->first) << ": " << it->second << std::endl;
+	}
+	o	<< "\nredirection: \n";
+	for (it = i.getReturn().begin(); it != i.getReturn().end(); ++it)
+	{
+		std::cout  << "\t" << intToStr(it->first) << ": " << it->second << std::endl;
+	}
 	o << std::endl;
 	return o;
 }

@@ -9,8 +9,8 @@ Server::Server()
 		_location_nbr(0),
 		_client_max_body_size(1 * 1024 * 1024), //1M
 		_worker_connections(1024),
-		_host("localhost"),
 		_port(80),
+		_host("localhost"),
 		_root("./var/www/html"),
 		_error_log("error.log")
 {
@@ -62,25 +62,31 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 		<<  "client_max_body_size: " << i.getClientMaxBody() << std::endl
 		<< "host: " << i.getHost() << std::endl
 		<< "port: " << i.getPort() << std::endl
-		<< "root: " << i.getRoot() << std::endl
-		<< "indexes: \n\t";
-	for (std::string s : i.getIndexes())
-		o << s << " ";
+		<< "root: " << i.getRoot() << std::endl;
+	o	<< "indexes: \n\t";
+	std::vector<std::string>::iterator it_s;
+	for (it_s = i.getIndexes().begin(); it_s != i.getIndexes().end(); ++it_s)
+	{
+		o << *it_s << " ";
+	}
 	o	<< "\nserver names: \n\t";
-	for (std::string s : i.getServerNames())
-		o << s << " ";
-
+	for (it_s = i.getServerNames().begin(); it_s != i.getServerNames().end(); ++it_s)
+	{
+		o << *it_s << " ";
+	}
 	o	<< "\nerror pages: \n";
-	for (const auto& pair : i.getErrorPages())
-		std::cout  << "\t" << pair.first << ": " << pair.second << std::endl;
-
+	std::map<int, std::string>::iterator it;
+	for (it = i.getErrorPages().begin(); it != i.getErrorPages().end(); ++it)
+	{
+		std::cout  << "\t" << intToStr(it->first) << ": " << it->second << std::endl;
+	}
 	o << std::endl;
 
 	std::vector<Location> locations = i.getLocations();
 	o << "Locations:  " << locations.size() << std::endl;
-	for (Location loc : locations)
+	for (size_t i = 0; i < locations.size(); i++)
 	{
-		o << loc << std::endl;
+		o << locations[i] << std::endl;
 	}
 
 	return o;
@@ -92,6 +98,7 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 
 int		Server::handleRequestedURI(std::string base_path, std::string* path)
 {
+	(void)path;
 	if (base_path.empty())
 	{
 		base_path = "/";
