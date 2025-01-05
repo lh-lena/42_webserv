@@ -188,26 +188,26 @@ std::string		MIME_type(std::string path)
 	}
 	std::string res = path.substr(pos);
 
-	if(!std::strcmp(res.c_str(), ".htm"))  return "text/html";
-	if(!std::strcmp(res.c_str(), ".html")) return "text/html";
-	if(!std::strcmp(res.c_str(), ".php"))  return "text/html";
-	if(!std::strcmp(res.c_str(), ".css"))  return "text/css";
-	if(!std::strcmp(res.c_str(), ".txt"))  return "text/plain";
-	if(!std::strcmp(res.c_str(), ".js"))   return "application/javascript";
-	if(!std::strcmp(res.c_str(), ".json")) return "application/json";
-	if(!std::strcmp(res.c_str(), ".xml"))  return "application/xml";
-	if(!std::strcmp(res.c_str(), ".swf"))  return "application/x-shockwave-flash";
-	if(!std::strcmp(res.c_str(), ".flv"))  return "video/x-flv";
-	if(!std::strcmp(res.c_str(), ".png"))  return "image/png";
-	if(!std::strcmp(res.c_str(), ".jpe"))  return "image/jpeg";
-	if(!std::strcmp(res.c_str(), ".jpeg")) return "image/jpeg";
-	if(!std::strcmp(res.c_str(), ".jpg"))  return "image/jpeg";
-	if(!std::strcmp(res.c_str(), ".gif"))  return "image/gif";
-	if(!std::strcmp(res.c_str(), ".bmp"))  return "image/bmp";
-	if(!std::strcmp(res.c_str(), ".ico"))  return "image/vnd.microsoft.icon";
-	if(!std::strcmp(res.c_str(), ".tiff")) return "image/tiff";
-	if(!std::strcmp(res.c_str(), ".tif"))  return "image/tiff";
-	if(!std::strcmp(res.c_str(), ".svg"))  return "image/svg+xml";
-	if(!std::strcmp(res.c_str(), ".svgz")) return "image/svg+xml";
+	if(std::strcmp(res.c_str(), ".htm") == 0)  return "text/html";
+	if(std::strcmp(res.c_str(), ".html") == 0) return "text/html";
+	if(std::strcmp(res.c_str(), ".php") == 0)  return "text/html";
+	if(std::strcmp(res.c_str(), ".css") == 0)  return "text/css";
+	if(std::strcmp(res.c_str(), ".txt") == 0)  return "text/plain";
+	if(std::strcmp(res.c_str(), ".js") == 0)   return "application/javascript";
+	if(std::strcmp(res.c_str(), ".json") == 0) return "application/json";
+	if(std::strcmp(res.c_str(), ".xml") == 0)  return "application/xml";
+	if(std::strcmp(res.c_str(), ".swf") == 0)  return "application/x-shockwave-flash";
+	if(std::strcmp(res.c_str(), ".flv") == 0)  return "video/x-flv";
+	if(std::strcmp(res.c_str(), ".png") == 0)  return "image/png";
+	if(std::strcmp(res.c_str(), ".jpe") == 0)  return "image/jpeg";
+	if(std::strcmp(res.c_str(), ".jpeg") == 0) return "image/jpeg";
+	if(std::strcmp(res.c_str(), ".jpg") == 0)  return "image/jpeg";
+	if(std::strcmp(res.c_str(), ".gif") == 0)  return "image/gif";
+	if(std::strcmp(res.c_str(), ".bmp") == 0)  return "image/bmp";
+	if(std::strcmp(res.c_str(), ".ico") == 0)  return "image/vnd.microsoft.icon";
+	if(std::strcmp(res.c_str(), ".tiff") == 0) return "image/tiff";
+	if(std::strcmp(res.c_str(), ".tif") == 0)  return "image/tiff";
+	if(std::strcmp(res.c_str(), ".svg") == 0)  return "image/svg+xml";
+	if(std::strcmp(res.c_str(), ".svgz") == 0) return "image/svg+xml";
 	return "application/text";
 }
