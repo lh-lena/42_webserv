@@ -11,7 +11,7 @@ Server::Server()
 		_worker_connections(1024),
 		_port(80),
 		_host("localhost"),
-		_root("./var/www/html"),
+		_root("/var/www/html"),
 		_error_log("error.log")
 {
 	_indexes.push_back("index.html");
@@ -112,46 +112,56 @@ int		Server::handleRequestedURI(std::string requested_path, std::string& path)
 }
 
 /**
- * arguments:
- * requested_path - a path to handle
- * path - will store normilazed path
- * location - will store a relevant location to path
+ * Normalize a URI by resolving its root and determining the relevant location.
+ * 
+ * @param requested_path - The requested URI path to handle.
+ * @param path - The normalized path will be stored here.
+ * @param location - The relevant Location object will be stored here.
+ * @return 0 on success, or an error code if needed.
  */
 
 int		Server::normalizeURI(std::string requested_path, std::string& path, Location& location)
 {
-	(void) location;
 	if (requested_path.empty())
 	{
 		requested_path = "/";
 	}
-	path = "";
+
 	std::string root = this->_root;
-	int l = 0;
+	path = "";
 	size_t pos = 0;
-	// size_t len = requested_path.length();
 	std::string searched_path = requested_path;
 	std::string rest = "";
-	while ((pos = searched_path.rfind("/")) != std::string::npos)
+	bool location_found = false;
+
+	while (!searched_path.empty())
 	{
-		if (searched_path != "/")
-			searched_path = requested_path.substr(0, pos);
 		std::cout << "searched_path  : " << searched_path << "\n";
 		for (int i = 0; i < this->_location_nbr; i++)
 		{
-			std::string loc_path = this->_locations[l].getPath();
-			if (std::strcmp(searched_path.c_str(), loc_path.c_str()) == 0)
+			std::string loc_path = this->_locations[i].getPath();
+			if (searched_path == loc_path)
 			{
-				if (!this->_locations[l].getRoot().empty())
+				if (!this->_locations[i].getRoot().empty())
 				{
-					root = _locations[l].getRoot();
+					root = _locations[i].getRoot();
+					location = _locations[i];
 				}
+				location_found = true;
 				break;
 			}
 		}
 		std::cout << "root  : " << root << "\n";
+		if (location_found)
+			break;
+		pos = searched_path.rfind("/");
+		if (searched_path != "/")
+		{
+			rest = requested_path.substr(pos);
+			searched_path = requested_path.erase(pos);
+		}
 	}
-
+	path = root + rest;
 	return 0;
 }
 
