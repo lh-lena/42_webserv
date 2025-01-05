@@ -1,6 +1,7 @@
 #### MAIN SETTINGS ####
 
-CPP			:= c++ -std=c++98
+CPP			:= c++
+STD_98		:= -std=c++98
 FLAGS		:= -Wall -Wextra -Werror -O3
 INCLUDES	:= -I includes/
 
@@ -29,19 +30,19 @@ MKDIR		:= /bin/mkdir -p
 
 all :	 ${NAME}
 
-$(OBJ_DIR)%.o: $(SRC_DIR)%.cpp | $(OBJ_DIR) $(DEP_DIR)
+$(OBJ_DIR)%.o: $(SRC_DIR)%.cpp | $(OBJ_DIR)
 	@echo "Compiling $<..."
-	@$(CPP) $(FLAGS) -MMD -MF $(patsubst %.o, %.d, $@) $(INCLUDES) -c $< -o $@
+	@$(CPP) $(STD_98) $(FLAGS) -MMD -MF $(patsubst %.o, %.d, $@) $(INCLUDES) -c $< -o $@
 
 $(OBJ_DIR):
 	@$(MKDIR) $(OBJ_DIR)
 
-$(DEP_DIR):
-	@$(MKDIR) $(DEP_DIR)
+$(OBJ_DIR)/unit_tests:
+	@$(MKDIR) $(OBJ_DIR)/unit_tests
 
 $(NAME): $(OBJ_FILES)
 	@echo "Linking $(NAME) ..."
-	@$(CPP) $(FLAGS) -o $(NAME) $(OBJ_FILES)
+	@$(CPP) $(STD_98) $(FLAGS) -o $(NAME) $(OBJ_FILES)
 	@echo "$(BLUE)[$(NAME) -" \
 	"info]: $(GREEN)$(BOLD)Build finished!$(RESET)"
 
@@ -51,8 +52,6 @@ clean :
 	@echo "Cleaning object files..."
 	@$(RM) $(OBJ_FILES)
 	@$(RM) -r $(OBJ_DIR)
-	@$(RM)	$(DEPENDS)
-	@$(RM) -r $(DEP_DIR)
 
 fclean : clean
 	@echo "Removing $(NAME)..."
@@ -66,4 +65,39 @@ run : all
 valgrind : all
 	@valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all ./$(NAME)
 
-.PHONY : all clean fclean re run valgrind
+#### TEST SETTINGS ####
+
+TEST_DIR		= unit_tests/
+TEST_NAME		:= test_runner
+GTEST_LIBS		:= -L/opt/homebrew/Cellar/googletest/1.15.2/lib -lgtest -lgtest_main -pthread
+STD_20			:= -std=c++20
+TEST_INCLUDES	:= -I/opt/homebrew/Cellar/googletest/1.15.2/include
+
+TEST_FILES		+= test_main.cpp
+TEST_FILES		+= HandleRequestedURITest.cpp
+
+TEST_OBJ		:= $(patsubst %.cpp, $(OBJ_DIR)%.o, $(TEST_FILES))
+
+$(OBJ_DIR)%.o: $(TEST_DIR)%.cpp | $(OBJ_DIR)
+	@echo "Compiling $<..."
+	@$(CPP) $(STD_20) $(TEST_INCLUDES) -c $< -o $@
+
+$(TEST_NAME): $(OBJ_FILES) $(TEST_OBJ)
+	@echo "Linking $(TEST_NAME) ..."
+	@$(CPP) $(STD_20) -o $(TEST_NAME) $(OBJ_FILES) $(TEST_OBJ) $(GTEST_LIBS)
+	@echo "$(BLUE)[$(TEST_NAME) -" \
+	"info]: $(GREEN)$(BOLD)Build finished!$(RESET)"
+
+test: $(TEST_NAME)
+	@echo "Running unit tests..."
+	@./$(TEST_NAME)
+
+clean_test: clean
+	@echo "Cleaning test object files..."
+	@$(RM) $(TEST_OBJ)
+	@$(RM) $(TEST_NAME)
+
+re_test: clean_test test
+
+
+.PHONY : all clean fclean re run valgrind test clean_test re_test
