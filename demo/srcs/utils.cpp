@@ -81,7 +81,7 @@ std::string		get_env_value(char **envp, const std::string &variable)
 	size_t var_len = variable.length();
 	for (int i = 0; envp[i] != NULL; i++)
 	{
-		if (!std::strncmp(envp[i], variable.c_str(), var_len) == 0 && envp[i][var_len] == '=')
+		if (std::strncmp(envp[i], variable.c_str(), var_len) == 0 && envp[i][var_len] == '=')
 		{
 			value = envp[i] + var_len + 1;
 			break;
