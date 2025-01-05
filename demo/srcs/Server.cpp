@@ -96,70 +96,64 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 ** --------------------------------- METHODS ----------------------------------
 */
 
-/* bool find_file( const path & dir_path,         // in this directory,
-                const std::string & file_name, // search for this name,
-                path & path_found )            // placing path here if found
-{
-  if ( !exists( dir_path ) ) return false;
-  directory_iterator end_itr; // default construction yields past-the-end
-  for ( directory_iterator itr( dir_path );
-        itr != end_itr;
-        ++itr )
-  {
-    if ( is_directory(itr->status()) )
-    {
-      if ( find_file( itr->path(), file_name, path_found ) ) return true;
-    }
-    else if ( itr->leaf() == file_name ) // see below
-    {
-      path_found = itr->path();
-      return true;
-    }
-  }
-  return false;
-} */
-
-/** Append an HTTP rel-path to a local filesystem path.
+/** Append an HTTP rel-path to a server root path.
  *  The created path is saved in a path parameter is normalized for the platform.
+ * path argument will be filled with a data or error page for a new responce
+ * return status code
 */
 
-int		Server::handleRequestedURI(std::string base_path, std::string& path)
+int		Server::handleRequestedURI(std::string requested_path, std::string& path)
 {
-	(void)path;
-	if (base_path.empty())
-	{
-		base_path = "/";
-	}
-	path = "404.html";
-	std::string root = this->getRoot();
-	while (1)
-	{
-		for(int i = 0; i < this->_location_nbr; i++)
-		{
-			/** TODO:
-			 * - find location which will start same
-			 * - to ensure to check error_pages path for redirections
-			 * Consider this example:
-
-			root /var/www/main;
-
-			location / {
-				error_page 404 /another/whoops.html;
-			}
-
-			location /another {
-				root /var/www;
-			}
-
-			Every request (other than those starting with /another) will be handled by the first block, which will serve files out of /var/www/main. However, if a file is not found (a 404 status),
-			an internal redirect to /another/whoops.html will occur, leading to a new location search that will eventually land on the second block. This file will be served out of /var/www/another/whoops.html.
-			*/
-		}
-	}
+	Location loc;
+	normalizeURI(requested_path, path, loc);
+	
 
 	return 0;
 }
 
+/**
+ * arguments:
+ * requested_path - a path to handle
+ * path - will store normilazed path
+ * location - will store a relevant location to path
+ */
+
+int		Server::normalizeURI(std::string requested_path, std::string& path, Location& location)
+{
+	(void) location;
+	if (requested_path.empty())
+	{
+		requested_path = "/";
+	}
+	path = "";
+	std::string root = this->_root;
+	int l = 0;
+	size_t pos = 0;
+	// size_t len = requested_path.length();
+	std::string searched_path = requested_path;
+	std::string rest = "";
+	while ((pos = searched_path.rfind("/")) != std::string::npos)
+	{
+		if (searched_path != "/")
+			searched_path = requested_path.substr(0, pos);
+		std::cout << "searched_path  : " << searched_path << "\n";
+		for (int i = 0; i < this->_location_nbr; i++)
+		{
+			std::string loc_path = this->_locations[l].getPath();
+			if (std::strcmp(searched_path.c_str(), loc_path.c_str()) == 0)
+			{
+				if (!this->_locations[l].getRoot().empty())
+				{
+					root = _locations[l].getRoot();
+				}
+				break;
+			}
+		}
+		std::cout << "root  : " << root << "\n";
+	}
+
+	return 0;
+}
 
 
 /*

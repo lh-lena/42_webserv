@@ -37,7 +37,8 @@ class Server
 		const std::vector<std::string>&		getIndexes( void ) const;
 		const std::vector<std::string>&		getServerNames( void ) const;
 		const std::map<int, std::string>&	getErrorPages( void ) const;
-		int									handleRequestedURI(std::string base_path, std::string& path);
+		int									handleRequestedURI(std::string requested_path, std::string& path);
+		int									normalizeURI(std::string requested_path, std::string& path, Location& location);
 		void								hadleGET();
 		void								hadlePOST();
 		void								hadleDELETE();
