@@ -64,7 +64,7 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 		<< "port: " << i.getPort() << std::endl
 		<< "root: " << i.getRoot() << std::endl;
 	o	<< "indexes: \n\t";
-	std::vector<std::string>::iterator it_s;
+	std::vector<std::string>::const_iterator it_s;
 	for (it_s = i.getIndexes().begin(); it_s != i.getIndexes().end(); ++it_s)
 	{
 		o << *it_s << " ";
@@ -75,7 +75,7 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 		o << *it_s << " ";
 	}
 	o	<< "\nerror pages: \n";
-	std::map<int, std::string>::iterator it;
+	std::map<int, std::string>::const_iterator it;
 	for (it = i.getErrorPages().begin(); it != i.getErrorPages().end(); ++it)
 	{
 		std::cout  << "\t" << intToStr(it->first) << ": " << it->second << std::endl;
@@ -96,34 +96,65 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 ** --------------------------------- METHODS ----------------------------------
 */
 
-int		Server::handleRequestedURI(std::string base_path, std::string* path)
+/* bool find_file( const path & dir_path,         // in this directory,
+                const std::string & file_name, // search for this name,
+                path & path_found )            // placing path here if found
+{
+  if ( !exists( dir_path ) ) return false;
+  directory_iterator end_itr; // default construction yields past-the-end
+  for ( directory_iterator itr( dir_path );
+        itr != end_itr;
+        ++itr )
+  {
+    if ( is_directory(itr->status()) )
+    {
+      if ( find_file( itr->path(), file_name, path_found ) ) return true;
+    }
+    else if ( itr->leaf() == file_name ) // see below
+    {
+      path_found = itr->path();
+      return true;
+    }
+  }
+  return false;
+} */
+
+/** Append an HTTP rel-path to a local filesystem path.
+ *  The created path is saved in a path parameter is normalized for the platform.
+*/
+
+int		Server::handleRequestedURI(std::string base_path, std::string& path)
 {
 	(void)path;
 	if (base_path.empty())
 	{
 		base_path = "/";
 	}
-
-	for(int i = 0; i < this->_location_nbr; i++)
+	path = "404.html";
+	std::string root = this->getRoot();
+	while (1)
 	{
-		/** TODO:
-		 * - find location which will start same
-		 * - to ensure to check error_pages path for redirections
-		 * Consider this example:
+		for(int i = 0; i < this->_location_nbr; i++)
+		{
+			/** TODO:
+			 * - find location which will start same
+			 * - to ensure to check error_pages path for redirections
+			 * Consider this example:
 
-root /var/www/main;
+			root /var/www/main;
 
-location / {
-    error_page 404 /another/whoops.html;
-}
+			location / {
+				error_page 404 /another/whoops.html;
+			}
 
-location /another {
-    root /var/www;
-}
+			location /another {
+				root /var/www;
+			}
 
-Every request (other than those starting with /another) will be handled by the first block, which will serve files out of /var/www/main. However, if a file is not found (a 404 status),
- an internal redirect to /another/whoops.html will occur, leading to a new location search that will eventually land on the second block. This file will be served out of /var/www/another/whoops.html.
-		 */
+			Every request (other than those starting with /another) will be handled by the first block, which will serve files out of /var/www/main. However, if a file is not found (a 404 status),
+			an internal redirect to /another/whoops.html will occur, leading to a new location search that will eventually land on the second block. This file will be served out of /var/www/another/whoops.html.
+			*/
+		}
 	}
 
 	return 0;
@@ -206,7 +237,7 @@ int	Server::getClientMaxBody( void ) const
 	return (_client_max_body_size);
 }
 
-std::string	Server::getHost( void ) const
+const std::string&	Server::getHost( void ) const
 {
 	return (_host);
 }
@@ -216,27 +247,27 @@ int		Server::getPort( void ) const
 	return (_port);
 }
 
-std::string	Server::getRoot( void ) const
+const std::string&	Server::getRoot( void ) const
 {
 	return (_root);
 }
 
-std::string	Server::getErrorLog( void ) const
+const std::string&	Server::getErrorLog( void ) const
 {
 	return (_error_log);
 }
 
-std::map<int, std::string>	Server::getErrorPages( void ) const
+const std::map<int, std::string>&	Server::getErrorPages( void ) const
 {
 	return (_error_pages);
 }
 
-std::vector<std::string>	Server::getIndexes( void ) const
+const std::vector<std::string>&	Server::getIndexes( void ) const
 {
 	return (_indexes);
 }
 
-std::vector<std::string>	Server::getServerNames( void ) const
+const std::vector<std::string>&	Server::getServerNames( void ) const
 {
 	return (_server_names);
 }
@@ -245,7 +276,6 @@ const std::vector<Location>&	Server::getLocations( void ) const
 {
 	return (_locations);
 }
-
 
 
 /* ************************************************************************** */
