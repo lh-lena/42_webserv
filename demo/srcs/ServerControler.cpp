@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/poll.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -67,16 +68,18 @@ static int	set_to_nonblocking(int server_fd)
 	int flags = fcntl(server_fd, F_GETFL, 0);
 	if (flags == -1)
 	{
-		std::cerr << "Error: " << strerror(errno) << std::endl;
-		close(server_fd);
-		return -6;
+		throw std::runtime_error(strerror(errno));
+		// std::cerr << "Error: " << strerror(errno) << std::endl;
+		// close(server_fd);
+		// return -6;
 	}
 	int res = fcntl(server_fd, F_SETFL, flags | O_NONBLOCK);
 	if (res == -1)
 	{
-		std::cerr << "Error: " << strerror(errno) << std::endl;
-		close(server_fd);
-		return -7;
+		throw std::runtime_error(strerror(errno));
+		// std::cerr << "Error: " << strerror(errno) << std::endl;
+		// close(server_fd);
+		// return -7;
 	}
 	return 1;
 }
@@ -91,8 +94,9 @@ static int	create_tcp_server_socket(int port)
 	server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (server_fd == -1)
 	{
-		std::cerr << "Error: creation socket failed: " << strerror(errno) << std::endl;
-		return -2;
+		throw std::runtime_error(strerror(errno));
+		// std::cerr << "Error: creation socket failed: " << strerror(errno) << std::endl;
+		// return -2;
 	}
 
 	/*This helps in manipulating options for the socket referred by the file descriptor sockfd. Optional*/
@@ -100,9 +104,10 @@ static int	create_tcp_server_socket(int port)
 
 	if (res == -1)
 	{
-		std::cerr << "Error: set socket options failed" << std::endl;
-		close(server_fd);
-		return -3;
+		throw std::runtime_error("Error: set socket options failed");
+		// std::cerr << "Error: set socket options failed" << std::endl;
+		// close(server_fd);
+		// return -3;
 	}
 
 	/* Initialize the socket address structure */
@@ -116,22 +121,24 @@ static int	create_tcp_server_socket(int port)
 	server.sin_addr.s_addr = inet_addr("131.253.13.140");//INADDR_ANY
 	if (server.sin_addr.s_addr != INADDR_NONE) // good
 	*/
-	if (!set_to_nonblocking(server_fd))
-		return -8;
+	set_to_nonblocking(server_fd);
+
 	// associates the socket with a specific IP address and port number
 	if (bind(server_fd, (sockaddr*)&socket_addr, sizeof(sockaddr)) == -1)
 	{
-		std::cerr << "Error: binding socket failed: " << strerror(errno) << std::endl;
-		close(server_fd);
-		return -4;
+		throw std::runtime_error(strerror(errno));
+		// std::cerr << "Error: binding socket failed: " << strerror(errno) << std::endl;
+		// close(server_fd);
+		// return -4;
 	}
 
 	// Listen for connections. Max connections is 5 LISTEN_BACKLOG
 	if (listen(server_fd, SOMAXCONN) == -1)
 	{
-		std::cerr << "Error listening on socket: " << strerror(errno) << std::endl;
-		close(server_fd);
-		return -5;
+		throw std::runtime_error(strerror(errno));
+		// std::cerr << "Error listening on socket: " << strerror(errno) << std::endl;
+		// close(server_fd);
+		// return -5;
 	}
 
 	//std::cout << "Server listening on port " << port << std::endl;
@@ -142,13 +149,86 @@ static int	create_tcp_server_socket(int port)
 /*
 ** --------------------------------- METHODS ----------------------------------
 */
+static int	isInPollfds(int fd, const std::vector<int> & sds)
+{
+	int	size = sds.size();
+	for (int i = 0; i < size; i++)
+	{
+		if (fd = sds[i])
+			return sds[i];
+		return 0;
+	}
+}
+
 void	ServerControler::startServing()
 {
-	this->createListeningSockets();
-	// while (!servEnd)
-	// {
-	// 	//poll
-	// }
+	int timeout, size, res;
+	std::vector<std::string> bufs;
+	struct pollfd pfds[200];
+	int nfds = 0;
+
+	try
+	{
+		this->createListeningSockets();
+	}
+	catch(const std::exception& e)
+	{
+		// close all sockets;
+		std::cerr << e.what() << '\n';
+		throw std::runtime_error("Error: socket setup failed");
+	}
+
+	memset(pfds, 0, sizeof(pfds));
+	size = _socketFds.size();
+	for (int i = 0; i < size; i++)
+	{
+		pfds[i].fd = _socketFds[i];
+		pfds[i].events = POLLIN;
+		nfds++;
+	}
+
+	timeout = 1 * 60 * 1000;
+	//servEnd = true;
+	while (!servEnd)
+	{
+		std::cout << "Poll is started" << std::endl;
+		res = poll(pfds, nfds, timeout);
+		if (res < 0)
+		{
+			throw std::runtime_error(strerror(errno));
+			//close(_socketFds);
+			// std::cerr << "Error on poll: " << strerror(errno) << std::endl;
+			// return;
+		}
+		if (res == 0)
+		{
+			std::cout << "Timeout" << std::endl;
+			//close(_socketFds);
+			return;
+		}
+		size = nfds;
+		for (int i = 0; i < size; i++)
+		{
+			if (pfds[i].revents == POLLIN)
+			{
+				res = isInPollfds(pfds[i].fd, _socketFds);
+				if (res)
+				{
+					//accept(res, NULL, NULL);
+				}
+				else
+				{
+					//recv and process request;
+				}
+			}
+			else if (pfds[i].revents != 0)
+			{
+				servEnd = true;
+				//close sockets;
+				throw std::runtime_error("Error on poll: unexpected revents");
+			}
+		}
+	}
 	return;
 }
 
