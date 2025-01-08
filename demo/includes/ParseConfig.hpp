@@ -13,9 +13,9 @@
 # include <iterator>
 # include <sys/stat.h>
 # include <exception>
-# include "ServerControler.hpp"
 # include "Server.hpp"
 # include "Location.hpp"
+# include "ServerControler.hpp"
 
 class ParseConfig
 {

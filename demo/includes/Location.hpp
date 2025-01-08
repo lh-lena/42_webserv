@@ -5,6 +5,7 @@
 # include <string>
 # include <vector>
 # include <iostream>
+# include "utils.hpp"
 
 class Location
 {
@@ -27,14 +28,14 @@ class Location
 		void								setReturn( int key, const std::string &val );
 		void								setCgiExtension(const std::string &arg);
 		bool								getAutoindex( void ) const;
-		std::string							getPath( void ) const;
-		std::string							getRoot( void ) const;
-		std::string							getUploadDir( void ) const;
-		std::string							getCgiExtension( void ) const;
-		std::vector<std::string>			getIndexes( void ) const;
-		std::vector<std::string>			getAllowedMethods( void ) const;
-		std::map<int, std::string>			getErrorPages( void ) const;
-		std::map<int, std::string>			getReturn( void ) const;
+		const std::string&					getPath( void ) const;
+		const std::string&					getRoot( void ) const;
+		const std::string&					getUploadDir( void ) const;
+		const std::string&					getCgiExtension( void ) const;
+		const std::vector<std::string>&		getIndexes( void ) const;
+		const std::vector<std::string>&		getAllowedMethods( void ) const;
+		const std::map<int, std::string>&	getErrorPages( void ) const;
+		const std::map<int, std::string>&	getReturn( void ) const;
 
 	private:
 

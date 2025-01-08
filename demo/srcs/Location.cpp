@@ -55,20 +55,31 @@ std::ostream&			operator<<( std::ostream & o, Location const& i )
 		<< "root: " << i.getRoot() << std::endl
 		<< "autoindex: " << i.getAutoindex() << std::endl
 		<< "CGI extention: " << i.getCgiExtension() << std::endl
-		<< "upload dir: " << i.getUploadDir() << std::endl
-		<< "indexes: \n\t"; 
-	for (std::string s : i.getIndexes())
-		o << s << " ";
-	o	<< "\nallowed methods: \n\t";
-	for (std::string s : i.getAllowedMethods())
-		o << s << " ";
-	o	<< "\nerror pages: \n";
-	for (const auto& pair : i.getErrorPages())
-		std::cout  << "\t" << pair.first << ": " << pair.second << std::endl;
-	o	<< "\nredirection: \n";
-	for (const auto& pair : i.getReturn())
-		std::cout << "\t" << pair.first << ": " << pair.second << std::endl;
+		<< "upload dir: " << i.getUploadDir() << std::endl;
 
+	o	<< "indexes: \n\t";
+	std::vector<std::string>::const_iterator it_s;
+	for (it_s = i.getIndexes().begin(); it_s != i.getIndexes().end(); ++it_s)
+	{
+		o << *it_s << " ";
+	}
+	o	<< "\nallowed methods: \n\t";
+	for (it_s = i.getAllowedMethods().begin(); it_s != i.getAllowedMethods().end(); ++it_s)
+	{
+		o << *it_s << " ";
+	}
+	o	<< "\nerror pages: \n";
+
+	std::map<int, std::string>::const_iterator it;
+	for (it = i.getErrorPages().begin(); it != i.getErrorPages().end(); ++it)
+	{
+		std::cout  << "\t" << intToStr(it->first) << ": " << it->second << std::endl;
+	}
+	o	<< "\nredirection: \n";
+	for (it = i.getReturn().begin(); it != i.getReturn().end(); ++it)
+	{
+		std::cout  << "\t" << intToStr(it->first) << ": " << it->second << std::endl;
+	}
 	o << std::endl;
 	return o;
 }
@@ -128,17 +139,17 @@ void	Location::setCgiExtension( const std::string &arg )
 	_cgi_extension = arg;
 }
 
-std::string		Location::getPath( void ) const
+const std::string&		Location::getPath( void ) const
 {
 	return (_path);
 }
 
-std::string		Location::getRoot( void ) const
+const std::string&		Location::getRoot( void ) const
 {
 	return (_root);
 }
 
-std::vector<std::string>	Location::getIndexes( void ) const
+const std::vector<std::string>&	Location::getIndexes( void ) const
 {
 	return (_indexes);
 }
@@ -148,31 +159,30 @@ bool	Location::getAutoindex( void ) const
 	return (_autoindex);
 }
 
-std::vector<std::string>	Location::getAllowedMethods( void ) const
+const std::vector<std::string>&	Location::getAllowedMethods( void ) const
 {
 	return (_allowed_methods);
 }
 
-std::string	Location::getUploadDir( void ) const
+const std::string&	Location::getUploadDir( void ) const
 {
 	return (_upload_dir);
 }
 
 
-std::map<int, std::string>	Location::getErrorPages( void ) const
+const std::map<int, std::string>&	Location::getErrorPages( void ) const
 {
 	return (_error_pages);
 }
 
-std::map<int, std::string>	Location::getReturn( void ) const
+const std::map<int, std::string>&	Location::getReturn( void ) const
 {
 	return (_return);
 }
 
-std::string		Location::getCgiExtension( void ) const
+const std::string&		Location::getCgiExtension( void ) const
 {
 	return (_cgi_extension);
 }
-
 
 /* ************************************************************************** */

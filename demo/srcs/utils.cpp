@@ -32,10 +32,20 @@ int		strToUint(std::string s)
 	return val;
 }
 
+std::string		intToStr(int i)
+{
+	std::stringstream ss;
+
+	ss << i;
+	std::string str = ss.str();
+
+	return str;
+}
+
 bool		is_digits(const std::string& str)
 {
 	size_t len = str.size();
-	for (int i = 0; i < len; i++)
+	for (size_t i = 0; i < len; i++)
 	{
 		if (!std::isdigit(str[i]))
 			return false;
@@ -82,7 +92,7 @@ std::string		get_env_value(char **envp, const std::string &variable)
 
 bool		is_path_exists(const std::string& path)
 {
-	std::ifstream file(path);
+	std::ifstream file(path.c_str());
 	return file.is_open();
 }
 
@@ -101,8 +111,7 @@ std::string generate_path(const std::string& base_path, const std::string& statu
 
 bool		is_status_code(int code)
 {
-	std::string tmp = reasonPhrase(code);
-	return (!tmp.empty());
+	return (!reasonPhrase(code).empty());
 }
 
 std::string	reasonPhrase(int code)
@@ -113,56 +122,52 @@ std::string	reasonPhrase(int code)
 		case 100: return "Continue";
 		case 101: return "Switching Protocols";
 
-		/** 2xx (Successful): The request was successfully received,
-      understood, and accepted */
-		case 200: "OK";
-		case 201: "Created";
-		case 202: "Accepted";
-		case 203: "Non-Authoritative Information";
-		case 204: "No Content";
-		case 205: "Reset Content";
-		case 206: "Partial Content";
+		/** 2xx (Successful): The request was successfully received, understood, and accepted */
+		case 200: return "OK";
+		case 201: return "Created";
+		case 202: return "Accepted";
+		case 203: return "Non-Authoritative Information";
+		case 204: return "No Content";
+		case 205: return "Reset Content";
+		case 206: return "Partial Content";
 
-	    /** 3xx (Redirection): Further action needs to be taken in order to
-      complete the request */
-		case 301: "Multiple Choices";
-		case 302: "Moved Permanently";
-		case 303: "Found";
-		case 304: "See Other";
-		case 305: "Not Modified";
-		case 306: "Use Proxy";
-		case 307: "Temporary Redirect";
+		/** 3xx (Redirection): Further action needs to be taken in order to complete the request */
+		case 301: return "Multiple Choices";
+		case 302: return "Moved Permanently";
+		case 303: return "Found";
+		case 304: return "See Other";
+		case 305: return "Not Modified";
+		case 306: return "Use Proxy";
+		case 307: return "Temporary Redirect";
 
-		/** 4xx (Client Error): The request contains bad syntax or cannot be
-      fulfilled */
-		case 400: "Bad Request";
-		case 401: "Unauthorized";
-		case 402: "Payment Required";
-		case 403: "Forbidden";
-		case 404: "Not Found";
-		case 405: "Method Not Allowed";
-		case 406: "Not Acceptable";
-		case 407: "Proxy Authentication Required";
-		case 408: "Request Timeout";
-		case 409: "Conflict";
-		case 410: "Gone";
-		case 411: "Length Required";
-		case 412: "Precondition Failed";
-		case 413: "Payload Too Large";
-		case 414: "URI Too Long";
-		case 415: "Unsupported Media Type";
-		case 416: "Range Not Satisfiable";
-		case 417: "Expectation Failed";
-		case 426: "Upgrade Required";
+		/** 4xx (Client Error): The request contains bad syntax or cannot be fulfilled */
+		case 400: return "Bad Request";
+		case 401: return "Unauthorized";
+		case 402: return "Payment Required";
+		case 403: return "Forbidden";
+		case 404: return "Not Found";
+		case 405: return "Method Not Allowed";
+		case 406: return "Not Acceptable";
+		case 407: return "Proxy Authentication Required";
+		case 408: return "Request Timeout";
+		case 409: return "Conflict";
+		case 410: return "Gone";
+		case 411: return "Length Required";
+		case 412: return "Precondition Failed";
+		case 413: return "Payload Too Large";
+		case 414: return "URI Too Long";
+		case 415: return "Unsupported Media Type";
+		case 416: return "Range Not Satisfiable";
+		case 417: return "Expectation Failed";
+		case 426: return "Upgrade Required";
 
-		/** 5xx (Server Error): The server failed to fulfill an apparently
-      valid request */
-		case 500: "Internal Server Error";
-		case 501: "Not Implemented";
-		case 502: "Bad Gateway";
-		case 503: "Service Unavailable";
-		case 504: "Gateway Timeout";
-		case 505: "HTTP Version Not Supported";
+		/** 5xx (Server Error): The server failed to fulfill an apparently valid request */
+		case 500: return "Internal Server Error";
+		case 501: return "Not Implemented";
+		case 502: return "Bad Gateway";
+		case 503: return "Service Unavailable";
+		case 504: return "Gateway Timeout";
+		case 505: return "HTTP Version Not Supported";
 		case 506: return "Variant Also Negotiates";
 		case 507: return "Insufficient Storage";
 		case 508: return "Loop Detected";
@@ -171,4 +176,38 @@ std::string	reasonPhrase(int code)
 
 		default: return std::string();
 	}
+}
+
+std::string		MIME_type(std::string path)
+{
+	size_t pos = path.rfind(".");
+
+	if (pos == std::string::npos)
+	{
+		return std::string(); 
+	}
+	std::string res = path.substr(pos);
+
+	if(std::strcmp(res.c_str(), ".htm") == 0)  return "text/html";
+	if(std::strcmp(res.c_str(), ".html") == 0) return "text/html";
+	if(std::strcmp(res.c_str(), ".php") == 0)  return "text/html";
+	if(std::strcmp(res.c_str(), ".css") == 0)  return "text/css";
+	if(std::strcmp(res.c_str(), ".txt") == 0)  return "text/plain";
+	if(std::strcmp(res.c_str(), ".js") == 0)   return "application/javascript";
+	if(std::strcmp(res.c_str(), ".json") == 0) return "application/json";
+	if(std::strcmp(res.c_str(), ".xml") == 0)  return "application/xml";
+	if(std::strcmp(res.c_str(), ".swf") == 0)  return "application/x-shockwave-flash";
+	if(std::strcmp(res.c_str(), ".flv") == 0)  return "video/x-flv";
+	if(std::strcmp(res.c_str(), ".png") == 0)  return "image/png";
+	if(std::strcmp(res.c_str(), ".jpe") == 0)  return "image/jpeg";
+	if(std::strcmp(res.c_str(), ".jpeg") == 0) return "image/jpeg";
+	if(std::strcmp(res.c_str(), ".jpg") == 0)  return "image/jpeg";
+	if(std::strcmp(res.c_str(), ".gif") == 0)  return "image/gif";
+	if(std::strcmp(res.c_str(), ".bmp") == 0)  return "image/bmp";
+	if(std::strcmp(res.c_str(), ".ico") == 0)  return "image/vnd.microsoft.icon";
+	if(std::strcmp(res.c_str(), ".tiff") == 0) return "image/tiff";
+	if(std::strcmp(res.c_str(), ".tif") == 0)  return "image/tiff";
+	if(std::strcmp(res.c_str(), ".svg") == 0)  return "image/svg+xml";
+	if(std::strcmp(res.c_str(), ".svgz") == 0) return "image/svg+xml";
+	return "application/text";
 }

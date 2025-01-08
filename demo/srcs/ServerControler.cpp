@@ -12,6 +12,9 @@
 #include <cstring>
 #include <vector>
 #include <stdexcept>
+#include <csignal>
+
+volatile bool g_serv_end = false;
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
@@ -52,9 +55,9 @@ ServerControler&				ServerControler::operator=( ServerControler const& rhs )
 std::ostream&			operator<<( std::ostream & o, ServerControler const& i )
 {
 	std::vector<Server> servers = i.getServers();
-	for (Server server : servers)
+	for (size_t i = 0; i < servers.size(); i++)
 	{
-		o << server << std::endl;
+		o << servers[i] << std::endl;
 	}
 	return o;
 }
@@ -232,6 +235,13 @@ void	ServerControler::startServing()
 	return;
 }
 
+void	ServerControler::sig_handler(int sig_num)
+{
+	(void)sig_num;
+	g_serv_end = true;
+	std::cout << "\nStoping server gracefully.\n";
+}
+
 void	ServerControler::createListeningSockets()
 {
 	int server_fd;
@@ -257,7 +267,7 @@ void	ServerControler::createListeningSockets()
 
 void	ServerControler::processRequest(char *buf)
 {
-
+	(void)buf;
 }
 
 size_t		ServerControler::getServBlockNbr( void )

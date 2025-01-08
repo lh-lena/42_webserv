@@ -10,12 +10,14 @@
 # include <iostream>
 # include <sys/stat.h>
 
-int                 		strToUint(std::string s);
-bool		                is_status_code(int code);
+int							strToUint(std::string s);
+bool						is_status_code(int code);
 bool						is_directory(const std::string& path);
 bool						is_regular_file(const std::string& path);
 bool						is_digits(const std::string& str);
 bool						is_path_exists(const std::string& path);
+std::string					intToStr(int i);
+std::string					reasonPhrase(int code);
 std::string					get_env_value(char **envp, const std::string &variable);
 std::vector<std::string>	ft_split(std::string& s, std::string delimeter);
 std::string generate_path(const std::string& base_path, const std::string& status_code);
