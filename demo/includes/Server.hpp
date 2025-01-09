@@ -5,7 +5,12 @@
 # include <string>
 # include <vector>
 # include <iostream>
+# include <algorithm>
 # include "Location.hpp"
+# include "generate_html.hpp"
+
+# define FOUND 1
+# define NOT_FOUND 0
 
 class Server
 {
@@ -37,8 +42,10 @@ class Server
 		const std::vector<std::string>&		getIndexes( void ) const;
 		const std::vector<std::string>&		getServerNames( void ) const;
 		const std::map<int, std::string>&	getErrorPages( void ) const;
+		std::string							handleErrorPageResponse(int status_code, const Location& src);
 		int									handleRequestedURI(std::string requested_path, std::string& path);
-		int									normalizeURI(std::string requested_path, std::string& path, Location& location);
+		int									prefixMatchURI(std::string requested_path, std::string& path, Location& location);
+		bool								appendIndexFile(std::string& path, const Location& loc);
 		void								hadleGET();
 		void								hadlePOST();
 		void								hadleDELETE();

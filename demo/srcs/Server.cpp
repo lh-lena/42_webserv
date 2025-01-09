@@ -105,14 +105,79 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 int		Server::handleRequestedURI(std::string requested_path, std::string& path)
 {
 	Location loc;
-	normalizeURI(requested_path, path, loc);
-	
+	prefixMatchURI(requested_path, path, loc);
+	std::cout << path << "\n";
+	if (is_regular_file(path))
+	{
+		return 200;
+	}
+	if (is_directory(path))
+	{
+		if (!ends_with(path, "/"))
+		{
+			// path += "/"; // Redirect by appending '/' /** ?? */
+			path = get_reason_phrase(301);
+			return 301;
+		}
+		if (appendIndexFile(path, loc))
+		{
+			return 200;
+		}
+		if (!loc.getAutoindex())
+		{
+			path = handleErrorPageResponse(403, loc);
+			return 403;
+		}
+		else
+		{
+			path = generate_html_directory_listing(path); /* return string, not a file!!*/
+			return 200;
+		}
+	}
+	else
+	{
+		path = "404.html"; /* return string, not a file!!*/
+		// path = generate_html_error_page(404); /* return string, not a file!!*/
+		return 404;
+	}
+}
 
-	return 0;
+std::string		Server::handleErrorPageResponse(int status_code, const Location& src)
+{
+	std::string					path;
+	Location					loc;
+	std::map<int, std::string>	er_pages = src.getErrorPages();
+
+	if (er_pages.size() > 0 && er_pages.find(status_code) != er_pages.end())
+	{
+		prefixMatchURI(er_pages[status_code], path, loc);
+		return path;
+	}
+	path = generate_html_error_page(status_code);
+	return path;
+}
+
+bool		Server::appendIndexFile(std::string& path, const Location& loc)
+{
+	std::vector<std::string> idxs = loc.getIndexes();
+	std::vector<std::string> dir_content;
+	get_dir_entries(path, dir_content);
+
+	for (size_t i = 0; i < idxs.size(); i++)
+	{
+		std::vector<std::string>::iterator it = std::find(dir_content.begin(), dir_content.end(), idxs[i]);
+		if (it != dir_content.end())
+		{
+			path += idxs[i];
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /**
- * Normalize a URI by resolving its root and determining the relevant location.
+ * Normalize a URI by resolving its root and determining the relevant prefix-based location blocks.
  * 
  * @param requested_path - The requested URI path to handle.
  * @param path - The normalized path will be stored here.
@@ -120,23 +185,22 @@ int		Server::handleRequestedURI(std::string requested_path, std::string& path)
  * @return 0 on success, or an error code if needed.
  */
 
-int		Server::normalizeURI(std::string requested_path, std::string& path, Location& location)
+int		Server::prefixMatchURI(std::string requested_path, std::string& path, Location& location)
 {
 	if (requested_path.empty())
 	{
 		requested_path = "/";
 	}
 
-	std::string root = this->_root;
 	path = "";
 	size_t pos = 0;
-	std::string searched_path = requested_path;
-	std::string rest = "";
 	bool location_found = false;
+	std::string rest = "";
+	std::string root = this->_root;
+	std::string searched_path = requested_path;
 
 	while (!searched_path.empty())
 	{
-		std::cout << "searched_path  : " << searched_path << "\n";
 		for (int i = 0; i < this->_location_nbr; i++)
 		{
 			std::string loc_path = this->_locations[i].getPath();
@@ -151,15 +215,19 @@ int		Server::normalizeURI(std::string requested_path, std::string& path, Locatio
 				break;
 			}
 		}
-		std::cout << "root  : " << root << "\n";
-		if (location_found)
-			break;
 		pos = searched_path.rfind("/");
 		if (searched_path != "/")
 		{
 			rest = requested_path.substr(pos);
-			searched_path = requested_path.erase(pos);
+			searched_path = searched_path.erase(pos);
 		}
+		else
+		{
+			rest = requested_path.substr(pos);
+			searched_path = searched_path.erase(pos);
+		}
+		if (location_found)
+			break;
 	}
 	path = root + rest;
 	return 0;
