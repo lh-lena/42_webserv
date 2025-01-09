@@ -157,10 +157,10 @@ static int	isInPollfds(int fd, const std::vector<int> & sds)
 	int	size = sds.size();
 	for (int i = 0; i < size; i++)
 	{
-		if (fd = sds[i])
+		if (fd == sds[i])
 			return sds[i];
-		return 0;
 	}
+	return 0;
 }
 
 void	ServerControler::startServing()
@@ -170,7 +170,7 @@ void	ServerControler::startServing()
 	struct pollfd pfds[200]; //max number of connections
 	int nfds = 0;
 	int new_fd = -1;
-	bool conn_active = false;
+	// bool conn_active = false;
 	char buf[1500];
 
 	try
@@ -237,7 +237,7 @@ void	ServerControler::startServing()
 				else
 				{
 					//recv and process request
-					conn_active = true;
+					// conn_active = true;
 					do
 					{
 						res = recv(pfds[i].fd, buf, sizeof(buf), 0);
