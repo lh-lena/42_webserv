@@ -167,8 +167,11 @@ void	ServerControler::startServing()
 {
 	int timeout, size, res;
 	std::vector<std::string> bufs;
-	struct pollfd pfds[200];
+	struct pollfd pfds[200]; //max number of connections
 	int nfds = 0;
+	int new_fd = -1;
+	bool conn_active = false;
+	char buf[1500];
 
 	try
 	{
@@ -217,11 +220,30 @@ void	ServerControler::startServing()
 				res = isInPollfds(pfds[i].fd, _socketFds);
 				if (res)
 				{
-					//accept(res, NULL, NULL);
+					do
+					{
+						new_fd = accept(res, NULL, NULL);
+						if (new_fd < 0 && errno != EWOULDBLOCK)
+							throw std::runtime_error("Error: accept() failed");
+						if (new_fd > 0)
+						{
+							std::cout << "New connection on listening socket " << res << std::endl;
+							pfds[nfds].fd = new_fd;
+							pfds[nfds].events = POLLIN;
+							nfds++;
+						}
+					} while (new_fd != -1);
 				}
 				else
 				{
-					//recv and process request;
+					//recv and process request
+					conn_active = true;
+					do
+					{
+						res = recv(pfds[i].fd, buf, sizeof(buf), 0);
+						//...
+					} while (1);
+					
 				}
 			}
 			else if (pfds[i].revents != 0)
@@ -232,6 +254,7 @@ void	ServerControler::startServing()
 			}
 		}
 	}
+	//close sockets;
 	return;
 }
 
