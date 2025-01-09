@@ -111,7 +111,7 @@ std::string generate_path(const std::string& base_path, const std::string& statu
 
 bool		is_status_code(int code)
 {
-	return (!reasonPhrase(code).empty());
+	return (!get_reason_phrase(code).empty());
 }
 
 bool ends_with(const std::string& str, const std::string& suffix)
@@ -142,7 +142,7 @@ int		get_dir_entries(const std::string& dirp, std::vector<std::string>& content)
 	return FOUND;
 }
 
-std::string	reasonPhrase(int code)
+std::string		get_reason_phrase(int code)
 {
 	switch(code)
 	{
@@ -160,12 +160,12 @@ std::string	reasonPhrase(int code)
 		case 206: return "Partial Content";
 
 		/** 3xx (Redirection): Further action needs to be taken in order to complete the request */
-		case 301: return "Multiple Choices";
-		case 302: return "Moved Permanently";
-		case 303: return "Found";
-		case 304: return "See Other";
-		case 305: return "Not Modified";
-		case 306: return "Use Proxy";
+		case 300: return "Multiple Choices";
+		case 301: return "Moved Permanently";
+		case 302: return "Found";
+		case 303: return "See Other";
+		case 304: return "Not Modified";
+		case 305: return "Use Proxy";
 		case 307: return "Temporary Redirect";
 
 		/** 4xx (Client Error): The request contains bad syntax or cannot be fulfilled */
@@ -196,15 +196,72 @@ std::string	reasonPhrase(int code)
 		case 503: return "Service Unavailable";
 		case 504: return "Gateway Timeout";
 		case 505: return "HTTP Version Not Supported";
-		case 506: return "Variant Also Negotiates";
-		case 507: return "Insufficient Storage";
-		case 508: return "Loop Detected";
-		case 510: return "Not Extended";
-		case 511: return "Network Authentication Required";
 
 		default: return std::string();
 	}
 }
+
+std::string		get_status_message(int code)
+{
+	switch(code)
+	{
+		/** 1xx (Informational): The request was received, continuing process */
+		case 100: return "Continue with the request. This interim response indicates that everything so far is fine and the client should continue with the request and send the entity body.";
+		case 101: return "The server understands and will comply with the client's request to switch protocols.";
+		case 102: return "The server has received and is processing the request, but no response is available yet.";
+
+		/** 2xx (Successful): The request was successfully received, understood, and accepted */
+		case 200: return "The request has succeeded.";
+		case 201: return "The request has been fulfilled and resulted in the creation of a new resource.";
+		case 202: return "The request has been accepted for processing, but the processing has not been completed.";
+		case 203: return "The server is delivering a response that has been \"borrowed\" from another source.";
+		case 204: return "The server successfully processed the request, but is not returning any content.";
+		case 205: return "The server successfully processed the request, but is not returning any content. Tells the user agent to reset the document view which caused the request to be sent.";
+		case 206: return "The server is delivering only part of the resource due to a range request by the client.";
+
+		/** 3xx (Redirection): Further action needs to be taken in order to complete the request */
+		case 300: return "The requested resource has multiple representations, each with its own specific location.";
+		case 301: return "The requested resource has been permanently moved to a new URI.";
+		case 302: return "The requested resource resides temporarily under a different URI.";
+		case 303: return "The response to the request can be found under another URI.";
+		case 304: return "The requested resource has not been modified since the last time the client fetched it.";
+		case 305: return "The requested resource has not been modified since the last time the client fetched it.";
+		case 306: return "Use Proxy";
+		case 307: return "The requested resource resides temporarily under a different URI.";
+
+		/** 4xx (Client Error): The request contains bad syntax or cannot be fulfilled */
+		case 400: return "The request could not be understood by the server due to malformed syntax.";
+		case 401: return "The request requires user authentication.";
+		case 402: return "This status code is reserved for future use.";
+		case 403: return "The server understood the request but refuses to authorize it.";
+		case 404: return "The requested resource could not be found on this server.";
+		case 405: return "The method specified in the request is not allowed for the resource.";
+		case 406: return "The resource identified by the request is only capable of generating responses that are not acceptable to the client.";
+		case 407: return "The client must first authenticate itself with the proxy.";
+		case 408: return "The server timed out waiting for the client to send the rest of the request.";
+		case 409: return "The request could not be completed due to a conflict with the current state of the resource.";
+		case 410: return "The requested resource is no longer available and will not be available again.";
+		case 411: return "The server refuses to accept the request without a defined Content-Length.";
+		case 412: return "The precondition given in the request header evaluated to false.";
+		case 413: return "The server is refusing to process the request because the request entity is larger than the server is willing or able to process.";
+		case 414: return "The URI requested by the client is longer than the server is willing to interpret.";
+		case 415: return "The server refuses to service the request because the entity of the request is in a format not supported by the server.";
+		case 416: return "The client has indicated an unacceptable range in the Range header.";
+		case 417: return "The expectation given in the Expect header could not be met by this server.";
+		case 426: return "The client should switch to using a different protocol.";
+
+		/** 5xx (Server Error): The server failed to fulfill an apparently valid request */
+		case 500: return "The server encountered an unexpected condition that prevented it from fulfilling the request.";
+		case 501: return "The server does not support the functionality required to fulfill the request.";
+		case 502: return "The server, while acting as a gateway or proxy, received an invalid response from an upstream server.";
+		case 503: return "The server is currently unable to handle the request due to a temporary overload or scheduled maintenance.";
+		case 504: return "The server, while acting as a gateway or proxy, did not receive a timely response from an upstream server.";
+		case 505: return "The server does not support, or refuses to support, the HTTP protocol version that was used in the request.";
+
+		default: return std::string();
+	}
+}
+
 
 std::string		MIME_type(std::string path)
 {
