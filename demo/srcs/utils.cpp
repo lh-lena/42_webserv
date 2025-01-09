@@ -114,6 +114,34 @@ bool		is_status_code(int code)
 	return (!reasonPhrase(code).empty());
 }
 
+bool ends_with(const std::string& str, const std::string& suffix)
+{
+	return (str.size() >= suffix.size() && str.substr(str.size() - suffix.size()) == suffix);
+}
+
+int		get_dir_entries(const std::string& dirp, std::vector<std::string>& content)
+{
+	// unsigned char	isFile =0x8; unsigned char isFolder =0x4;
+	DIR				*dir;
+	struct dirent	*dir_entry;
+	dir = opendir(dirp.c_str());
+
+	if (!dir)
+	{
+		return NOT_FOUND;
+	}
+
+	while (dir)
+	{
+		if ((dir_entry = readdir(dir)) != NULL)
+		{
+			content.push_back(dir_entry->d_name);
+		}
+	}
+	closedir(dir);
+	return FOUND;
+}
+
 std::string	reasonPhrase(int code)
 {
 	switch(code)
