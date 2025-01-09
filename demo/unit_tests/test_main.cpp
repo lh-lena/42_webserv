@@ -5,9 +5,17 @@
  *  ./server_test
  */
 #include "gtest/gtest.h"
-
-int main(int argc, char **argv)
+#include "../includes/ParseConfig.hpp"
+int main(int argc, char **argv, char **envp)
 {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+	(void)argc;
+	(void)argv;
+	std::string configFilePath;
+	configFilePath = "serv.conf";
+	ParseConfig config(configFilePath, envp);
+	config.readFileContent();
+	config.parseConfigContent();
+
+	::testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
 }
