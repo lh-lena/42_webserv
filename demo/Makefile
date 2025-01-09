@@ -8,11 +8,13 @@ INCLUDES	:= -I includes/
 NAME		:= webserv
 
 SRC_DIR		:= srcs/
+SRC_FILES	+= main.cpp
 SRC_FILES	+= Location.cpp
 SRC_FILES	+= ParseConfig.cpp
 SRC_FILES	+= Server.cpp
 SRC_FILES	+= ServerControler.cpp
 SRC_FILES	+= utils.cpp
+SRC_FILES	+= generate_html.cpp
 
 OBJ_DIR		:= obj/
 OBJ_FILES	:= $(patsubst %.cpp, $(OBJ_DIR)%.o, $(SRC_FILES))
@@ -78,6 +80,10 @@ TEST_FILES		+= HandleRequestedURITest.cpp
 
 TEST_OBJ		:= $(patsubst %.cpp, $(OBJ_DIR)%.o, $(TEST_FILES))
 
+test: $(TEST_NAME)
+	@echo "Running unit tests..."
+	@./$(TEST_NAME)
+
 $(OBJ_DIR)%.o: $(TEST_DIR)%.cpp | $(OBJ_DIR)
 	@echo "Compiling $<..."
 	@$(CPP) $(STD_20) $(TEST_INCLUDES) -c $< -o $@
@@ -88,9 +94,6 @@ $(TEST_NAME): $(OBJ_FILES) $(TEST_OBJ)
 	@echo "$(BLUE)[$(TEST_NAME) -" \
 	"info]: $(GREEN)$(BOLD)Build finished!$(RESET)"
 
-test: $(TEST_NAME)
-	@echo "Running unit tests..."
-	@./$(TEST_NAME)
 
 clean_test: clean
 	@echo "Cleaning test object files..."
