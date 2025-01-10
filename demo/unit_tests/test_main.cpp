@@ -6,15 +6,15 @@
  */
 #include "gtest/gtest.h"
 #include "../includes/ParseConfig.hpp"
+
+void  initializeServer(char **envp);
+
 int main(int argc, char **argv, char **envp)
 {
 	(void)argc;
 	(void)argv;
-	std::string configFilePath;
-	configFilePath = "serv.conf";
-	ParseConfig config(configFilePath, envp);
-	config.readFileContent();
-	config.parseConfigContent();
+
+	initializeServer(envp);
 
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
