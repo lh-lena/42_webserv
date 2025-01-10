@@ -32,7 +32,7 @@ MKDIR		:= /bin/mkdir -p
 
 all :	 ${NAME}
 
-$(OBJ_DIR)%.o: $(SRC_DIR)%.cpp | $(OBJ_DIR)
+$(OBJ_DIR)%.o: $(SRC_DIR)%.cpp Makefile
 	@echo "Compiling $<..."
 	@$(CPP) $(STD_98) $(FLAGS) -MMD -MF $(patsubst %.o, %.d, $@) $(INCLUDES) -c $< -o $@
 

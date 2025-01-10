@@ -31,8 +31,8 @@ class ServerControler
 		std::vector<int>	_socketFds; // array of listening sockets identifiers (server_fds)
 
 		void	createListeningSockets(); // fill _socketFds
-		void	processRequest(char *buf); // parse request and pass it to the rigth server block to get response
-
+		std::string	processRequest(std::string & request); // parse request and pass it to the rigth server block to get response
+		Server & chooseServBlock(std::string & host);
 };
 
 std::ostream &			operator<<( std::ostream & o, ServerControler const & i );
