@@ -1,4 +1,5 @@
 #include "../includes/ServerControler.hpp"
+#include "../includes/Request.hpp"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -166,12 +167,13 @@ static int	isInPollfds(int fd, const std::vector<int> & sds)
 void	ServerControler::startServing()
 {
 	int timeout, size, res;
-	std::vector<std::string> bufs;
+	std::string str;
+	std::string request;
 	struct pollfd pfds[200]; //max number of connections
 	int nfds = 0;
 	int new_fd = -1;
-	// bool conn_active = false;
 	char buf[1500];
+	//bool conn_active = false;
 
 	try
 	{
@@ -194,7 +196,7 @@ void	ServerControler::startServing()
 	}
 
 	timeout = 1 * 60 * 1000;
-	//servEnd = true;
+	servEnd = false;
 	while (!servEnd)
 	{
 		std::cout << "Poll is started" << std::endl;
@@ -209,6 +211,7 @@ void	ServerControler::startServing()
 		if (res == 0)
 		{
 			std::cout << "Timeout" << std::endl;
+			servEnd = true;
 			//close(_socketFds);
 			return;
 		}
@@ -237,13 +240,33 @@ void	ServerControler::startServing()
 				else
 				{
 					//recv and process request
-					// conn_active = true;
+					//conn_active = true;
+					request = "";
+					str = "";
 					do
 					{
+						memset(buf, 0, sizeof(buf));
 						res = recv(pfds[i].fd, buf, sizeof(buf), 0);
-						//...
-					} while (1);
-					
+						if (res < 0 && errno != EWOULDBLOCK)
+							throw std::runtime_error("Error: recv() failed");
+						if (res > 0)
+						{
+							request.append(buf);
+						}
+					} while (res == 1500);
+					if (!request.empty())
+					{
+						str = processRequest(request);
+						if (!str.empty())
+						{
+							res = send(pfds[i].fd, str.c_str(), str.size(), 0);
+							if (res < 0)
+								throw std::runtime_error("Error: send() failed");
+						}
+					}
+					//conn_active = false;
+					close(pfds[i].fd);
+					pfds[i].fd = -1;
 				}
 			}
 			else if (pfds[i].revents != 0)
@@ -252,9 +275,26 @@ void	ServerControler::startServing()
 				//close sockets;
 				throw std::runtime_error("Error on poll: unexpected revents");
 			}
+			for (int n = 0; n < nfds; n++)
+			{
+				if (pfds[n].fd == -1)
+				{
+					for(int j = n; j < nfds - 1; j++)
+					{
+						pfds[j].fd = pfds[j+1].fd;
+					}
+					n--;
+					nfds--;
+				}
+			}
 		}
 	}
 	//close sockets;
+	for (int i = 0; i < nfds; i++)
+	{
+		if(pfds[i].fd >= 0)
+		close(pfds[i].fd);
+	}
 	return;
 }
 
@@ -288,9 +328,37 @@ void	ServerControler::createListeningSockets()
 
 }
 
-void	ServerControler::processRequest(char *buf)
+// static int parseRequest(std::string & data, Request & req)
+// {
+// 	//read data and fill request fields
+// 	// check for valid request, return error number
+
+// 	return 0;
+// }
+
+Server & ServerControler::chooseServBlock(std::string & host)
 {
-	(void)buf;
+	for (size_t i = 0; i < _servBlocks.size(); i++)
+	{
+		if (host == _servBlocks[i].getHost())
+			return _servBlocks[i];
+	}
+	return _servBlocks[0];
+}
+
+std::string	ServerControler::processRequest(std::string & data)
+{
+	// Request request;
+
+	// int res = parseRequest(data, request);
+	// if (res)
+	// 	return ("Error: invalid request");
+
+	// Server & server = chooseServBlock(request.host);
+
+	std::string response = "Hello\n";
+	std::cout << data << std::endl;
+	return response;
 }
 
 size_t		ServerControler::getServBlockNbr( void )
