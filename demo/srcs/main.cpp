@@ -21,6 +21,10 @@ int	main(int ac, char **av, char **envp)
 	{
 		config.readFileContent();
 		config.parseConfigContent();
+
+		ServerControler & controler = config.getServControler();
+		controler.startServing();
+		// HandleReuestedURITest();
 	}
 	catch (std::exception &e)
 	{

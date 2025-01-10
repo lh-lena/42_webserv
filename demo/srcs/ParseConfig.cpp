@@ -20,6 +20,7 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 {
 	if (!file_path.empty())
 		_conf_file_path = file_path;
+	std::cout << "_conf_file_path " << _conf_file_path << "\n";
 	block_dir["http"] = true;
 	block_dir["server"] = true;
 	block_dir["location"] = true;
@@ -490,7 +491,7 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 {
 	std::string					s = value.first;
 	std::vector<std::string>	vals;
-	std::string					path;
+	std::string					path = "";
 	int 						val;
 
 	vals = ft_split(s, " ");
@@ -503,16 +504,22 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 
 	for (int i = 0; i < size; i++)
 	{
+		if (i == size - 1 && ends_with(vals[size - 1], ".html")) // to break if last element is a path
+			break;
 		val = strToUint(vals[i]);
 		if (val <= 0 || !is_status_code(val))
 		{
+			std::cerr << "val " << val << " i " << i << "\n";
 			throw ParseException("[emerg] : invalid status code in \"error_page\" directive in " + _conf_file_path + ":" + intToStr(value.second));
 		}
-		path = generate_path(vals[size - 1], vals[i]);
-		if (!is_regular_file(path))
-			path = vals[i] + ".html"; // path to default error page, if none provided
-		if (i == size - 1 && vals[size - 1].find_last_of(".html")) // to break if last element is a path
+		if (size == 1)
+		{
+			instance->addErrorPage(val, path);
 			break;
+		}
+		path = generate_path(vals[size - 1], vals[i]);
+		// if (!is_regular_file(path))
+		// 	path = vals[size - 1]; // path to default error page, if none provided
 		instance->addErrorPage(val, path);
 	}
 }

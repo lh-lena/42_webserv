@@ -4,12 +4,9 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-Location::Location() 
-	:	_autoindex(false),
-		_root("./var/www/html")
+Location::Location()
+	:	_autoindex(false)
 {
-	// _indexes.push_back("index.html");
-	// _indexes.push_back("index.htm");
 }
 
 Location::Location( const Location & src )

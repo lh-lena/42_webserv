@@ -13,8 +13,8 @@
 # include <sys/stat.h>
 # include <sys/types.h>
 
-# define FOUND 1
-# define NOT_FOUND 0
+# define FOUND 0
+# define NOT_FOUND -1
 
 int							strToUint(std::string s);
 bool						is_status_code(int code);

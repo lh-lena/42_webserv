@@ -11,7 +11,7 @@ Server::Server()
 		_worker_connections(1024),
 		_port(80),
 		_host("localhost"),
-		_root("/var/www/html"),
+		_root("var/www/html"),
 		_error_log("error.log")
 {
 	_indexes.push_back("index.html");
@@ -101,12 +101,14 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
  * path argument will be filled with a data or error page for a new responce
  * return status code
 */
-
+/** TODO:
+ * - check for redirect first
+*/
 int		Server::handleRequestedURI(std::string requested_path, std::string& path)
 {
 	Location loc;
 	prefixMatchURI(requested_path, path, loc);
-	std::cout << path << "\n";
+
 	if (is_regular_file(path))
 	{
 		return 200;
@@ -116,7 +118,7 @@ int		Server::handleRequestedURI(std::string requested_path, std::string& path)
 		if (!ends_with(path, "/"))
 		{
 			// path += "/"; // Redirect by appending '/' /** ?? */
-			path = get_reason_phrase(301);
+			path = generate_html_error_page(301);
 			return 301;
 		}
 		if (appendIndexFile(path, loc))
@@ -136,8 +138,7 @@ int		Server::handleRequestedURI(std::string requested_path, std::string& path)
 	}
 	else
 	{
-		path = "404.html"; /* return string, not a file!!*/
-		// path = generate_html_error_page(404); /* return string, not a file!!*/
+		path = generate_html_error_page(404); /* return string, not a file!!*/
 		return 404;
 	}
 }
@@ -146,7 +147,13 @@ std::string		Server::handleErrorPageResponse(int status_code, const Location& sr
 {
 	std::string					path;
 	Location					loc;
-	std::map<int, std::string>	er_pages = src.getErrorPages();
+	std::map<int, std::string>	er_pages;
+	
+	er_pages = src.getErrorPages();
+	if (er_pages.size() == 0)
+	{
+		er_pages = this->getErrorPages();
+	}
 
 	if (er_pages.size() > 0 && er_pages.find(status_code) != er_pages.end())
 	{
@@ -208,28 +215,33 @@ int		Server::prefixMatchURI(std::string requested_path, std::string& path, Locat
 			{
 				if (!this->_locations[i].getRoot().empty())
 				{
-					root = _locations[i].getRoot();
-					location = _locations[i];
+					root = this->_locations[i].getRoot();
 				}
+				location = this->_locations[i];
 				location_found = true;
 				break;
 			}
 		}
 		pos = searched_path.rfind("/");
-		if (searched_path != "/")
+		if (pos != std::string::npos && ends_with(searched_path, "/"))
 		{
 			rest = requested_path.substr(pos);
 			searched_path = searched_path.erase(pos);
 		}
+		else if (pos != std::string::npos && searched_path[pos + 1])
+		{
+			rest = requested_path.substr(pos + 1);
+			searched_path = searched_path.erase(pos + 1);
+		}
 		else
 		{
-			rest = requested_path.substr(pos);
-			searched_path = searched_path.erase(pos);
+			rest = requested_path;
+			searched_path = "";
 		}
 		if (location_found)
 			break;
 	}
-	path = root + rest;
+	path = root + searched_path + rest;
 	return 0;
 }
 
@@ -348,6 +360,5 @@ const std::vector<Location>&	Server::getLocations( void ) const
 {
 	return (_locations);
 }
-
 
 /* ************************************************************************** */

@@ -9,9 +9,6 @@
 # include "Location.hpp"
 # include "generate_html.hpp"
 
-# define FOUND 1
-# define NOT_FOUND 0
-
 class Server
 {
 	public:

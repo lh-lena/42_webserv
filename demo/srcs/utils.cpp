@@ -58,7 +58,7 @@ bool		is_directory(const std::string& path)
 	struct stat path_stat;
 	if (stat(path.c_str(), &path_stat) != 0)
 	{
-		// std::cerr << "[ERROR]: Accessing path failed: " << std::strerror(errno) << std::endl;
+		std::cerr << "[ERROR]: Accessing path " << path << " failed (dir test): " << std::strerror(errno) << path << std::endl;
 		return false;
 	}
 	return S_ISDIR(path_stat.st_mode);
@@ -69,7 +69,7 @@ bool		is_regular_file(const std::string& path)
 	struct stat path_stat;
 	if (stat(path.c_str(), &path_stat) != 0)
 	{
-		// std::cerr << "[ERROR]: Accessing path failed: " << std::strerror(errno) << std::endl;
+		std::cerr << "[ERROR]: Accessing path " << path << " failed: " << std::strerror(errno) << std::endl;
 		return false;
 	}
 	return S_ISREG(path_stat.st_mode);
@@ -124,20 +124,22 @@ int		get_dir_entries(const std::string& dirp, std::vector<std::string>& content)
 	// unsigned char	isFile =0x8; unsigned char isFolder =0x4;
 	DIR				*dir;
 	struct dirent	*dir_entry;
-	dir = opendir(dirp.c_str());
 
-	if (!dir)
+	if ((dir = opendir(dirp.c_str())) == NULL)
 	{
+		std::cerr << "Error opening directory: " << dirp << " (" << strerror(errno) << ")" << std::endl;
 		return NOT_FOUND;
 	}
 
-	while (dir)
+	while ((dir_entry = readdir(dir)) != NULL)
 	{
-		if ((dir_entry = readdir(dir)) != NULL)
+		if (std::strcmp(dir_entry->d_name, ".") == 0 || std::strcmp(dir_entry->d_name, "..") == 0)
 		{
-			content.push_back(dir_entry->d_name);
-		}
+            continue;
+        }
+		content.push_back(dir_entry->d_name);
 	}
+
 	closedir(dir);
 	return FOUND;
 }
