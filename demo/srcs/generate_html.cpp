@@ -5,13 +5,15 @@ std::string		generate_html_directory_listing(const std::string& dir_path)
 	std::stringstream html;
 
 	html << "<!DOCTYPE html>\n"
-		"<html>\n"
-		"<head>\n"
-		"	<title>Directory Listing</title>\n"
-		"</head>\n"
-		"<body>\n"
-		"	<h1>Directory Listing for: " << dir_path << "</h1>\n"
-		"	<ul>\n";
+			"<html lang=\"en\">\n"
+			"<head>\n"
+			"    <meta charset=\"UTF-8\">\n"
+			"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+			"	<title>Directory Listing</title>\n"
+			"</head>\n"
+			"<body>\n"
+			"	<h1>Directory Listing for: " << dir_path << "</h1>\n"
+			"	<ul>\n";
 
 	std::vector<std::string> dir_content;
 	
@@ -60,16 +62,11 @@ std::string		generate_html_error_page(int status_code)
 			"            height: 100vh;\n"
 			"            margin: 0;\n"
 			"            font-family: Arial, sans-serif;\n"
-			"            background-color: #f2f2f2;\n"
-			"            color: #333;\n"
 			"        }\n"
 			"        .error-container {\n"
 			"            text-align: center;\n"
 			"            background: #fff;\n"
 			"            padding: 20px 40px;\n"
-			"            border: 1px solid #ddd;\n"
-			"            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);\n"
-			"            border-radius: 8px;\n"
 			"        }\n"
 			"        .error-container h1 {\n"
 			"            font-size: 3em;\n"
