@@ -7,6 +7,8 @@
 # include <iostream>
 # include <algorithm>
 # include "Location.hpp"
+# include "Request.hpp"
+# include "Response.hpp"
 # include "generate_html.hpp"
 
 class Server
@@ -40,12 +42,14 @@ class Server
 		const std::vector<std::string>&		getServerNames( void ) const;
 		const std::map<int, std::string>&	getErrorPages( void ) const;
 		std::string							handleErrorPageResponse(int status_code, const Location& src);
-		int									handleRequestedURI(std::string requested_path, std::string& path);
-		int									prefixMatchURI(std::string requested_path, std::string& path, Location& location);
+		void								handleRequestMethod(const Request& request, Response& response);
+		int									handleRequestedURI(std::string requested_path, std::string& path, Location& loc, bool& location_found);
+		int									prefixMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found);
 		bool								appendIndexFile(std::string& path, const Location& loc);
-		void								hadleGET();
-		void								hadlePOST();
-		void								hadleDELETE();
+		void								handleGET(Response& response, const Location& location);
+		void								handlePOST();
+		void								handleDELETE();
+		void								handleUnsupportedMethod(Response& response);
 
 	private:
 		int									_location_nbr;
