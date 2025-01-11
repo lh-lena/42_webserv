@@ -42,6 +42,20 @@ std::string		intToStr(int i)
 	return str;
 }
 
+std::string		vector_tostr(const std::vector<std::string>& vec)
+{
+	std::string s = "";
+	std::vector<std::string>::const_iterator cit;
+
+	for (cit = vec.begin(); cit != vec.end(); ++cit)
+	{
+		s.append(*cit);
+		s.append(" ");
+	}
+
+	return s;	
+}
+
 bool		is_digits(const std::string& str)
 {
 	size_t len = str.size();
@@ -119,6 +133,16 @@ bool ends_with(const std::string& str, const std::string& suffix)
 	return (str.size() >= suffix.size() && str.substr(str.size() - suffix.size()) == suffix);
 }
 
+bool	is_str_in_vector(std::string s, const std::vector<std::string>& content)
+{
+	std::vector<std::string>::const_iterator it = std::find(content.begin(), content.end(), s);
+	if (it != content.end())
+	{
+		return true;
+	}
+	return false;
+}
+
 int		get_dir_entries(const std::string& dirp, std::vector<std::string>& content)
 {
 	// unsigned char	isFile =0x8; unsigned char isFolder =0x4;
@@ -142,6 +166,24 @@ int		get_dir_entries(const std::string& dirp, std::vector<std::string>& content)
 
 	closedir(dir);
 	return FOUND;
+}
+
+std::string		str_tolower(std::string s)
+{
+	for (size_t i = 0; i < s.size(); i++)
+	{
+		s[i] = std::tolower(s[i]);
+	}
+	return s;
+}
+
+std::string		str_toupper(std::string s)
+{
+	for (size_t i = 0; i < s.size(); i++)
+	{
+		s[i] = std::toupper(s[i]);
+	}
+	return s;
 }
 
 std::string		get_reason_phrase(int code)
