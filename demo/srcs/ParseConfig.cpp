@@ -466,24 +466,22 @@ void		ParseConfig::handleAllowedMethods(const std::pair<std::string, int>& value
 
 void	ParseConfig::handleReturn(const std::pair<std::string, int>& value, Location* instance)
 {
-	std::string s = value.first;
+	std::string 				s = value.first;
 	std::vector<std::string>	vals = ft_split(s, " ");
-	std::string		path;
-	int				code;
-	size_t size = vals.size();
+	std::string					path;
+	int							code;
 
 	if (vals.empty())
 	{
 		throw ParseException("[emerg] : invalid number of arguments in \"return\" directive in " + _conf_file_path + ":" + intToStr(value.second));
 	}
 
-	if (is_regular_file(vals[size - 1]) && size > 1)
-		path = vals[size - 1];
 	code = strToUint(vals[0]);
 	if (code <= 0 || !is_status_code(code))
 	{
 		throw ParseException("[emerg] : an invalid status code in \"return\" directive in " + _conf_file_path + ":" + intToStr(value.second));
 	}
+	path = vals[1];
 	instance->setReturn(code, path);
 }
 
