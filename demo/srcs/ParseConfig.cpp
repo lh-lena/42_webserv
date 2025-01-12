@@ -25,6 +25,7 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 	block_dir["server"] = true;
 	block_dir["location"] = true;
 	allowed_methods["GET"] = true;
+	allowed_methods["HEAD"] = true;
 	allowed_methods["POST"] = true;
 	allowed_methods["DELETE"] = true;
 	map_template_dir["error_page"] = true;

@@ -27,6 +27,7 @@
 int							strToUint(std::string s);
 bool						is_status_code(int code);
 bool                    	is_redirection(size_t code);
+bool						is_informational(size_t code);
 bool						is_directory(const std::string& path);
 bool						is_regular_file(const std::string& path);
 bool						is_digits(const std::string& str);
@@ -48,6 +49,6 @@ std::vector<std::string>	ft_split(std::string& s, std::string delimeter);
 int							get_dir_entries(const std::string& dirp, std::vector<std::string>& content);
 
 // tmp
-std::string extractPath(std::string const &request);
+void extractPath(std::string const &request, std::string& method, std::string& path);
 
 #endif /** UTILS_HPP */

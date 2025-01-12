@@ -203,17 +203,20 @@ std::string		str_toupper(std::string s)
 bool	is_redirection(size_t code)
 {
 	return (code >= 300 && code < 400);
+}
+
+bool	is_informational(size_t code)
+{
+	return (code >= 300 && code < 400);
 } 
 
-std::string extractPath(std::string const &request)
+void extractPath(std::string const &request, std::string& method, std::string& path)
 {
-	if (!request.size())
-		return "";
+	// if (!request.size())
+	// 	return "";
 	std::stringstream ss(request);
-	std::string method;
-	std::string path;
 	ss >> method >> path;
-	return path;
+
 }
 
 std::string		get_reason_phrase(int code)

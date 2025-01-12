@@ -13,10 +13,13 @@
 
 /**HttpStatusCode */
 # define OK 200
+# define NO_CONTENT 204
 # define MOVED_PERMANENTLY 301
 # define FORBIDDEN 403
 # define NOT_FOUND 404
 # define METHOD_NOT_ALLOWED 405
+# define NOT_IMPLEMENTED 501
+# define INTERNAL_SERVER_ERROR 500
 
 class Server
 {
@@ -55,11 +58,12 @@ class Server
 		int									searchingPrefixMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found);
 		bool								appendIndexFile(std::string& path, const Location& loc);
 		void								handleGET(Response& response, Location& location);
-		void								handlePOST();
-		void								handleDELETE();
+		void								handlePOST(const Request& request, Response& response, Location& location);
+		void								handleDELETE( Response& response, Location& location);
 		void								handleUnsupportedMethod(Response& response);
-		void								setResponse(Response& response, size_t status_code);
+		void								setGetResponse(Response& response, size_t status_code);
 		void								setErrorResponse(Response& response, size_t status_code);
+		void								setPostResponse(Response& response, size_t status_code);
 		void								handleMethodNotAllowed(Response& response, const Location& location);
 		void								handleAndSetRedirectResponse(Response& response, Location& loc);
 		void								handleDirectoryResponse(Response& response, Location& loc);

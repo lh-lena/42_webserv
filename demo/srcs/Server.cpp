@@ -108,6 +108,9 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 	int rc = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
 	response.status_code = rc;
 	response.method = request.method_r;
+	response.content_lenght = 0;
+
+
 	/* switch (request.method)
 	{
 		case GET:
@@ -122,13 +125,13 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 			break;
 	} */
 
-	if (std::strcmp(str_tolower(response.method).c_str(), "get") == 0)
+	if (std::strcmp(str_tolower(response.method).c_str(), "get") == 0 || std::strcmp(str_tolower(response.method).c_str(), "head") == 0)
 	{
 			handleGET(response, location);
 	}
 	else if (std::strcmp(str_tolower(request.method_r).c_str(), "post") == 0)
 	{
-		// handlePOST(request, response, location);
+		handlePOST(request, response, location);
 	}
 	else if (std::strcmp(str_tolower(request.method_r).c_str(), "delete") == 0)
 	{
@@ -137,7 +140,7 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 	else
 	{
 		/* 501 Not Implemented */
-		setErrorResponse(response, 501);
+		setErrorResponse(response, NOT_IMPLEMENTED);
 		// handleUnsupportedMethod(response);
 	}
 }
@@ -147,7 +150,7 @@ void		Server::handleGET(Response& response, Location& location)
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
-		setErrorResponse(response, 404);
+		setErrorResponse(response, NOT_FOUND);
 	}
 
 	/** 405 Method Not Allowed */
@@ -161,15 +164,61 @@ void		Server::handleGET(Response& response, Location& location)
 	}
 }
 
-/* void		handleDELETE(Response& response, Location& location)
+/* void		Server::handleDELETE(Response& response, Location& location)
 {
 
 } */
 
-/* void		handlePOST(const Request& request, Response& response, Location& location)
+void		Server::handlePOST(const Request& request, Response& response, Location& location)
 {
+	/** 404 Not Found */
+	if (!response.location_found)
+	{
+		setErrorResponse(response, NOT_FOUND);
+	}
 
-} */
+	/** 405 Method Not Allowed */
+	else if (!is_str_in_vector(response.method, location.getAllowedMethods()))
+	{
+		handleMethodNotAllowed(response, location);
+	}
+	else
+	{
+		std::ofstream file(response.path.c_str());
+		if (!file.is_open())
+		{
+			std::cerr	<< "Failed to open file: " << response.path 
+						<< " (" << strerror(errno) << ")" << std::endl;
+
+			if (errno == EACCES || errno == EROFS || errno == ENOENT)
+			{
+				setErrorResponse(response, FORBIDDEN);
+			}
+			// else if (errno == ENOENT)
+			// {
+			// 	setErrorResponse(response, NOT_FOUND);
+			// }
+			else
+			{
+				setErrorResponse(response, INTERNAL_SERVER_ERROR);
+			}
+
+			return;
+		}
+
+		file << request.reqBody;
+		if (file.fail())
+		{
+			std::cerr << "Error writing to file: " << response.path << std::endl;
+			setErrorResponse(response, INTERNAL_SERVER_ERROR);
+			file.close();
+			return;
+		}
+		file.close();
+		setPostResponse(response, OK);
+	}
+
+}
 
 void Server::handleMethodNotAllowed(Response& response, const Location& location)
 {
@@ -179,14 +228,13 @@ void Server::handleMethodNotAllowed(Response& response, const Location& location
 
 void		Server::handleRequestedURI(Response& response, Location& loc)
 {
-	std::cout << "\t Path " << response.path << "\n";
 	if (is_redirection(response.status_code))
 	{
 		handleAndSetRedirectResponse(response, loc);
 	}
 	else if (is_regular_file(response.path))
 	{
-		setResponse(response, OK);
+		setGetResponse(response, OK);
 	}
 	else
 	{
@@ -203,13 +251,23 @@ void	Server::setErrorResponse(Response& response, size_t status_code)
 	response.content_type = get_MIME_type(response.content);
 }
 
-void	Server::setResponse(Response& response, size_t status_code)
+void	Server::setGetResponse(Response& response, size_t status_code)
+{
+	response.content = get_file_content(response.path);
+	response.content_lenght = response.content.length();
+	if (response.content_lenght <= 0)
+	{
+		status_code = NO_CONTENT;
+	}
+	response.content_type = get_MIME_type(response.path);
+	response.status_code = status_code;
+	response.reason_phrase = get_reason_phrase(status_code);
+}
+
+void	Server::setPostResponse(Response& response, size_t status_code)
 {
 	response.status_code = status_code;
 	response.reason_phrase = get_reason_phrase(status_code);
-	response.content = get_file_content(response.path);
-	response.content_lenght = response.content.length();
-	response.content_type = get_MIME_type(response.path);
 }
 
 void	Server::handleAndSetRedirectResponse(Response& response, Location& loc)
@@ -217,7 +275,7 @@ void	Server::handleAndSetRedirectResponse(Response& response, Location& loc)
 	searchingPrefixMatchURI(response.path, response.path, loc, response.location_found);
 	if (is_regular_file(response.path))
 	{
-		setResponse(response, response.status_code);
+		setGetResponse(response, response.status_code);
 	}
 	else
 	{
@@ -227,7 +285,6 @@ void	Server::handleAndSetRedirectResponse(Response& response, Location& loc)
 
 void	Server::handleDirectoryResponse(Response& response, Location& loc)
 {
-	std::cout << "\t Path " << response.path << "\n";
 	if (!is_directory(response.path))
 	{
 		setErrorResponse(response, NOT_FOUND);
@@ -239,7 +296,7 @@ void	Server::handleDirectoryResponse(Response& response, Location& loc)
 	}
 	else if (appendIndexFile(response.path, loc))
 	{
-		setResponse(response, OK);
+		setGetResponse(response, OK);
 	}
 	else if (!loc.getAutoindex())
 	{
@@ -247,8 +304,8 @@ void	Server::handleDirectoryResponse(Response& response, Location& loc)
 	}
 	else
 	{
-		response.path = generate_html_directory_listing(response.path); /* return string, not a file!!*/
-		setResponse(response, OK);
+		response.path = generate_html_directory_listing(response.path);
+		setGetResponse(response, OK);
 	}
 }
 
@@ -264,20 +321,25 @@ void	Server::createResponse(const Response& response, std::string& result)
 	result.append(SP);
 	result.append(response.reason_phrase);
 	result.append(CRLF);
-	result.append("Content-Type: ");
-	result.append(response.content_type);
-	result.append(CRLF);
-	result.append("X-Content-Type-Options: ");
-	result.append(response.content_type);
-	result.append(CRLF);
-	if (response.content_lenght)
+	if (response.status_code != NO_CONTENT && !is_informational(response.status_code))
 	{
+		result.append("Content-Type: ");
+		result.append(response.content_type);
+		result.append(CRLF);
 		result.append("Content-Length: ");
 		result.append(itos(response.content_lenght));
+		result.append(CRLF);
 	}
-	result.append(CRLF);
-	result.append(CRLF);
-	result.append(response.content);
+	if (std::strcmp(str_tolower(response.method).c_str(), "post") != 0)
+	{
+		result.append(CRLF);
+		result.append(response.content);
+	}
+
+	/** TODO:
+	 * - "Last-Modified"
+	 * - "Date"
+	 */
 }
 
 
@@ -366,6 +428,10 @@ int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& pa
 				{
 					root = location.getRoot();
 				}
+				// if (!location.getUploadDir().empty())
+				// {
+				// 	root = location.getUploadDir(); /** what if there another root as well? */
+				// }
 				break;
 			}
 		}
