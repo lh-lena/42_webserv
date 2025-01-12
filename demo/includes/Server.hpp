@@ -11,6 +11,13 @@
 # include "Response.hpp"
 # include "generate_html.hpp"
 
+/**HttpStatusCode */
+# define OK 200
+# define MOVED_PERMANENTLY 301
+# define FORBIDDEN 403
+# define NOT_FOUND 404
+# define METHOD_NOT_ALLOWED 405
+
 class Server
 {
 	public:
@@ -56,6 +63,8 @@ class Server
 		void								handleMethodNotAllowed(Response& response, const Location& location);
 		void								handleAndSetRedirectResponse(Response& response, Location& loc);
 		void								handleDirectoryResponse(Response& response, Location& loc);
+		void								createResponse(const Response& response, std::string& result);
+
 
 	private:
 		int									_location_nbr;

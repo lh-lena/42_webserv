@@ -14,6 +14,7 @@ struct Request
 	std::string	host;
 	std::string	fileName;
 	std::string	reqBody;
+	std::string	reqURI; /** the path must be extracted from the request */
 	char**		envVars;
 };
 

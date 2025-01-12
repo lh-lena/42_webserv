@@ -1,5 +1,6 @@
 #include "../includes/ServerControler.hpp"
 #include "../includes/Request.hpp"
+#include "../includes/utils.hpp"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -262,6 +263,8 @@ void	ServerControler::startServing()
 							res = send(pfds[i].fd, str.c_str(), str.size(), 0);
 							if (res < 0)
 								throw std::runtime_error("Error: send() failed");
+							std::cout <<"[LOG] : Transmitted Data Size "<< res <<" Bytes."  << std::endl;
+							std::cout <<"[LOG] : File Transfer Complete." << std::endl;
 						}
 					}
 					//conn_active = false;

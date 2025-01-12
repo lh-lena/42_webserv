@@ -16,7 +16,7 @@ std::string		generate_html_directory_listing(const std::string& dir_path)
 			"	<ul>\n";
 
 	std::vector<std::string> dir_content;
-	
+
 	if (get_dir_entries(dir_path, dir_content))
 	{
 		for (size_t i = 0; i < dir_content.size(); i++)
@@ -70,8 +70,7 @@ std::string		generate_html_error_page(int status_code)
 			"        }\n"
 			"        .error-container h1 {\n"
 			"            font-size: 3em;\n"
-			"            color: #e74c3c;\n"
-			"            margin: 0 0 20px;\n"
+			"            margin: 0 0 10px;\n"
 			"        }\n"
 			"        .error-container p {\n"
 			"            font-size: 1.2em;\n"
@@ -82,6 +81,8 @@ std::string		generate_html_error_page(int status_code)
 			"<body>\n"
 			"    <div class=\"error-container\">"
 			"        <h1>"
+			<< status_code
+			<< " "
 			<< get_reason_phrase(status_code)
 			<<"</h1>\n"
 			"        <p>"

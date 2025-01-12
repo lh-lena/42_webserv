@@ -80,7 +80,7 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 	std::map<int, std::string>::const_iterator it;
 	for (it = i.getErrorPages().begin(); it != i.getErrorPages().end(); ++it)
 	{
-		std::cout  << "\t" << intToStr(it->first) << ": " << it->second << std::endl;
+		std::cout  << "\t" << itos(it->first) << ": " << it->second << std::endl;
 	}
 	o << std::endl;
 
@@ -104,6 +104,7 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 {
 	Location		location;
 
+	response.protocol = "HTTP/1.1";
 	int rc = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
 	response.status_code = rc;
 	response.method = request.method_r;
@@ -121,24 +122,25 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 			break;
 	} */
 
-	if (std::strcmp(str_tolower(request.method_r).c_str(), "get"))
-	{
-		handleGET(response, location);
-	}
-	else if (std::strcmp(str_tolower(request.method_r).c_str(), "post"))
-	{
-		// handlePOST();
-	}
-	else if (std::strcmp(str_tolower(request.method_r).c_str(), "delete"))
-	{
-		// handleDELETE();
-	}
-	else
-	{
-		/* 501 Not Implemented */
-		setErrorResponse(response, 501);
-		// handleUnsupportedMethod(response);
-	}
+	handleGET(response, location);
+	// if (std::strcmp(str_tolower(response.method).c_str(), "get"))
+	// {
+	//		handleGET(response, location);
+	// }
+	// else if (std::strcmp(str_tolower(request.method_r).c_str(), "post"))
+	// {
+	// 	// handlePOST();
+	// }
+	// else if (std::strcmp(str_tolower(request.method_r).c_str(), "delete"))
+	// {
+	// 	// handleDELETE();
+	// }
+	// else
+	// {
+	// 	/* 501 Not Implemented */
+	// 	setErrorResponse(response, 501);
+	// 	// handleUnsupportedMethod(response);
+	// }
 }
 
 void		Server::handleGET(Response& response, Location& location)
@@ -177,7 +179,7 @@ void		Server::handleGET(Response& response, Location& location)
 void Server::handleMethodNotAllowed(Response& response, const Location& location)
 {
 	response.allow = vector_tostr(location.getAllowedMethods());
-	setErrorResponse(response, HttpStatusCode::METHOD_NOT_ALLOWED);
+	setErrorResponse(response, METHOD_NOT_ALLOWED);
 }
 
 void		Server::handleRequestedURI(Response& response, Location& loc)
@@ -188,7 +190,7 @@ void		Server::handleRequestedURI(Response& response, Location& loc)
 	}
 	else if (is_regular_file(response.path))
 	{
-		setResponse(response, HttpStatusCode::OK);
+		setResponse(response, OK);
 	}
 	else
 	{
@@ -210,8 +212,32 @@ void	Server::setResponse(Response& response, size_t status_code)
 	response.status_code = status_code;
 	response.reason_phrase = get_reason_phrase(status_code);
 	// response.content = generate_html_error_page(status_code); /** TODO: read the file */
+	response.content = get_file_content(response.path);
 	response.content_lenght = response.content.length();
 	response.content_type = get_MIME_type(response.content);
+}
+
+void	Server::createResponse(const Response& response, std::string& result)
+{
+	std::string SP = " ";
+	std::string CRLF = "\r\n";
+	result.append(response.protocol);
+	result.append(SP);
+	result.append(itos(response.status_code));
+	result.append(SP);
+	result.append(response.reason_phrase);
+	result.append(CRLF);
+	result.append("Content-Type: ");
+	result.append(response.content_type);
+	result.append(CRLF);
+	if (response.content_lenght)
+	{
+		result.append("Content-Length: ");
+		result.append(itos(response.content_lenght));
+	}
+	result.append(CRLF);
+	result.append(CRLF);
+	result.append(response.content);
 }
 
 void	Server::handleAndSetRedirectResponse(Response& response, Location& loc)
@@ -221,32 +247,35 @@ void	Server::handleAndSetRedirectResponse(Response& response, Location& loc)
 	{
 		setErrorResponse(response, response.status_code);
 	}
-	setResponse(response, response.status_code);
+	else
+	{
+		setResponse(response, response.status_code);
+	}
 }
 
 void	Server::handleDirectoryResponse(Response& response, Location& loc)
 {
 	if (!is_directory(response.path))
 	{
-		setErrorResponse(response, HttpStatusCode::NOT_FOUND);
+		setErrorResponse(response, NOT_FOUND);
 	}
 	else if (!ends_with(response.path, "/"))
 	{
 		// path += "/"; // Redirect by appending '/' /** ?? */
-		setErrorResponse(response, HttpStatusCode::MOVED_PERMANENTLY);
+		setErrorResponse(response, MOVED_PERMANENTLY);
 	}
 	else if (appendIndexFile(response.path, loc))
 	{
-		setResponse(response, HttpStatusCode::OK);
+		setResponse(response, OK);
 	}
 	else if (!loc.getAutoindex())
 	{
-		setErrorResponse(response, HttpStatusCode::FORBIDDEN);
+		setErrorResponse(response, FORBIDDEN);
 	}
 	else
 	{
 		response.path = generate_html_directory_listing(response.path); /* return string, not a file!!*/
-		setResponse(response, HttpStatusCode::OK);
+		setResponse(response, OK);
 	}
 }
 
@@ -341,14 +370,6 @@ bool		Server::appendIndexFile(std::string& path, const Location& loc)
 			path += idxs[i];
 			return true;
 		}
-
-		// std::vector<std::string>::iterator it = std::find(dir_content.begin(), dir_content.end(), idxs[i]);
-		// if (it != dir_content.end())
-		// {
-		// 	path += idxs[i];
-		// 	return true;
-		// }
-
 	}
 
 	return false;

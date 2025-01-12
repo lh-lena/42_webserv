@@ -32,7 +32,7 @@ int		strToUint(std::string s)
 	return val;
 }
 
-std::string		intToStr(int i)
+std::string		itos(int i)
 {
 	std::stringstream ss;
 
@@ -65,6 +65,15 @@ bool		is_digits(const std::string& str)
 			return false;
 	}
 	return true;
+}
+
+std::string		get_file_content(const std::string& path)
+{
+	std::ifstream in(path.c_str());
+	std::string content((std::istreambuf_iterator<char>(in)), 
+	std::istreambuf_iterator<char>());
+
+	return content;
 }
 
 bool		is_directory(const std::string& path)
@@ -152,7 +161,7 @@ int		get_dir_entries(const std::string& dirp, std::vector<std::string>& content)
 	if ((dir = opendir(dirp.c_str())) == NULL)
 	{
 		std::cerr << "Error opening directory: " << dirp << " (" << strerror(errno) << ")" << std::endl;
-		return NOT_FOUND;
+		return -1;
 	}
 
 	while ((dir_entry = readdir(dir)) != NULL)
@@ -165,7 +174,7 @@ int		get_dir_entries(const std::string& dirp, std::vector<std::string>& content)
 	}
 
 	closedir(dir);
-	return FOUND;
+	return 0;
 }
 
 std::string		str_tolower(std::string s)
@@ -184,6 +193,22 @@ std::string		str_toupper(std::string s)
 		s[i] = std::toupper(s[i]);
 	}
 	return s;
+}
+
+bool	is_redirection(size_t code)
+{
+	return (code >= 300 && code < 400);
+} 
+
+std::string extractPath(std::string const &request)
+{
+	if (!request.size())
+		return "";
+	std::stringstream ss(request);
+	std::string method;
+	std::string path;
+	ss >> method >> path;
+	return path;
 }
 
 std::string		get_reason_phrase(int code)
@@ -306,11 +331,19 @@ std::string		get_status_message(int code)
 	}
 }
 
+bool	is_html_genereted_page(const std::string& path)
+{
+	return (std::strncmp(path.c_str(), "<!DOCTYPE html>", 15) == 0);
+}
 
-std::string		MIME_type(std::string path)
+std::string		get_MIME_type(std::string path)
 {
 	size_t pos = path.rfind(".");
 
+	if (is_html_genereted_page(path))
+	{
+		return "text/html";
+	}
 	if (pos == std::string::npos)
 	{
 		return std::string(); 

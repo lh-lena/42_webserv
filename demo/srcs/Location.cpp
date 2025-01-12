@@ -70,12 +70,12 @@ std::ostream&			operator<<( std::ostream & o, Location const& i )
 	std::map<int, std::string>::const_iterator it;
 	for (it = i.getErrorPages().begin(); it != i.getErrorPages().end(); ++it)
 	{
-		std::cout  << "\t" << intToStr(it->first) << ": " << it->second << std::endl;
+		std::cout  << "\t" << itos(it->first) << ": " << it->second << std::endl;
 	}
 	o	<< "\nredirection: \n";
 	for (it = i.getReturn().begin(); it != i.getReturn().end(); ++it)
 	{
-		std::cout  << "\t" << intToStr(it->first) << ": " << it->second << std::endl;
+		std::cout  << "\t" << itos(it->first) << ": " << it->second << std::endl;
 	}
 	o << std::endl;
 	return o;
