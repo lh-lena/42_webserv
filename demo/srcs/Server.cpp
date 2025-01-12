@@ -219,8 +219,10 @@ void	Server::setResponse(Response& response, size_t status_code)
 
 void	Server::createResponse(const Response& response, std::string& result)
 {
+	result = "";
 	std::string SP = " ";
 	std::string CRLF = "\r\n";
+
 	result.append(response.protocol);
 	result.append(SP);
 	result.append(itos(response.status_code));

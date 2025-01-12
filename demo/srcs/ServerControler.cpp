@@ -257,6 +257,7 @@ void	ServerControler::startServing()
 					} while (res == 1500);
 					if (!request.empty())
 					{
+						str = processRequest(request);
 						if (!str.empty())
 						{
 							res = send(pfds[i].fd, str.c_str(), str.size(), 0);
