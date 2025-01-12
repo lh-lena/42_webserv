@@ -44,13 +44,18 @@ class Server
 		std::string							handleErrorPageResponse(int status_code, const Location& src);
 		void								handleRequestMethod(const Request& request, Response& response);
 		// int									handleRequestedURI(std::string requested_path, std::string& path, Location& loc, bool& location_found);
-		int									handleRequestedURI(Response& response, Location& loc);
-		int									prefixMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found);
+		void								handleRequestedURI(Response& response, Location& loc);
+		int									searchingPrefixMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found);
 		bool								appendIndexFile(std::string& path, const Location& loc);
 		void								handleGET(Response& response, Location& location);
 		void								handlePOST();
 		void								handleDELETE();
 		void								handleUnsupportedMethod(Response& response);
+		void								setResponse(Response& response, size_t status_code);
+		void								setErrorResponse(Response& response, size_t status_code);
+		void								handleMethodNotAllowed(Response& response, const Location& location);
+		void								handleAndSetRedirectResponse(Response& response, Location& loc);
+		void								handleDirectoryResponse(Response& response, Location& loc);
 
 	private:
 		int									_location_nbr;

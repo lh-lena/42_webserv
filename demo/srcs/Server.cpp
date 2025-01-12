@@ -104,7 +104,7 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 {
 	Location		location;
 
-	int rc = prefixMatchURI(request.reqURI, response.path, location, response.location_found);
+	int rc = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
 	response.status_code = rc;
 	response.method = request.method_r;
 	/* switch (request.method)
@@ -135,7 +135,9 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 	}
 	else
 	{
-		handleUnsupportedMethod(response);
+		/* 501 Not Implemented */
+		setErrorResponse(response, 501);
+		// handleUnsupportedMethod(response);
 	}
 }
 
@@ -144,30 +146,19 @@ void		Server::handleGET(Response& response, Location& location)
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
-		response.status_code = 404;
-		response.reason_phrase = get_reason_phrase(404);
-		response.content = generate_html_error_page(404);
-		response.content_lenght = response.content.length();
-		response.content_type = "text/html";
+		setErrorResponse(response, 404);
 	}
 
 	/** 405 Method Not Allowed */
-	else if (response.location_found && !is_str_in_vector(response.method, location.getAllowedMethods()))
+	else if (!is_str_in_vector(response.method, location.getAllowedMethods()))
 	{
-		/** TODO: completeResponse(); ??*/
-		response.status_code = 405;
-		response.reason_phrase = get_reason_phrase(405);
-		response.content = generate_html_error_page(405);
-		response.content_lenght = response.content.length();
-		response.allow = vector_tostr(location.getAllowedMethods());
-		response.content_type = "text/html";
+		handleMethodNotAllowed(response, location);
 	}
 	else
 	{
 		handleRequestedURI(response, location);
+		response.content_type = get_MIME_type(response.path);
 	}
-
-
 
 	/** TODO: 
 	 * - find Location
@@ -183,55 +174,79 @@ void		Server::handleGET(Response& response, Location& location)
 }
 
 
-void		Server::handleUnsupportedMethod(Response& response)
+void Server::handleMethodNotAllowed(Response& response, const Location& location)
 {
-	/* 501 Not Implemented*/
-	response.status_code = 501;
-	response.reason_phrase = get_reason_phrase(501);
-	response.content = generate_html_error_page(501);
-	response.content_lenght = response.content.length();
-	response.content_type = "text/html";
+	response.allow = vector_tostr(location.getAllowedMethods());
+	setErrorResponse(response, HttpStatusCode::METHOD_NOT_ALLOWED);
 }
 
-int		Server::handleRequestedURI(Response& response, Location& loc)
+void		Server::handleRequestedURI(Response& response, Location& loc)
 {
-	if (response.status_code != 0)
+	if (is_redirection(response.status_code))
 	{
-		prefixMatchURI(response.path, response.path, loc, response.location_found);
-		// std::cout << "path " << path << "\n";
-		if (!is_regular_file(response.path))
-		{
-			response.path = generate_html_error_page(response.status_code);
-		}
+		handleAndSetRedirectResponse(response, loc);
 	}
-	if (is_regular_file(response.path))
+	else if (is_regular_file(response.path))
 	{
-		return 200;
+		setResponse(response, HttpStatusCode::OK);
 	}
+	else
+	{
+		handleDirectoryResponse(response, loc);
+	}
+}
+
+void	Server::setErrorResponse(Response& response, size_t status_code)
+{
+	response.status_code = status_code;
+	response.reason_phrase = get_reason_phrase(status_code);
+	response.content = generate_html_error_page(status_code);
+	response.content_lenght = response.content.length();
+	response.content_type = get_MIME_type(response.content);
+}
+
+void	Server::setResponse(Response& response, size_t status_code)
+{
+	response.status_code = status_code;
+	response.reason_phrase = get_reason_phrase(status_code);
+	// response.content = generate_html_error_page(status_code); /** TODO: read the file */
+	response.content_lenght = response.content.length();
+	response.content_type = get_MIME_type(response.content);
+}
+
+void	Server::handleAndSetRedirectResponse(Response& response, Location& loc)
+{
+	searchingPrefixMatchURI(response.path, response.path, loc, response.location_found);
+	if (!is_regular_file(response.path))
+	{
+		setErrorResponse(response, response.status_code);
+	}
+	setResponse(response, response.status_code);
+}
+
+void	Server::handleDirectoryResponse(Response& response, Location& loc)
+{
 	if (!is_directory(response.path))
 	{
-		response.path = generate_html_error_page(404); /* return string, not a file!!*/
-		return 404;
+		setErrorResponse(response, HttpStatusCode::NOT_FOUND);
 	}
-	if (!ends_with(response.path, "/"))
+	else if (!ends_with(response.path, "/"))
 	{
 		// path += "/"; // Redirect by appending '/' /** ?? */
-		response.path = generate_html_error_page(301);
-		return 301;
+		setErrorResponse(response, HttpStatusCode::MOVED_PERMANENTLY);
 	}
-	if (appendIndexFile(response.path, loc))
+	else if (appendIndexFile(response.path, loc))
 	{
-		return 200;
+		setResponse(response, HttpStatusCode::OK);
 	}
-	if (!loc.getAutoindex())
+	else if (!loc.getAutoindex())
 	{
-		response.path = handleErrorPageResponse(403, loc);
-		return 403;
+		setErrorResponse(response, HttpStatusCode::FORBIDDEN);
 	}
 	else
 	{
 		response.path = generate_html_directory_listing(response.path); /* return string, not a file!!*/
-		return 200;
+		setResponse(response, HttpStatusCode::OK);
 	}
 }
 
@@ -244,13 +259,13 @@ int		Server::handleRequestedURI(Response& response, Location& loc)
  * - handle redirect first
 */
 
-// int		Server::handleRequestedURI(std::string requested_path, std::string& path, Location& loc, bool& location_found)
+// int		Server::handleRequestedURI(std::string requested_path, std::string& path, Location& loc, bool& location_found)handleRequestedURI
 // {
-// 	int rc = prefixMatchURI(requested_path, path, loc, location_found);
+// 	int rc = searchingPrefixMatchURI(requested_path, path, loc, location_found);
 
 // 	if (rc != 0)
 // 	{
-// 		prefixMatchURI(path, path, loc, location_found);
+// 		searchingPrefixMatchURI(path, path, loc, location_found);
 // 		// std::cout << "path " << path << "\n";
 // 		if (!is_regular_file(path))
 // 		{
@@ -305,7 +320,7 @@ std::string		Server::handleErrorPageResponse(int status_code, const Location& sr
 
 	if (er_pages.size() > 0 && er_pages.find(status_code) != er_pages.end())
 	{
-		prefixMatchURI(er_pages[status_code], path, loc, found_location);
+		searchingPrefixMatchURI(er_pages[status_code], path, loc, found_location);
 		return path;
 	}
 	path = generate_html_error_page(status_code);
@@ -348,7 +363,7 @@ bool		Server::appendIndexFile(std::string& path, const Location& loc)
  * @return 0 on success, or a redirect code if "return" detected
  */
 
-int		Server::prefixMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found)
+int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found)
 {
 	if (requested_path.empty())
 	{
