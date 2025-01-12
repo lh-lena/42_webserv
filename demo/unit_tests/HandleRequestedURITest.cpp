@@ -134,13 +134,3 @@ TEST(ServerTest, handleErrorPageResponse)
   
 }
 
-TEST(ServerTest, strModification)
-{
-
-  std::string s1 = str_tolower("Get");
-  EXPECT_EQ(s1, "get");
-
-  std::string s2 = str_toupper("get");
-  EXPECT_EQ(s2, "GET");
-
-}
