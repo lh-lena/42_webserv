@@ -66,7 +66,7 @@ std::vector<std::string> split(std::string &s, std::string delimeter)
 	return parts;
 }
 
-std::string intToString(int num)
+std::string itosing(int num)
 {
 	std::stringstream ss;
     ss << num;
@@ -219,7 +219,7 @@ int forward_message(int fd, std::string partPath)
 
 	std::string response = "HTTP/1.1 200 OK\r\n"
 					"Content-Type: " + getContentType(partPath) + "\r\n"
-					"Content-Length: " + intToString(contents.size()) + "\r\n\r\n" 
+					"Content-Length: " + itosing(contents.size()) + "\r\n\r\n" 
 					+ contents;
 	int sent_bytes = send(fd, response.c_str(), response.size(), 0);
 
