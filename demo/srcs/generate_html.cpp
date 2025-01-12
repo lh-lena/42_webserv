@@ -9,31 +9,30 @@ std::string		generate_html_directory_listing(const std::string& dir_path)
 			"<head>\n"
 			"    <meta charset=\"UTF-8\">\n"
 			"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
-			"	<title>Directory Listing</title>\n"
+			"    <title>Directory Listing</title>\n"
 			"</head>\n"
 			"<body>\n"
-			"	<h1>Directory Listing for: " << dir_path << "</h1>\n"
-			"	<ul>\n";
+			"    <ul>\n";
 
 	std::vector<std::string> dir_content;
 
-	if (get_dir_entries(dir_path, dir_content))
+	if (get_dir_entries(dir_path, dir_content) == 0)
 	{
 		for (size_t i = 0; i < dir_content.size(); i++)
 		{
 			std::string	d_name = dir_content[i];
 			if (d_name != "." && d_name != "..")
 			{
-				html << "		<li><a href=\"" << d_name << "\">" << d_name << "</a></li>\n";
+				html << "        <li><a href=\"" << d_name << "\">" << d_name << "</a></li>\n";
 			}
 		}
 	}
 	else
 	{
-		html << "		<p>Error: Could not open directory.</p>\n";
+		html << "       <p>Error: Could not open directory.</p>\n";
 	}
 
-	html << "	</ul>\n"
+	html << "    </ul>\n"
 			"</body\n>"
 			"</html>";
 
@@ -66,7 +65,7 @@ std::string		generate_html_error_page(int status_code)
 			"        .error-container {\n"
 			"            text-align: center;\n"
 			"            background: #fff;\n"
-			"            padding: 20px 40px;\n"
+			"            padding: 20px;\n"
 			"        }\n"
 			"        .error-container h1 {\n"
 			"            font-size: 3em;\n"

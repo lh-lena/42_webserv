@@ -69,6 +69,11 @@ bool		is_digits(const std::string& str)
 
 std::string		get_file_content(const std::string& path)
 {
+	if (is_html_genereted_page(path))
+	{
+		return path;
+	}
+
 	std::ifstream in(path.c_str());
 	std::string content((std::istreambuf_iterator<char>(in)), 
 	std::istreambuf_iterator<char>());
@@ -81,7 +86,7 @@ bool		is_directory(const std::string& path)
 	struct stat path_stat;
 	if (stat(path.c_str(), &path_stat) != 0)
 	{
-		std::cerr << "[ERROR]: Accessing path " << path << " failed (dir test): " << std::strerror(errno) << path << std::endl;
+		// std::cerr << "[ERROR]: Accessing path " << path << " failed (dir test): " << std::strerror(errno) << path << std::endl;
 		return false;
 	}
 	return S_ISDIR(path_stat.st_mode);
@@ -92,7 +97,7 @@ bool		is_regular_file(const std::string& path)
 	struct stat path_stat;
 	if (stat(path.c_str(), &path_stat) != 0)
 	{
-		std::cerr << "[ERROR]: Accessing path " << path << " failed: " << std::strerror(errno) << std::endl;
+		// std::cerr << "[ERROR]: Accessing path " << path << " failed: " << std::strerror(errno) << std::endl;
 		return false;
 	}
 	return S_ISREG(path_stat.st_mode);
@@ -346,30 +351,51 @@ std::string		get_MIME_type(std::string path)
 	}
 	if (pos == std::string::npos)
 	{
-		return std::string(); 
+		return std::string();
 	}
-	std::string res = path.substr(pos);
 
-	if(std::strcmp(res.c_str(), ".htm") == 0)  return "text/html";
-	if(std::strcmp(res.c_str(), ".html") == 0) return "text/html";
-	if(std::strcmp(res.c_str(), ".php") == 0)  return "text/html";
-	if(std::strcmp(res.c_str(), ".css") == 0)  return "text/css";
-	if(std::strcmp(res.c_str(), ".txt") == 0)  return "text/plain";
-	if(std::strcmp(res.c_str(), ".js") == 0)   return "application/javascript";
-	if(std::strcmp(res.c_str(), ".json") == 0) return "application/json";
-	if(std::strcmp(res.c_str(), ".xml") == 0)  return "application/xml";
-	if(std::strcmp(res.c_str(), ".swf") == 0)  return "application/x-shockwave-flash";
-	if(std::strcmp(res.c_str(), ".flv") == 0)  return "video/x-flv";
-	if(std::strcmp(res.c_str(), ".png") == 0)  return "image/png";
-	if(std::strcmp(res.c_str(), ".jpe") == 0)  return "image/jpeg";
-	if(std::strcmp(res.c_str(), ".jpeg") == 0) return "image/jpeg";
-	if(std::strcmp(res.c_str(), ".jpg") == 0)  return "image/jpeg";
-	if(std::strcmp(res.c_str(), ".gif") == 0)  return "image/gif";
-	if(std::strcmp(res.c_str(), ".bmp") == 0)  return "image/bmp";
-	if(std::strcmp(res.c_str(), ".ico") == 0)  return "image/vnd.microsoft.icon";
-	if(std::strcmp(res.c_str(), ".tiff") == 0) return "image/tiff";
-	if(std::strcmp(res.c_str(), ".tif") == 0)  return "image/tiff";
-	if(std::strcmp(res.c_str(), ".svg") == 0)  return "image/svg+xml";
-	if(std::strcmp(res.c_str(), ".svgz") == 0) return "image/svg+xml";
+	std::string res = path.substr(pos);
+	if(std::strcmp(res.c_str(), ".htm") == 0)
+		return "text/html";
+	if(std::strcmp(res.c_str(), ".html") == 0)
+		return "text/html";
+	if(std::strcmp(res.c_str(), ".php") == 0)
+		return "text/html";
+	if(std::strcmp(res.c_str(), ".css") == 0)
+		return "text/css";
+	if(std::strcmp(res.c_str(), ".txt") == 0)
+		return "text/plain";
+	if(std::strcmp(res.c_str(), ".js") == 0)
+		return "application/javascript";
+	if(std::strcmp(res.c_str(), ".json") == 0)
+		return "application/json";
+	if(std::strcmp(res.c_str(), ".xml") == 0)
+		return "application/xml";
+	if(std::strcmp(res.c_str(), ".swf") == 0)
+		return "application/x-shockwave-flash";
+	if(std::strcmp(res.c_str(), ".flv") == 0)
+		return "video/x-flv";
+	if(std::strcmp(res.c_str(), ".png") == 0)
+		return "image/png";
+	if(std::strcmp(res.c_str(), ".jpe") == 0)
+		return "image/jpeg";
+	if(std::strcmp(res.c_str(), ".jpeg") == 0)
+		return "image/jpeg";
+	if(std::strcmp(res.c_str(), ".jpg") == 0)
+		return "image/jpeg";
+	if(std::strcmp(res.c_str(), ".gif") == 0)
+		return "image/gif";
+	if(std::strcmp(res.c_str(), ".bmp") == 0)
+		return "image/bmp";
+	if(std::strcmp(res.c_str(), ".ico") == 0)
+		return "image/vnd.microsoft.icon";
+	if(std::strcmp(res.c_str(), ".tiff") == 0)
+		return "image/tiff";
+	if(std::strcmp(res.c_str(), ".tif") == 0)
+		return "image/tiff";
+	if(std::strcmp(res.c_str(), ".svg") == 0)
+		return "image/svg+xml";
+	if(std::strcmp(res.c_str(), ".svgz") == 0)
+		return "image/svg+xml";
 	return "application/text";
 }

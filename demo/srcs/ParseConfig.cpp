@@ -507,7 +507,6 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 		val = strToUint(vals[i]);
 		if (val <= 0 || !is_status_code(val))
 		{
-			std::cerr << "val " << val << " i " << i << "\n";
 			throw ParseException("[emerg] : invalid status code in \"error_page\" directive in " + _conf_file_path + ":" + itos(value.second));
 		}
 		if (size == 1)

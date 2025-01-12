@@ -122,25 +122,24 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 			break;
 	} */
 
-	handleGET(response, location);
-	// if (std::strcmp(str_tolower(response.method).c_str(), "get"))
-	// {
-	//		handleGET(response, location);
-	// }
-	// else if (std::strcmp(str_tolower(request.method_r).c_str(), "post"))
-	// {
-	// 	// handlePOST();
-	// }
-	// else if (std::strcmp(str_tolower(request.method_r).c_str(), "delete"))
-	// {
-	// 	// handleDELETE();
-	// }
-	// else
-	// {
-	// 	/* 501 Not Implemented */
-	// 	setErrorResponse(response, 501);
-	// 	// handleUnsupportedMethod(response);
-	// }
+	if (std::strcmp(str_tolower(response.method).c_str(), "get") == 0)
+	{
+			handleGET(response, location);
+	}
+	else if (std::strcmp(str_tolower(request.method_r).c_str(), "post") == 0)
+	{
+		// handlePOST();
+	}
+	else if (std::strcmp(str_tolower(request.method_r).c_str(), "delete") == 0)
+	{
+		handleDELETE();
+	}
+	else
+	{
+		/* 501 Not Implemented */
+		setErrorResponse(response, 501);
+		// handleUnsupportedMethod(response);
+	}
 }
 
 void		Server::handleGET(Response& response, Location& location)
@@ -159,20 +158,7 @@ void		Server::handleGET(Response& response, Location& location)
 	else
 	{
 		handleRequestedURI(response, location);
-		response.content_type = get_MIME_type(response.path);
 	}
-
-	/** TODO: 
-	 * - find Location
-	 * - check Method, if not allowed: The response MUST include an Allow header containing a list of valid methods for the requested resource.
-	 * 
-	 * 
-	 * fill the response struct in:
-	 * - get correct content
-	 * - HEADER: Location, status code, reason_phrase,  define a MIME type, Content-Length, Date, Allow
-	 * - 
-	 */
-
 }
 
 
@@ -184,6 +170,7 @@ void Server::handleMethodNotAllowed(Response& response, const Location& location
 
 void		Server::handleRequestedURI(Response& response, Location& loc)
 {
+	std::cout << "\t Path " << response.path << "\n";
 	if (is_redirection(response.status_code))
 	{
 		handleAndSetRedirectResponse(response, loc);
@@ -211,52 +198,27 @@ void	Server::setResponse(Response& response, size_t status_code)
 {
 	response.status_code = status_code;
 	response.reason_phrase = get_reason_phrase(status_code);
-	// response.content = generate_html_error_page(status_code); /** TODO: read the file */
 	response.content = get_file_content(response.path);
 	response.content_lenght = response.content.length();
-	response.content_type = get_MIME_type(response.content);
-}
-
-void	Server::createResponse(const Response& response, std::string& result)
-{
-	result = "";
-	std::string SP = " ";
-	std::string CRLF = "\r\n";
-
-	result.append(response.protocol);
-	result.append(SP);
-	result.append(itos(response.status_code));
-	result.append(SP);
-	result.append(response.reason_phrase);
-	result.append(CRLF);
-	result.append("Content-Type: ");
-	result.append(response.content_type);
-	result.append(CRLF);
-	if (response.content_lenght)
-	{
-		result.append("Content-Length: ");
-		result.append(itos(response.content_lenght));
-	}
-	result.append(CRLF);
-	result.append(CRLF);
-	result.append(response.content);
+	response.content_type = get_MIME_type(response.path);
 }
 
 void	Server::handleAndSetRedirectResponse(Response& response, Location& loc)
 {
 	searchingPrefixMatchURI(response.path, response.path, loc, response.location_found);
-	if (!is_regular_file(response.path))
+	if (is_regular_file(response.path))
 	{
-		setErrorResponse(response, response.status_code);
+		setResponse(response, response.status_code);
 	}
 	else
 	{
-		setResponse(response, response.status_code);
+		setErrorResponse(response, response.status_code);
 	}
 }
 
 void	Server::handleDirectoryResponse(Response& response, Location& loc)
 {
+	std::cout << "\t Path " << response.path << "\n";
 	if (!is_directory(response.path))
 	{
 		setErrorResponse(response, NOT_FOUND);
@@ -281,59 +243,34 @@ void	Server::handleDirectoryResponse(Response& response, Location& loc)
 	}
 }
 
-/** Append an HTTP rel-path to a server root path.
- *  The created path is saved in a path parameter is normalized for the platform.
- * path argument will be filled with a data or error page for a new responce
- * return status code
-*/
-/** TODO:
- * - handle redirect first
-*/
+void	Server::createResponse(const Response& response, std::string& result)
+{
+	result = "";
+	std::string SP = " ";
+	std::string CRLF = "\r\n";
 
-// int		Server::handleRequestedURI(std::string requested_path, std::string& path, Location& loc, bool& location_found)handleRequestedURI
-// {
-// 	int rc = searchingPrefixMatchURI(requested_path, path, loc, location_found);
+	result.append(response.protocol);
+	result.append(SP);
+	result.append(itos(response.status_code));
+	result.append(SP);
+	result.append(response.reason_phrase);
+	result.append(CRLF);
+	result.append("Content-Type: ");
+	result.append(response.content_type);
+	result.append(CRLF);
+	result.append("X-Content-Type-Options: ");
+	result.append(response.content_type);
+	result.append(CRLF);
+	if (response.content_lenght)
+	{
+		result.append("Content-Length: ");
+		result.append(itos(response.content_lenght));
+	}
+	result.append(CRLF);
+	result.append(CRLF);
+	result.append(response.content);
+}
 
-// 	if (rc != 0)
-// 	{
-// 		searchingPrefixMatchURI(path, path, loc, location_found);
-// 		// std::cout << "path " << path << "\n";
-// 		if (!is_regular_file(path))
-// 		{
-// 			path = generate_html_error_page(rc);
-// 		}
-// 		return rc;
-// 	}
-// 	if (is_regular_file(path))
-// 	{
-// 		return 200;
-// 	}
-// 	if (!is_directory(path))
-// 	{
-// 		path = generate_html_error_page(404); /* return string, not a file!!*/
-// 		return 404;
-// 	}
-// 	if (!ends_with(path, "/"))
-// 	{
-// 		// path += "/"; // Redirect by appending '/' /** ?? */
-// 		path = generate_html_error_page(301);
-// 		return 301;
-// 	}
-// 	if (appendIndexFile(path, loc))
-// 	{
-// 		return 200;
-// 	}
-// 	if (!loc.getAutoindex())
-// 	{
-// 		path = handleErrorPageResponse(403, loc);
-// 		return 403;
-// 	}
-// 	else
-// 	{
-// 		path = generate_html_directory_listing(path); /* return string, not a file!!*/
-// 		return 200;
-// 	}
-// }
 
 /** Check for custom error pages if any, othewise generate default html error page */
 std::string		Server::handleErrorPageResponse(int status_code, const Location& src)
@@ -443,6 +380,7 @@ int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& pa
 			break;
 	}
 	path = root + searched_path + rest;
+	std::cout << "\t Path2 " << path << "\n";
 	return 0;
 }
 
