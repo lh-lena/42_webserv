@@ -128,11 +128,11 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 	}
 	else if (std::strcmp(str_tolower(request.method_r).c_str(), "post") == 0)
 	{
-		// handlePOST();
+		// handlePOST(request, response, location);
 	}
 	else if (std::strcmp(str_tolower(request.method_r).c_str(), "delete") == 0)
 	{
-		handleDELETE();
+		// handleDELETE(response, location);
 	}
 	else
 	{
@@ -161,6 +161,15 @@ void		Server::handleGET(Response& response, Location& location)
 	}
 }
 
+/* void		handleDELETE(Response& response, Location& location)
+{
+
+} */
+
+/* void		handlePOST(const Request& request, Response& response, Location& location)
+{
+
+} */
 
 void Server::handleMethodNotAllowed(Response& response, const Location& location)
 {
