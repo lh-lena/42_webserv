@@ -57,9 +57,9 @@ class Server
 		void								handleRequestedURI(Response& response, Location& loc);
 		int									searchingPrefixMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found);
 		bool								appendIndexFile(std::string& path, const Location& loc);
-		void								handleGET(Response& response, Location& location);
-		void								handlePOST(const Request& request, Response& response, Location& location);
-		void								handleDELETE( Response& response, Location& location);
+		void								handleGET(const Request& request, Response& response);
+		void								handlePOST(const Request& request, Response& response);
+		void								handleDELETE(const Request& request, Response& response);
 		void								handleUnsupportedMethod(Response& response);
 		void								setGetResponse(Response& response, size_t status_code);
 		void								setErrorResponse(Response& response, size_t status_code);

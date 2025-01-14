@@ -102,15 +102,6 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 
 void	Server::handleRequestMethod(const Request& request, Response& response)
 {
-	Location		location;
-
-	response.protocol = "HTTP/1.1";
-	response.location_found = false;
-	response.method = request.method_r;
-	response.content_lenght = 0;
-	int rc = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
-	response.status_code = rc;
-
 	/* switch (request.method)
 	{
 		case GET:
@@ -125,14 +116,14 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 			break;
 	} */
 
-	if (std::strcmp(str_tolower(response.method).c_str(), "get") == 0 || \
-		std::strcmp(str_tolower(response.method).c_str(), "head") == 0)
+	if (std::strcmp(str_tolower(request.method_r).c_str(), "get") == 0 || \
+		std::strcmp(str_tolower(request.method_r).c_str(), "head") == 0)
 	{
-			handleGET(response, location);
+		handleGET(request, response);
 	}
 	else if (std::strcmp(str_tolower(request.method_r).c_str(), "post") == 0)
 	{
-		handlePOST(request, response, location);
+		handlePOST(request, response);
 	}
 	else if (std::strcmp(str_tolower(request.method_r).c_str(), "delete") == 0)
 	{
@@ -146,14 +137,21 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 	}
 }
 
-void		Server::handleGET(Response& response, Location& location)
+void		Server::handleGET(const Request& request, Response& response)
 {
+	Location		location;
+
+	response.protocol = "HTTP/1.1";
+	response.location_found = false;
+	response.method = request.method_r;
+	response.content_lenght = 0;
+	int rc = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
+	response.status_code = rc;
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
 		setErrorResponse(response, NOT_FOUND);
 	}
-
 	/** 405 Method Not Allowed */
 	else if (!is_str_in_vector(response.method, location.getAllowedMethods()))
 	{
@@ -165,13 +163,55 @@ void		Server::handleGET(Response& response, Location& location)
 	}
 }
 
-/* void		Server::handleDELETE(Response& response, Location& location)
-{
+// void		Server::handleDELETE(const Request& request, Response& response)
+// {
+// 	Location		location;
 
-} */
+// 	response.protocol = "HTTP/1.1";
+// 	response.location_found = false;
+// 	response.method = request.method_r;
+// 	response.content_lenght = 0;
+// 	int rc = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
+// 	response.status_code = rc;
 
-void		Server::handlePOST(const Request& request, Response& response, Location& location)
+// 	/** 404 Not Found */
+// 	if (!response.location_found)
+// 	{
+// 		setErrorResponse(response, NOT_FOUND);
+// 	}
+
+// 	/** 405 Method Not Allowed */
+// 	else if (!is_str_in_vector(response.method, location.getAllowedMethods()))
+// 	{
+// 		handleMethodNotAllowed(response, location);
+// 	}
+// 	else
+// 	{
+// 		if (is_regular_file(response.path))
+// 		{
+// 			setGetResponse
+// 		}
+// 		else if (is_directory(response.path))
+// 		{
+
+// 		}
+// 		else
+// 		{
+// 			setErrorResponse(response, NOT_FOUND);
+// 		}
+// 	}
+// }
+
+void		Server::handlePOST(const Request& request, Response& response)
 {
+	Location		location;
+
+	response.protocol = "HTTP/1.1";
+	response.location_found = false;
+	response.method = request.method_r;
+	response.content_lenght = 0;
+	response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
+
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
@@ -195,10 +235,6 @@ void		Server::handlePOST(const Request& request, Response& response, Location& l
 			{
 				setErrorResponse(response, FORBIDDEN);
 			}
-			// else if (errno == ENOENT)
-			// {
-			// 	setErrorResponse(response, NOT_FOUND);
-			// }
 			else
 			{
 				setErrorResponse(response, INTERNAL_SERVER_ERROR);
