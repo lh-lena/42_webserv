@@ -4,10 +4,11 @@
 /*
 ** ------------------------------ DECLARATION ---------------------------------
 */
-
+template void	ParseConfig::handleClientBodySize<Server>(const std::pair<std::string, int>&, Server*);
 template void	ParseConfig::handleErrorPage<Server>(const std::pair<std::string, int>&, Server*);
 template void	ParseConfig::handleIndex<Server>(const std::pair<std::string, int>&, Server*);
 template void	ParseConfig::handleRoot<Server>(const std::pair<std::string, int>&, Server*);
+template void	ParseConfig::handleClientBodySize<Location>(const std::pair<std::string, int>&, Location*);
 template void	ParseConfig::handleErrorPage<Location>(const std::pair<std::string, int>&, Location*);
 template void	ParseConfig::handleIndex<Location>(const std::pair<std::string, int>&, Location*);
 template void	ParseConfig::handleRoot<Location>(const std::pair<std::string, int>&, Location*);
@@ -52,6 +53,7 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 	this->setLocationDirective("allowed_methods", &ParseConfig::handleAllowedMethods);
 	this->setLocationDirective("upload_directory", &ParseConfig::handleUploadDir);
 	this->setLocationDirective("cgi_extension", &ParseConfig::handleCgiExtension);
+	this->setLocationDirective("client_max_body_size", &ParseConfig::handleClientBodySize);
 }
 
 /*
@@ -376,7 +378,7 @@ void		ParseConfig::handleErrorLog(const std::pair<std::string, int>& value, Serv
 	instance->setErrorLog(value.first);
 }
 
-void		ParseConfig::handleClientBodySize(const std::pair<std::string, int>& value, Server* instance)
+template<typename T> void	ParseConfig::handleClientBodySize(const std::pair<std::string, int>& value, T* instance)
 {
 	int val = 0;
 	std::string s = value.first;

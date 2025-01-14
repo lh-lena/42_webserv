@@ -105,11 +105,11 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 	Location		location;
 
 	response.protocol = "HTTP/1.1";
-	int rc = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
-	response.status_code = rc;
+	response.location_found = false;
 	response.method = request.method_r;
 	response.content_lenght = 0;
-
+	int rc = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
+	response.status_code = rc;
 
 	/* switch (request.method)
 	{
@@ -125,7 +125,8 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 			break;
 	} */
 
-	if (std::strcmp(str_tolower(response.method).c_str(), "get") == 0 || std::strcmp(str_tolower(response.method).c_str(), "head") == 0)
+	if (std::strcmp(str_tolower(response.method).c_str(), "get") == 0 || \
+		std::strcmp(str_tolower(response.method).c_str(), "head") == 0)
 	{
 			handleGET(response, location);
 	}

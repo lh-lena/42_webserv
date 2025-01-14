@@ -136,6 +136,17 @@ void	Location::setCgiExtension( const std::string &arg )
 	_cgi_extension = arg;
 }
 
+
+void		Location::setClientMaxBody(int value)
+{
+	_client_max_body_size = value;
+}
+
+int			Location::getClientMaxBody( void ) const
+{
+	return(_client_max_body_size);
+}
+
 const std::string&		Location::getPath( void ) const
 {
 	return (_path);

@@ -28,7 +28,7 @@ class ParseConfig
 		void							handleHttpBlock(const std::pair<std::string, int>& value, Server* instance);
 		void							handleServerBlock(const std::pair<std::string, int>& value, Server* instance);
 		void							handleLocationBlock(const std::pair<std::string, int>& value, Location* instance);
-		void							handleClientBodySize(const std::pair<std::string, int>& value, Server* instance);
+		// void							handleClientBodySize(const std::pair<std::string, int>& value, Server* instance);
 		void							handleListen(const std::pair<std::string, int>& value, Server* instance);
 		void							handleWorkCont(const std::pair<std::string, int>& value, Server* instance);
 		void							handleServerName(const std::pair<std::string, int>& value, Server* instance);
@@ -78,7 +78,8 @@ class ParseConfig
 
 		template<typename T> void	handleRoot(const std::pair<std::string, int>& value, T* instance);
 		template<typename T> void	handleIndex(const std::pair<std::string, int>& value, T* instance);
-		template<typename T> void	handleErrorPage(const std::pair<std::string, int>& value, T* instance); // to change
+		template<typename T> void	handleErrorPage(const std::pair<std::string, int>& value, T* instance);
+		template<typename T> void	handleClientBodySize(const std::pair<std::string, int>& value, T* instance);
 };
 
 

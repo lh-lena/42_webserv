@@ -27,6 +27,8 @@ class Location
 		void								addErrorPage(int key, const std::string &val);
 		void								setReturn( int key, const std::string &val );
 		void								setCgiExtension(const std::string &arg);
+		void								setClientMaxBody(int value);
+		int									getClientMaxBody( void ) const;
 		bool								getAutoindex( void ) const;
 		const std::string&					getPath( void ) const;
 		const std::string&					getRoot( void ) const;
@@ -40,6 +42,7 @@ class Location
 	private:
 
 		bool								_autoindex;
+		int									_client_max_body_size;
 		std::string							_path;
 		std::string							_root;
 		std::string							_upload_dir;
