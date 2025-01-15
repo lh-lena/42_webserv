@@ -15,6 +15,7 @@
 #include <vector>
 #include <stdexcept>
 #include <csignal>
+# define _XOPEN_SOURCE_EXTENDED 1
 
 volatile bool g_serv_end = false;
 
@@ -196,11 +197,11 @@ void	ServerControler::startServing()
 		nfds++;
 	}
 
-	timeout = 1 * 60 * 1000;
+	timeout = 10 * 60000;
 	servEnd = false;
 	while (!servEnd)
 	{
-		std::cout << "Poll is started" << std::endl;
+		std::cout << "Waiting on poll" << std::endl;
 		res = poll(pfds, nfds, timeout);
 		if (res < 0)
 		{
@@ -214,10 +215,9 @@ void	ServerControler::startServing()
 			std::cout << "Timeout" << std::endl;
 			servEnd = true;
 			//close(_socketFds);
-			return;
+			break;
 		}
-		size = nfds;
-		for (int i = 0; i < size; i++)
+		for (int i = 0; i < nfds; i++)
 		{
 			if (pfds[i].revents == POLLIN)
 			{
@@ -240,7 +240,6 @@ void	ServerControler::startServing()
 				}
 				else
 				{
-					//recv and process request
 					//conn_active = true;
 					request = "";
 					str = "";
@@ -248,8 +247,11 @@ void	ServerControler::startServing()
 					{
 						memset(buf, 0, sizeof(buf));
 						res = recv(pfds[i].fd, buf, sizeof(buf), 0);
-						if (res < 0 && errno != EWOULDBLOCK)
-							throw std::runtime_error("Error: recv() failed");
+						if (res < 0)
+						{
+							std::cout << "Error: recv() failed" << std::endl;
+							break;
+						}
 						if (res > 0)
 						{
 							request.append(buf);
