@@ -4,6 +4,7 @@
 # include <map>
 # include <string>
 # include <vector>
+# include <unistd.h>
 # include <iostream>
 # include <algorithm>
 # include "Location.hpp"
@@ -13,10 +14,12 @@
 
 /**HttpStatusCode */
 # define OK 200
+# define CREATED 201
 # define NO_CONTENT 204
 # define MOVED_PERMANENTLY 301
 # define FORBIDDEN 403
 # define NOT_FOUND 404
+# define CONFLICT 409
 # define METHOD_NOT_ALLOWED 405
 # define NOT_IMPLEMENTED 501
 # define INTERNAL_SERVER_ERROR 500
@@ -60,14 +63,17 @@ class Server
 		void								handleGET(const Request& request, Response& response);
 		void								handlePOST(const Request& request, Response& response);
 		void								handleDELETE(const Request& request, Response& response);
-		void								handleUnsupportedMethod(Response& response);
 		void								setGetResponse(Response& response, size_t status_code);
 		void								setErrorResponse(Response& response, size_t status_code);
 		void								setPostResponse(Response& response, size_t status_code);
+		void								setDeleteResponse(Response& response, size_t status_code);
 		void								handleMethodNotAllowed(Response& response, const Location& location);
 		void								handleAndSetRedirectResponse(Response& response, Location& loc);
-		void								handleDirectoryResponse(Response& response, Location& loc);
+		void								handleGetDirectoryResponse(Response& response, Location& loc);
 		void								createResponse(const Response& response, std::string& result);
+		size_t								handleDeleteDirectoryResponse(Response& response);
+		size_t								remove_file(const std::string& path);
+		size_t								remove_directory(const std::string& path);
 
 
 	private:

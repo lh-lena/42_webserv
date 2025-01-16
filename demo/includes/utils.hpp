@@ -14,20 +14,13 @@
 # include <sys/stat.h>
 # include <sys/types.h>
 
-
-
-/* enum HttpStatusCode {
-	OK = 200,
-	MOVED_PERMANENTLY = 301,
-	FORBIDDEN = 403,
-	NOT_FOUND = 404,
-	METHOD_NOT_ALLOWED = 405
-}; */
-
 int							strToUint(std::string s);
 bool						is_status_code(int code);
 bool                    	is_redirection(size_t code);
 bool						is_informational(size_t code);
+bool						is_successful(size_t code);
+bool						is_server_error(size_t code);
+bool						is_client_error(size_t code);
 bool						is_directory(const std::string& path);
 bool						is_regular_file(const std::string& path);
 bool						is_digits(const std::string& str);
@@ -35,6 +28,7 @@ bool						is_path_exists(const std::string& path);
 bool						is_html_genereted_page(const std::string& path);
 bool						ends_with(const std::string& str, const std::string& suffix);
 bool						is_str_in_vector(std::string s, const std::vector<std::string>& content);
+bool						has_write_permission(const std::string& path);
 std::string					get_file_content(const std::string& path);
 std::string					itos(int i);
 std::string					get_reason_phrase(int code);

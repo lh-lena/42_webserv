@@ -205,9 +205,24 @@ bool	is_redirection(size_t code)
 	return (code >= 300 && code < 400);
 }
 
+bool	is_successful(size_t code)
+{
+	return (code >= 200 && code < 300);
+}
+
 bool	is_informational(size_t code)
 {
-	return (code >= 300 && code < 400);
+	return (code >= 100 && code < 200);
+}
+
+bool	is_client_error(size_t code)
+{
+	return (code >= 400 && code < 500);
+}
+
+bool	is_server_error(size_t code)
+{
+	return (code >= 500 && code < 600);
 } 
 
 void extractPath(std::string const &request, std::string& method, std::string& path)
@@ -217,6 +232,17 @@ void extractPath(std::string const &request, std::string& method, std::string& p
 	std::stringstream ss(request);
 	ss >> method >> path;
 
+}
+
+bool	has_write_permission(const std::string& path)
+{
+	struct stat path_stat;
+
+	if (stat(path.c_str(), &path_stat) == 0)
+	{
+		return (path_stat.st_mode & S_IWUSR) != 0; 
+	}
+	return false;
 }
 
 std::string		get_reason_phrase(int code)
