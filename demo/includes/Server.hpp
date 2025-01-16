@@ -60,6 +60,7 @@ class Server
 		// int									handleRequestedURI(std::string requested_path, std::string& path, Location& loc, bool& location_found);
 		void								handleRequestedURI(Response& response, Location& loc);
 		int									searchingPrefixMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found);
+		int									searchingExtensionMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found);
 		bool								appendIndexFile(std::string& path, const Location& loc);
 		void								handleGET(const Request& request, Response& response);
 		void								handlePOST(const Request& request, Response& response);

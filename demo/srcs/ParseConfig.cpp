@@ -170,7 +170,7 @@ void 		ParseConfig::parseConfigContent( void )
 	{
 		_serverControler.setServer(server);
 	}
-	// std::cout << _serverControler << std::endl;
+	std::cout << _serverControler << std::endl;
 }
 
 void		ParseConfig::handleHttpBlock(const std::pair<std::string, int>& value, Server* instance)
@@ -505,7 +505,9 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 
 	for (int i = 0; i < size; i++)
 	{
-		if (i == size - 1 && ends_with(vals[size - 1], ".html")) // to break if last element is a path
+		// if (i == size - 1 && ends_with(vals[size - 1], ".html")) // to break if last element is a path
+		// 	break;
+		if (i == size - 1 && is_regular_file(vals[size - 1])) // to break if last element is a file
 			break;
 		val = strToUint(vals[i]);
 		if (val <= 0 || !is_status_code(val))

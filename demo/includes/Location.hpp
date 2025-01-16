@@ -33,7 +33,7 @@ class Location
 		const std::string&					getPath( void ) const;
 		const std::string&					getRoot( void ) const;
 		const std::string&					getUploadDir( void ) const;
-		const std::string&					getCgiExtension( void ) const;
+		const std::vector<std::string>&		getCgiExtension( void ) const;
 		const std::vector<std::string>&		getIndexes( void ) const;
 		const std::vector<std::string>&		getAllowedMethods( void ) const;
 		const std::map<int, std::string>&	getErrorPages( void ) const;
@@ -46,7 +46,7 @@ class Location
 		std::string							_path;
 		std::string							_root;
 		std::string							_upload_dir;
-		std::string							_cgi_extension;
+		std::vector<std::string>			_cgi_extension;
 		std::vector<std::string>			_indexes;
 		std::vector<std::string>			_allowed_methods;
 		std::map<int, std::string>			_error_pages;

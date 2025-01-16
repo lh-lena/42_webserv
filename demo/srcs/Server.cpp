@@ -136,8 +136,7 @@ void		Server::handleGET(const Request& request, Response& response)
 	Location		location;
 
 	initResponse(response, request.method_r);
-	int rc = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
-	response.status_code = rc;
+	response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
@@ -462,6 +461,38 @@ bool		Server::appendIndexFile(std::string& path, const Location& loc)
 
 	return false;
 }
+
+/** uri: /dir/*.bla */
+/* int		Server::searchingExtensionMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found)
+{
+	location_found = false;
+	size_t pos = 0;
+	std::string root = this->_root;
+
+	for (int i = 0; i < this->_location_nbr; i++)
+	{
+		std::string loc_path = this->_locations[i].getPath();
+		if ((pos = loc_path.find('*')) == std::string::npos)
+			continue;
+		std::string ext = loc_path.substr(pos + 1);
+		loc_path = loc_path.substr(0, pos);
+		if (!ends_with(requested_path, ext))
+			continue;
+		if (!loc_path.empty() && std::strncmp(loc_path.c_str(), requested_path.c_str(), loc_path.length()) != 0)
+			continue;
+		location = this->_locations[i];
+		location_found = true;
+		if (!location.getRoot().empty())
+		{
+			root = location.getRoot();
+		}
+		if (!location.getUploadDir().empty())
+		{
+			root = location.getUploadDir();
+		}
+	}
+	return 0;
+} */
 
 /**
  * Normalize a URI by resolving its root and determining the relevant prefix-based location blocks.

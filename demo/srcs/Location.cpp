@@ -51,7 +51,7 @@ std::ostream&			operator<<( std::ostream & o, Location const& i )
 		<< "path: " << i.getPath() << std::endl
 		<< "root: " << i.getRoot() << std::endl
 		<< "autoindex: " << i.getAutoindex() << std::endl
-		<< "CGI extention: " << i.getCgiExtension() << std::endl
+		<< "clien max body: " << i.getClientMaxBody() << std::endl
 		<< "upload dir: " << i.getUploadDir() << std::endl;
 
 	o	<< "indexes: \n\t";
@@ -60,6 +60,13 @@ std::ostream&			operator<<( std::ostream & o, Location const& i )
 	{
 		o << *it_s << " ";
 	}
+
+	o << "\nCGI extention: \n\t";
+	for (it_s = i.getCgiExtension().begin(); it_s != i.getCgiExtension().end(); ++it_s)
+	{
+		o << *it_s << " ";
+	}
+
 	o	<< "\nallowed methods: \n\t";
 	for (it_s = i.getAllowedMethods().begin(); it_s != i.getAllowedMethods().end(); ++it_s)
 	{
@@ -133,7 +140,7 @@ void	Location::setReturn( int key, const std::string &val )
 
 void	Location::setCgiExtension( const std::string &arg )
 {
-	_cgi_extension = arg;
+	_cgi_extension.push_back(arg);
 }
 
 
@@ -188,7 +195,7 @@ const std::map<int, std::string>&	Location::getReturn( void ) const
 	return (_return);
 }
 
-const std::string&		Location::getCgiExtension( void ) const
+const std::vector<std::string>&		Location::getCgiExtension( void ) const
 {
 	return (_cgi_extension);
 }
