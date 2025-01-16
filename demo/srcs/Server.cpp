@@ -123,14 +123,19 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 	}
 }
 
+void	Server::initResponse(Response& response, const std::string& method)
+{
+	response.protocol = "HTTP/1.1";
+	response.location_found = false;
+	response.method = method;
+	response.content_lenght = 0;
+}
+
 void		Server::handleGET(const Request& request, Response& response)
 {
 	Location		location;
 
-	response.protocol = "HTTP/1.1";
-	response.location_found = false;
-	response.method = request.method_r;
-	response.content_lenght = 0;
+	initResponse(response, request.method_r);
 	int rc = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
 	response.status_code = rc;
 	/** 404 Not Found */
@@ -153,11 +158,7 @@ void		Server::handleDELETE(const Request& request, Response& response)
 {
 	Location		location;
 
-	response.protocol = "HTTP/1.1";
-	response.location_found = false;
-	response.method = request.method_r;
-	response.content_lenght = 0;
-	response.status_code = 0;
+	initResponse(response, request.method_r);
 	searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
 
 	std::string path = response.path;
@@ -200,10 +201,7 @@ void		Server::handlePOST(const Request& request, Response& response)
 {
 	Location		location;
 
-	response.protocol = "HTTP/1.1";
-	response.location_found = false;
-	response.method = request.method_r;
-	response.content_lenght = 0;
+	initResponse(response, request.method_r);
 	response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
 
 	/** 404 Not Found */
@@ -368,7 +366,7 @@ size_t	Server::handleDeleteDirectoryResponse(Response& response)
 
 size_t	Server::remove_file(const std::string& path)
 {
-	if (remove(path.c_str())  == 0)
+	if (std::remove(path.c_str())  == 0)
 	{
 		return NO_CONTENT;
 	}
@@ -377,7 +375,12 @@ size_t	Server::remove_file(const std::string& path)
 
 size_t	Server::remove_directory(const std::string& path)
 {
-	if (rmdir(path.c_str())  == 0)
+	std::vector<std::string> cont;
+	if (get_dir_entries(path, cont) == 0)
+	{
+		return CONFLICT;
+	}
+	if (rmdir(path.c_str()) == 0)
 	{
 		return NO_CONTENT;
 	}

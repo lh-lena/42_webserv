@@ -4,6 +4,7 @@
 # include <map>
 # include <string>
 # include <vector>
+# include <cstdio>
 # include <unistd.h>
 # include <iostream>
 # include <algorithm>
@@ -71,6 +72,7 @@ class Server
 		void								handleAndSetRedirectResponse(Response& response, Location& loc);
 		void								handleGetDirectoryResponse(Response& response, Location& loc);
 		void								createResponse(const Response& response, std::string& result);
+		void								initResponse(Response& response, const std::string& method);
 		size_t								handleDeleteDirectoryResponse(Response& response);
 		size_t								remove_file(const std::string& path);
 		size_t								remove_directory(const std::string& path);

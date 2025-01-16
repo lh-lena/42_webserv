@@ -260,6 +260,12 @@ void	ServerControler::startServing()
 					if (!request.empty())
 					{
 						str = processRequest(request);
+						Request req;
+						Response resp;
+						extractPath(request, req.method_r, req.reqURI);
+						Server serv = getServers()[0];
+						serv.handleRequestMethod(req, resp);
+						serv.createResponse(resp, str);
 						if (!str.empty())
 						{
 							res = send(pfds[i].fd, str.c_str(), str.size(), 0);
