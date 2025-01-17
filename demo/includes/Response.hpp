@@ -15,7 +15,9 @@ struct	Response
 	std::string	protocol;
 	std::string	reason_phrase;
 	std::string	date;
+	std::string	last_mod;
 	std::string	content;
+	std::string	server;
 	std::string	allow;
 	std::string	content_encoding; // ?
 	std::string	content_type;

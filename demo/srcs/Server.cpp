@@ -102,7 +102,6 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 
 void	Server::handleRequestMethod(const Request& request, Response& response)
 {
-
 	if (std::strcmp(str_tolower(request.method_r).c_str(), "get") == 0 || \
 		std::strcmp(str_tolower(request.method_r).c_str(), "head") == 0)
 	{
@@ -128,6 +127,7 @@ void	Server::initResponse(Response& response, const std::string& method)
 	response.protocol = "HTTP/1.1";
 	response.location_found = false;
 	response.method = method;
+	response.server = "42_webserv";
 	response.content_lenght = 0;
 }
 
@@ -136,7 +136,11 @@ void		Server::handleGET(const Request& request, Response& response)
 	Location		location;
 
 	initResponse(response, request.method_r);
-	response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
+	int rc = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
+	if (rc == -1)
+	{
+		response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
+	}
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
@@ -215,6 +219,11 @@ void		Server::handlePOST(const Request& request, Response& response)
 	}
 	else
 	{
+		if (!is_regular_file(response.path))
+		{
+			setErrorResponse(response, FORBIDDEN);
+			return;
+		}
 		std::ofstream file(response.path.c_str());
 		if (!file.is_open())
 		{
@@ -398,6 +407,18 @@ void	Server::createResponse(const Response& response, std::string& result)
 	result.append(SP);
 	result.append(response.reason_phrase);
 	result.append(CRLF);
+	result.append("Date:");
+	result.append(SP);
+	result.append(formatDate(get_timestamp("")));
+	result.append(CRLF);
+	result.append("Server:");
+	result.append(SP);
+	result.append(response.server);
+	result.append(CRLF);
+	result.append("Last-Modified:");
+	result.append(SP);
+	result.append(formatDate(get_timestamp(response.path)));
+	result.append(CRLF);
 	if (response.status_code != NO_CONTENT && !is_informational(response.status_code))
 	{
 		result.append("Content-Type: ");
@@ -413,12 +434,31 @@ void	Server::createResponse(const Response& response, std::string& result)
 		result.append(response.content);
 	}
 
+	// Date: Mon, 27 Jul 2009 12:28:53 GMT
+    //  Server: Apache
+    //  Last-Modified: Wed, 22 Jul 2009 19:15:56 GMT
+	
+	
 	/** TODO:
 	 * - "Last-Modified"
 	 * - "Date"
 	 */
 }
 
+
+std::string	Server::formatDate(time_t timestamp)
+{
+	/** RFC7231: IMF-fixdate  = day-name "," SP date1 SP time-of-day SP GMT */
+
+	struct tm datetime;
+	char buf[30];
+
+	gmtime_r(&timestamp, &datetime);
+	std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", &datetime);
+	std::cout << buf << std::endl;
+
+	return std::string(buf);
+}
 
 /** Check for custom error pages if any, othewise generate default html error page */
 std::string		Server::handleErrorPageResponse(int status_code, const Location& src)
@@ -462,12 +502,13 @@ bool		Server::appendIndexFile(std::string& path, const Location& loc)
 	return false;
 }
 
-/** uri: /dir/*.bla */
-/* int		Server::searchingExtensionMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found)
+// uri: /dir/*.bla */
+int		Server::searchingExtensionMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found)
 {
 	location_found = false;
 	size_t pos = 0;
 	std::string root = this->_root;
+	path = "";
 
 	for (int i = 0; i < this->_location_nbr; i++)
 	{
@@ -490,9 +531,14 @@ bool		Server::appendIndexFile(std::string& path, const Location& loc)
 		{
 			root = location.getUploadDir();
 		}
+		if (!root.empty() && std::strncmp(loc_path.c_str(), requested_path.c_str(), loc_path.length()) == 0)
+		{
+			path = root + requested_path;
+			return 0;
+		}
 	}
-	return 0;
-} */
+	return -1;
+}
 
 /**
  * Normalize a URI by resolving its root and determining the relevant prefix-based location blocks.

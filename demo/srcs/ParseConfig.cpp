@@ -170,7 +170,7 @@ void 		ParseConfig::parseConfigContent( void )
 	{
 		_serverControler.setServer(server);
 	}
-	std::cout << _serverControler << std::endl;
+	// std::cout << _serverControler << std::endl;
 }
 
 void		ParseConfig::handleHttpBlock(const std::pair<std::string, int>& value, Server* instance)

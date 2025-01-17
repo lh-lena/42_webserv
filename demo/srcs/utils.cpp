@@ -103,6 +103,22 @@ bool		is_regular_file(const std::string& path)
 	return S_ISREG(path_stat.st_mode);
 }
 
+/** If file was not provided, function returns a current time */
+time_t		get_timestamp(std::string path)
+{
+	struct stat result;
+
+	if (!path.empty() && stat(path.c_str(), &result) == 0)
+	{
+		return time_t(result.st_mtime);
+	}
+
+	// Get the timestamp for the current date and time
+	time_t currentTime;
+    time(&currentTime);
+    return currentTime;
+}
+
 std::string		get_env_value(char **envp, const std::string &variable)
 {
 	std::string value = "";

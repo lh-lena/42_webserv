@@ -14,6 +14,7 @@
 # include <sys/stat.h>
 # include <sys/types.h>
 
+time_t                   	get_timestamp(std::string path);
 int							strToUint(std::string s);
 bool						is_status_code(int code);
 bool                    	is_redirection(size_t code);

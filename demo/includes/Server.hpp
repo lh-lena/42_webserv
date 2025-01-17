@@ -2,6 +2,7 @@
 # define SERVER_HPP
 
 # include <map>
+# include <ctime>
 # include <string>
 # include <vector>
 # include <cstdio>
@@ -77,7 +78,7 @@ class Server
 		size_t								handleDeleteDirectoryResponse(Response& response);
 		size_t								remove_file(const std::string& path);
 		size_t								remove_directory(const std::string& path);
-
+		std::string							formatDate(time_t timestamp);
 
 	private:
 		int									_location_nbr;
