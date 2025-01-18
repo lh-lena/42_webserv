@@ -129,6 +129,7 @@ void	Server::initResponse(Response& response, const std::string& method)
 	response.method = method;
 	response.server = "42_webserv";
 	response.content_lenght = 0;
+	response.status_code = 0;
 }
 
 void		Server::handleGET(const Request& request, Response& response)
@@ -136,8 +137,8 @@ void		Server::handleGET(const Request& request, Response& response)
 	Location		location;
 
 	initResponse(response, request.method_r);
-	int rc = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
-	if (rc == -1)
+	response.status_code = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
+	if (response.status_code == -1)
 	{
 		response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
 	}
@@ -162,8 +163,8 @@ void		Server::handleDELETE(const Request& request, Response& response)
 	Location		location;
 
 	initResponse(response, request.method_r);
-	int rc = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
-	if (rc == -1)
+	response.status_code = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
+	if (response.status_code == -1)
 	{
 		response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
 	}
@@ -203,13 +204,19 @@ void		Server::handleDELETE(const Request& request, Response& response)
 	}
 }
 
+/** TODO:
+ * - change searching for location -> and then  formating the path based on location
+ * // searchingLocation(request.reqURI, location, response.location_found); // .extention + prefix search
+	// if (location_found)
+	// 	formatingPath(request.reqURI, response.path, location)
+ */
 void		Server::handlePOST(const Request& request, Response& response)
 {
 	Location		location;
 
 	initResponse(response, request.method_r);
-	int rc = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
-	if (rc == -1)
+	response.status_code = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
+	if (response.status_code == -1)
 	{
 		response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
 	}
@@ -429,6 +436,13 @@ void	Server::createResponse(const Response& response, std::string& result)
 	result.append(SP);
 	result.append(formatDate(get_timestamp(response.path)));
 	result.append(CRLF);
+	if (response.status_code == METHOD_NOT_ALLOWED)
+	{
+		result.append("Allow:");
+		result.append(SP);
+		result.append(response.allow);
+		result.append(CRLF);
+	}
 	if (response.status_code != NO_CONTENT && !is_informational(response.status_code))
 	{
 		result.append("Content-Type: ");
@@ -526,13 +540,22 @@ int		Server::searchingExtensionMatchURI(std::string requested_path, std::string&
 		if ((pos = loc_path.find('*')) == std::string::npos)
 			continue;
 		std::string ext = loc_path.substr(pos + 1);
+		std::cout << ext << std::endl;
 		loc_path = loc_path.substr(0, pos);
+		std::cout << loc_path << std::endl;
 		if (!ends_with(requested_path, ext))
 			continue;
 		if (!loc_path.empty() && std::strncmp(loc_path.c_str(), requested_path.c_str(), loc_path.length()) != 0)
 			continue;
 		location = this->_locations[i];
 		location_found = true;
+		if (!location.getReturn().empty())
+		{
+			std::map<int, std::string>::const_iterator it = location.getReturn().begin();
+			path = it->second;
+			std::cout << path << std::endl;
+			return it->first;
+		}
 		if (!location.getRoot().empty())
 		{
 			root = location.getRoot();
@@ -543,6 +566,7 @@ int		Server::searchingExtensionMatchURI(std::string requested_path, std::string&
 		}
 		if (!root.empty() && std::strncmp(loc_path.c_str(), requested_path.c_str(), loc_path.length()) == 0)
 		{
+			std::cout << "root searchingExtensionMatchURI " << root << std::endl;
 			path = root + requested_path;
 			return 0;
 		}

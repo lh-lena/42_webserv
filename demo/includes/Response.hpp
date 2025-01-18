@@ -7,7 +7,7 @@
 
 struct	Response
 {
-	uint		status_code;
+	int			status_code;
 	uint		content_lenght;
 	bool		location_found;
 	std::string	path;
