@@ -2,7 +2,7 @@
 
 CPP			:= c++
 STD_98		:= -std=c++98
-FLAGS		:= -Wall -Wextra -Werror -O3
+FLAGS		:= -Wall -Wextra -Werror -O3 -g
 INCLUDES	:= -I includes/
 
 NAME		:= webserv

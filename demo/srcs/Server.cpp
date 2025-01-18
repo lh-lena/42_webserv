@@ -130,6 +130,7 @@ void	Server::initResponse(Response& response, const std::string& method)
 	response.server = "42_webserv";
 	response.content_lenght = 0;
 	response.status_code = 0;
+	response.location = "";
 }
 
 void		Server::handleGET(const Request& request, Response& response)
@@ -137,6 +138,7 @@ void		Server::handleGET(const Request& request, Response& response)
 	Location		location;
 
 	initResponse(response, request.method_r);
+	response.reqURI = request.reqURI;
 	response.status_code = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
 	if (response.status_code == -1)
 	{
@@ -163,6 +165,7 @@ void		Server::handleDELETE(const Request& request, Response& response)
 	Location		location;
 
 	initResponse(response, request.method_r);
+	response.reqURI = request.reqURI;
 	response.status_code = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
 	if (response.status_code == -1)
 	{
@@ -215,6 +218,7 @@ void		Server::handlePOST(const Request& request, Response& response)
 	Location		location;
 
 	initResponse(response, request.method_r);
+	response.reqURI = request.reqURI;
 	response.status_code = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
 	if (response.status_code == -1)
 	{
@@ -235,11 +239,12 @@ void		Server::handlePOST(const Request& request, Response& response)
 	}
 	else
 	{
-		/* if (!is_regular_file(response.path))
+		/** if the path not a dir */
+		if (substr_after_del(response.path, ".").empty())
 		{
 			setErrorResponse(response, FORBIDDEN);
 			return;
-		} */
+		}
 		std::ofstream file(response.path.c_str());
 		if (!file.is_open())
 		{
@@ -349,6 +354,7 @@ void	Server::handleAndSetRedirectResponse(Response& response, Location& loc)
 
 void	Server::handleGetDirectoryResponse(Response& response, Location& loc)
 {
+	std::cout << "response.path " << response.path << std::endl;
 	if (!is_directory(response.path))
 	{
 		setErrorResponse(response, NOT_FOUND);
@@ -356,6 +362,7 @@ void	Server::handleGetDirectoryResponse(Response& response, Location& loc)
 	else if (!ends_with(response.path, "/"))
 	{
 		// path += "/"; // Redirect by appending '/' /** ?? */
+		response.location = "http://localhost:8080" + response.reqURI + "/"; /** ideally change to scheme "http://localhost:8080" */
 		setErrorResponse(response, MOVED_PERMANENTLY);
 	}
 	else if (appendIndexFile(response.path, loc))
@@ -445,11 +452,20 @@ void	Server::createResponse(const Response& response, std::string& result)
 	}
 	if (response.status_code != NO_CONTENT && !is_informational(response.status_code))
 	{
-		result.append("Content-Type: ");
+		result.append("Content-Type:");
+		result.append(SP);
 		result.append(response.content_type);
 		result.append(CRLF);
-		result.append("Content-Length: ");
+		result.append("Content-Length:");
+		result.append(SP);
 		result.append(itos(response.content_lenght));
+		result.append(CRLF);
+	}
+	if (!response.location.empty())
+	{
+		result.append("Location:");
+		result.append(SP);
+		result.append(response.location);
 		result.append(CRLF);
 	}
 	if (std::strcmp(str_tolower(response.method).c_str(), "post") != 0)
@@ -457,16 +473,6 @@ void	Server::createResponse(const Response& response, std::string& result)
 		result.append(CRLF);
 		result.append(response.content);
 	}
-
-	// Date: Mon, 27 Jul 2009 12:28:53 GMT
-    //  Server: Apache
-    //  Last-Modified: Wed, 22 Jul 2009 19:15:56 GMT
-	
-	
-	/** TODO:
-	 * - "Last-Modified"
-	 * - "Date"
-	 */
 }
 
 
@@ -475,7 +481,7 @@ std::string	Server::formatDate(time_t timestamp)
 	/** RFC7231: IMF-fixdate  = day-name "," SP date1 SP time-of-day SP GMT */
 
 	struct tm datetime;
-	char buf[30];
+	char buf[100];
 
 	gmtime_r(&timestamp, &datetime);
 	std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", &datetime);
@@ -540,9 +546,7 @@ int		Server::searchingExtensionMatchURI(std::string requested_path, std::string&
 		if ((pos = loc_path.find('*')) == std::string::npos)
 			continue;
 		std::string ext = loc_path.substr(pos + 1);
-		std::cout << ext << std::endl;
 		loc_path = loc_path.substr(0, pos);
-		std::cout << loc_path << std::endl;
 		if (!ends_with(requested_path, ext))
 			continue;
 		if (!loc_path.empty() && std::strncmp(loc_path.c_str(), requested_path.c_str(), loc_path.length()) != 0)
@@ -566,7 +570,6 @@ int		Server::searchingExtensionMatchURI(std::string requested_path, std::string&
 		}
 		if (!root.empty() && std::strncmp(loc_path.c_str(), requested_path.c_str(), loc_path.length()) == 0)
 		{
-			std::cout << "root searchingExtensionMatchURI " << root << std::endl;
 			path = root + requested_path;
 			return 0;
 		}

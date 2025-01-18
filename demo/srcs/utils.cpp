@@ -183,6 +183,11 @@ bool ends_with(const std::string& str, const std::string& suffix)
 	return (str.size() >= suffix.size() && str.substr(str.size() - suffix.size()) == suffix);
 }
 
+bool starts_with(const std::string& str, const std::string& prefix)
+{
+	return (str.size() >= prefix.size() && str.substr(0, prefix.size()) == prefix);
+}
+
 bool	is_str_in_vector(std::string s, const std::vector<std::string>& content)
 {
 	std::vector<std::string>::const_iterator it = std::find(content.begin(), content.end(), s);
@@ -207,7 +212,7 @@ int		get_dir_entries(const std::string& dirp, std::vector<std::string>& content)
 
 	while ((dir_entry = readdir(dir)) != NULL)
 	{
-		if (std::strcmp(dir_entry->d_name, ".") == 0 || std::strcmp(dir_entry->d_name, "..") == 0)
+		if (std::strncmp(dir_entry->d_name, ".", 1) == 0 || std::strncmp(dir_entry->d_name, "..", 2) == 0)
 		{
             continue;
         }

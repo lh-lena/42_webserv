@@ -28,6 +28,7 @@ bool						is_digits(const std::string& str);
 bool						is_path_exists(const std::string& path);
 bool						is_html_genereted_page(const std::string& path);
 bool						ends_with(const std::string& str, const std::string& suffix);
+bool                        starts_with(const std::string& str, const std::string& prefix);
 bool						is_str_in_vector(std::string s, const std::vector<std::string>& content);
 bool						has_write_permission(const std::string& path);
 std::string					get_file_content(const std::string& path);

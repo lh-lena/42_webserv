@@ -10,6 +10,7 @@ struct	Response
 	int			status_code;
 	uint		content_lenght;
 	bool		location_found;
+	std::string	reqURI;
 	std::string	path;
 	std::string	method;
 	std::string	protocol;
@@ -21,7 +22,7 @@ struct	Response
 	std::string	allow;
 	std::string	content_encoding; // ?
 	std::string	content_type;
-	std::string	src_location;
+	std::string	location;
 };
 
 #endif /* RESPONSE_HPP */
