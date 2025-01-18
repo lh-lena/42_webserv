@@ -162,8 +162,11 @@ void		Server::handleDELETE(const Request& request, Response& response)
 	Location		location;
 
 	initResponse(response, request.method_r);
-	searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
-
+	int rc = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
+	if (rc == -1)
+	{
+		response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
+	}
 	std::string path = response.path;
 
 	/** 404 Not Found */
@@ -205,7 +208,13 @@ void		Server::handlePOST(const Request& request, Response& response)
 	Location		location;
 
 	initResponse(response, request.method_r);
-	response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
+	int rc = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
+	if (rc == -1)
+	{
+		response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
+	}
+
+	searchingUploadPath(response.path, response.path, location, response.location_found);
 
 	/** 404 Not Found */
 	if (!response.location_found)
@@ -219,11 +228,11 @@ void		Server::handlePOST(const Request& request, Response& response)
 	}
 	else
 	{
-		if (!is_regular_file(response.path))
+		/* if (!is_regular_file(response.path))
 		{
 			setErrorResponse(response, FORBIDDEN);
 			return;
-		}
+		} */
 		std::ofstream file(response.path.c_str());
 		if (!file.is_open())
 		{
@@ -264,7 +273,7 @@ void Server::handleMethodNotAllowed(Response& response, const Location& location
 
 void		Server::handleRequestedURI(Response& response, Location& loc)
 {
-	if (is_redirection(response.status_code))
+	if (response.status_code != 0)
 	{
 		handleAndSetRedirectResponse(response, loc);
 	}
@@ -317,6 +326,7 @@ void	Server::setDeleteResponse(Response& response, size_t status_code)
 	response.reason_phrase = get_reason_phrase(status_code);
 }
 
+/** formats path if requied, and use a path as a file, otherwise to generate default */
 void	Server::handleAndSetRedirectResponse(Response& response, Location& loc)
 {
 	searchingPrefixMatchURI(response.path, response.path, loc, response.location_found);
@@ -326,7 +336,7 @@ void	Server::handleAndSetRedirectResponse(Response& response, Location& loc)
 	}
 	else
 	{
-		setErrorResponse(response, NOT_FOUND); // response.status_code
+		setErrorResponse(response, response.status_code);
 	}
 }
 
@@ -583,10 +593,6 @@ int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& pa
 				{
 					root = location.getRoot();
 				}
-				// if (!location.getUploadDir().empty())
-				// {
-				// 	root = location.getUploadDir(); /** what if there another root as well? */
-				// }
 				break;
 			}
 		}
@@ -614,6 +620,29 @@ int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& pa
 	return 0;
 }
 
+int		Server::searchingUploadPath(std::string requested_path, std::string& path, Location& location, bool& location_found)
+{
+	if (!location_found)
+	{
+		return -1;
+	}
+
+	std::string p = "";
+	std::string root = this->getRoot();
+	if (!location.getUploadDir().empty())
+	{
+		p = location.getUploadDir(); /** what if there another root as well? */
+		std::cout <<  "upload dir-> " << p << std::endl;
+	}
+	if (!location.getRoot().empty())
+	{
+		root = location.getRoot();
+		std::cout <<  " root upload dir-> " << root << std::endl;
+	}
+	path = root + p + substr_after_del(requested_path, "/");
+	std::cout <<  " path upload dir-> " << path << std::endl;
+	return 0;
+}
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------

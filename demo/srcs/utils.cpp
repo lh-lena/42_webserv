@@ -134,6 +134,26 @@ std::string		get_env_value(char **envp, const std::string &variable)
 	return value;
 }
 
+/** returns substring after delimetr in a path.
+ * If failed empty string
+ */
+std::string		substr_after_del(const std::string& path, std::string del)
+{
+	if (del.empty())
+	{
+		return std::string();
+	}
+
+	size_t pos = 0;
+	pos = path.rfind(del);
+	if (pos == std::string::npos)
+	{
+		return std::string();
+	}
+
+	return path.substr(pos + 1);
+}
+
 bool		is_path_exists(const std::string& path)
 {
 	std::ifstream file(path.c_str());
