@@ -154,10 +154,11 @@ void		Server::handleGET(const Request& request, Response& response)
 	{
 		handleMethodNotAllowed(response, location);
 	}
-	else
+/* 	else if (starts_with(response.path, "/cgi-bin/"))
 	{
-		handleRequestedURI(response, location);
-	}
+		handleGETcgi(response, location);
+	} */
+	handleRequestedURI(response, location);
 }
 
 void		Server::handleDELETE(const Request& request, Response& response)
@@ -298,6 +299,24 @@ void		Server::handleRequestedURI(Response& response, Location& loc)
 		handleGetDirectoryResponse(response, loc);
 	}
 }
+/** TODO:
+ * - parse cgi request
+ */
+/* void		Server::handleGETcgi(Response& response, Location& loc)
+{
+	if (response.status_code != 0)
+	{
+		handleAndSetRedirectResponse(response, loc);
+	}
+	else if (is_regular_file(response.path))
+	{
+		setGetResponse(response, OK);
+	}
+	else
+	{
+		handleGetDirectoryResponse(response, loc);
+	}
+} */
 
 void	Server::setErrorResponse(Response& response, size_t status_code)
 {
