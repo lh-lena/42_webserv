@@ -62,7 +62,7 @@ class Server
 		void								handleRequestedURI(Response& response, Location& loc);
 		int									searchingPrefixMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found);
 		int									searchingExtensionMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found);
-		int									searchingUploadPath(std::string requested_path, std::string& path, Location& location, bool& location_found);
+		int									searchingUploadDir(std::string requested_path, std::string& path, Location& location, bool& location_found);
 		bool								appendIndexFile(std::string& path, const Location& loc);
 		void								handleGET(const Request& request, Response& response);
 		void								handlePOST(const Request& request, Response& response);
@@ -75,11 +75,13 @@ class Server
 		void								handleAndSetRedirectResponse(Response& response, Location& loc);
 		void								handleGetDirectoryResponse(Response& response, Location& loc);
 		void								createResponse(const Response& response, std::string& result);
-		void								initResponse(Response& response, const std::string& method);
+		void								initResponse(Response& response, const Request& request);
 		size_t								handleDeleteDirectoryResponse(Response& response);
 		size_t								remove_file(const std::string& path);
 		size_t								remove_directory(const std::string& path);
 		std::string							formatDate(time_t timestamp);
+		int									handleCGI(Response& response, Location& loc);
+		void								setCGIResponse(Response& response, size_t status_code);
 
 	private:
 		int									_location_nbr;

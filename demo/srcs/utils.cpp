@@ -46,11 +46,13 @@ std::string		vector_tostr(const std::vector<std::string>& vec)
 {
 	std::string s = "";
 	std::vector<std::string>::const_iterator cit;
+	size_t i = 0;
 
-	for (cit = vec.begin(); cit != vec.end(); ++cit)
+	for (cit = vec.begin(); cit != vec.end(); ++cit, ++i)
 	{
 		s.append(*cit);
-		s.append(" ");
+		if (i < vec.size() - 1)
+			s.append(", ");
 	}
 
 	return s;	
@@ -137,7 +139,7 @@ std::string		get_env_value(char **envp, const std::string &variable)
 /** returns substring after delimetr in a path.
  * If failed empty string
  */
-std::string		substr_after_del(const std::string& path, std::string del)
+std::string		substr_after_rdel(const std::string& path, std::string del)
 {
 	if (del.empty())
 	{
@@ -152,6 +154,23 @@ std::string		substr_after_del(const std::string& path, std::string del)
 	}
 
 	return path.substr(pos + 1);
+}
+
+std::string		substr_befor_rdel(const std::string& path, std::string del)
+{
+	if (del.empty())
+	{
+		return std::string();
+	}
+
+	size_t pos = 0;
+	pos = path.rfind(del);
+	if (pos == std::string::npos)
+	{
+		return std::string();
+	}
+
+	return path.substr(0, pos);
 }
 
 bool		is_path_exists(const std::string& path)
@@ -195,6 +214,24 @@ bool	is_str_in_vector(std::string s, const std::vector<std::string>& content)
 	{
 		return true;
 	}
+	return false;
+}
+
+bool		is_matching_ext(const std::string& s, const std::vector<std::string>& exts)
+{
+	if (exts.size() == 0)
+	{
+		return false;
+	}
+
+	for (size_t i = 0; i < exts.size(); i++)
+	{
+		if (ends_with(s, exts[i]))
+		{
+			return true;
+		}
+	}
+
 	return false;
 }
 

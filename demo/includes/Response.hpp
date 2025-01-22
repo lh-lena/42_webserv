@@ -12,8 +12,11 @@ struct	Response
 	bool		location_found;
 	std::string	reqURI;
 	std::string	path;
+	std::string	uploadDir;
+	std::string	uploadFile;
 	std::string	method;
 	std::string	protocol;
+	std::string	query;
 	std::string	reason_phrase;
 	std::string	date;
 	std::string	last_mod;

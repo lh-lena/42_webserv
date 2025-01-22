@@ -11,9 +11,9 @@ Server::Server()
 		_location_nbr(0),
 		_client_max_body_size(1 * 1024 * 1024), //1M
 		_worker_connections(1024),
-		_port(80),
+		_port(8080), // ?
 		_host("localhost"),
-		_root("var/www/html"),
+		_root("var/www/html"), //?
 		_error_log("error.log")
 {
 	_indexes.push_back("index.html");
@@ -102,6 +102,7 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 
 void	Server::handleRequestMethod(const Request& request, Response& response)
 {
+	std::cout << request.method_r << std::endl;
 	if (std::strcmp(str_tolower(request.method_r).c_str(), "get") == 0 || \
 		std::strcmp(str_tolower(request.method_r).c_str(), "head") == 0)
 	{
@@ -122,11 +123,12 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 	}
 }
 
-void	Server::initResponse(Response& response, const std::string& method)
+void	Server::initResponse(Response& response, const Request& request)
 {
 	response.protocol = "HTTP/1.1";
 	response.location_found = false;
-	response.method = method;
+	response.method = request.method_r;
+	response.reqURI = request.reqURI;
 	response.server = "42_webserv";
 	response.content_lenght = 0;
 	response.status_code = 0;
@@ -137,13 +139,13 @@ void		Server::handleGET(const Request& request, Response& response)
 {
 	Location		location;
 
-	initResponse(response, request.method_r);
-	response.reqURI = request.reqURI;
+	initResponse(response, request);
 	response.status_code = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
 	if (response.status_code == -1)
 	{
 		response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
 	}
+	std::cout << "response.status_code " << response.status_code << std::endl;
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
@@ -154,19 +156,21 @@ void		Server::handleGET(const Request& request, Response& response)
 	{
 		handleMethodNotAllowed(response, location);
 	}
+	else
+	{
+		handleRequestedURI(response, location);
+	}
 /* 	else if (starts_with(response.path, "/cgi-bin/"))
 	{
-		handleGETcgi(response, location);
+		handleCGI(response, location);
 	} */
-	handleRequestedURI(response, location);
 }
 
 void		Server::handleDELETE(const Request& request, Response& response)
 {
 	Location		location;
 
-	initResponse(response, request.method_r);
-	response.reqURI = request.reqURI;
+	initResponse(response, request);
 	response.status_code = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
 	if (response.status_code == -1)
 	{
@@ -208,26 +212,20 @@ void		Server::handleDELETE(const Request& request, Response& response)
 	}
 }
 
-/** TODO:
- * - change searching for location -> and then  formating the path based on location
- * // searchingLocation(request.reqURI, location, response.location_found); // .extention + prefix search
-	// if (location_found)
-	// 	formatingPath(request.reqURI, response.path, location)
- */
 void		Server::handlePOST(const Request& request, Response& response)
 {
 	Location		location;
 
-	initResponse(response, request.method_r);
-	response.reqURI = request.reqURI;
+	initResponse(response, request);
 	response.status_code = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
 	if (response.status_code == -1)
 	{
 		response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
 	}
 
-	searchingUploadPath(response.path, response.path, location, response.location_found);
-
+	searchingUploadDir(response.reqURI, response.uploadDir, location, response.location_found);
+	std::cout << "response.uploadDir " << response.uploadDir << std::endl;
+	std::cout << "response.uploadDir " << response.uploadFile << std::endl;
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
@@ -240,13 +238,14 @@ void		Server::handlePOST(const Request& request, Response& response)
 	}
 	else
 	{
-		/** if the path not a dir */
-		if (substr_after_del(response.path, ".").empty())
+		/** if the path not a dir ??*/
+		if (substr_after_rdel(response.path, ".").empty())
 		{
 			setErrorResponse(response, FORBIDDEN);
 			return;
 		}
-		std::ofstream file(response.path.c_str());
+		response.uploadFile = substr_after_rdel(response.path, "/");
+		std::ofstream file((response.uploadDir + response.uploadFile).c_str()); // "/" ??
 		if (!file.is_open())
 		{
 			std::cerr	<< "Failed to open file: " << response.path 
@@ -267,7 +266,7 @@ void		Server::handlePOST(const Request& request, Response& response)
 		file << request.reqBody;
 		if (file.fail())
 		{
-			std::cerr << "Error writing to file: " << response.path << std::endl;
+			std::cerr << "Error writing to file: " << response.uploadDir + response.uploadFile << std::endl;
 			setErrorResponse(response, INTERNAL_SERVER_ERROR);
 			file.close();
 			return;
@@ -299,24 +298,53 @@ void		Server::handleRequestedURI(Response& response, Location& loc)
 		handleGetDirectoryResponse(response, loc);
 	}
 }
+
 /** TODO:
  * - parse cgi request
  */
-/* void		Server::handleGETcgi(Response& response, Location& loc)
+
+int		Server::handleCGI(Response& response, Location& loc)
 {
-	if (response.status_code != 0)
+	std::cout << "response.status_code " << response.status_code << std::endl;
+
+	// if (response.status_code != 0)
+	// {
+	// 	handleAndSetRedirectResponse(response, loc);
+	// }
+	searchingUploadDir(response.reqURI, response.uploadDir, loc, response.location_found);
+	
+	if (response.path.find("?")) /* check queries */
 	{
-		handleAndSetRedirectResponse(response, loc);
+		response.query = substr_after_rdel(response.path, "?");
+		response.path = substr_befor_rdel(response.path, "?");
 	}
-	else if (is_regular_file(response.path))
+	if (is_regular_file(response.path))
 	{
-		setGetResponse(response, OK);
+		if (!is_matching_ext(response.path, loc.getCgiExtension()))
+		{
+			// setCGIResponse(response, NOT_FOUND);
+			return 1;
+		}
+		response.uploadFile = substr_after_rdel(response.path, "/");
+		setCGIResponse(response, OK);
+		return 0;
 	}
 	else
 	{
-		handleGetDirectoryResponse(response, loc);
+		if (appendIndexFile(response.path, loc))
+		{
+			response.uploadDir = substr_befor_rdel(response.path, "/");
+			response.uploadFile = substr_after_rdel(response.path, "/");
+		}
 	}
-} */
+	return 2;
+}
+
+void	Server::setCGIResponse(Response& response, size_t status_code)
+{
+	(void)response;
+	(void)status_code;
+}
 
 void	Server::setErrorResponse(Response& response, size_t status_code)
 {
@@ -331,6 +359,7 @@ void	Server::setGetResponse(Response& response, size_t status_code)
 {
 	response.content = get_file_content(response.path);
 	response.content_lenght = response.content.length();
+	std::cout << "response.content_lenght " << response.content_lenght << std::endl;
 	if (response.content_lenght <= 0)
 	{
 		status_code = NO_CONTENT;
@@ -360,6 +389,7 @@ void	Server::setDeleteResponse(Response& response, size_t status_code)
 /** formats path if requied, and use a path as a file, otherwise to generate default */
 void	Server::handleAndSetRedirectResponse(Response& response, Location& loc)
 {
+	(void)loc;
 	searchingPrefixMatchURI(response.path, response.path, loc, response.location_found);
 	if (is_regular_file(response.path))
 	{
@@ -504,7 +534,6 @@ std::string	Server::formatDate(time_t timestamp)
 
 	gmtime_r(&timestamp, &datetime);
 	std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", &datetime);
-	std::cout << buf << std::endl;
 
 	return std::string(buf);
 }
@@ -633,6 +662,7 @@ int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& pa
 				{
 					std::map<int, std::string>::const_iterator it = location.getReturn().begin();
 					path = it->second;
+					// searchingPrefixMatchURI(it->second, path, location, location_found);
 					return it->first;
 				}
 				if (!location.getRoot().empty())
@@ -663,10 +693,11 @@ int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& pa
 	}
 	path = root + searched_path + rest;
 	std::cout << "\t Path2 " << path << "\n";
+	std::cout << location << "\n";
 	return 0;
 }
 
-int		Server::searchingUploadPath(std::string requested_path, std::string& path, Location& location, bool& location_found)
+int		Server::searchingUploadDir(std::string requested_path, std::string& path, Location& location, bool& location_found)
 {
 	if (!location_found)
 	{
@@ -680,12 +711,16 @@ int		Server::searchingUploadPath(std::string requested_path, std::string& path, 
 		p = location.getUploadDir(); /** what if there another root as well? */
 		std::cout <<  "upload dir-> " << p << std::endl;
 	}
+	else
+	{
+		p = substr_befor_rdel(requested_path, "/");
+	}
 	if (!location.getRoot().empty())
 	{
 		root = location.getRoot();
 		std::cout <<  " root upload dir-> " << root << std::endl;
 	}
-	path = root + p + substr_after_del(requested_path, "/");
+	path = root + p;
 	std::cout <<  " path upload dir-> " << path << std::endl;
 	return 0;
 }

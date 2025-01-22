@@ -22,6 +22,13 @@ header('Content-Type: application/json');
 
 if ($request_method === 'GET')
 {
+    if (!isset($_GET['name']) || !isset($_GET['email']) || !isset($_GET['message']))
+    {
+        header('HTTP/1.1 400 Bad Request');
+        echo json_encode(['success' => false, 'error' => 'All fields are required.']);
+        exit;
+    }
+
     // parse data from the query
     $name = test_input($_GET['name'] ?? '');
     $email = test_input($_GET['email'] ?? '');
