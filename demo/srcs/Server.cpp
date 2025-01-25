@@ -307,37 +307,66 @@ int		Server::handleCGI(Response& response, Location& loc)
 {
 	std::cout << "response.status_code " << response.status_code << std::endl;
 
-	// if (response.status_code != 0)
-	// {
-	// 	handleAndSetRedirectResponse(response, loc);
-	// }
-	searchingUploadDir(response.reqURI, response.uploadDir, loc, response.location_found);
+	response.uploadDir = substr_before_rdel(response.path, "/");
+	std::cout << "response.uploadDir1 " << response.uploadDir << std::endl;
+	int rc = searchingUploadDir(response.reqURI, response.uploadDir, loc, response.location_found);
 	
-	if (response.path.find("?")) /* check queries */
+	std::cout << "searchingUploadDir_rc1 " << rc << std::endl;
+	std::cout << "response.uploadDir2 " << response.uploadDir << std::endl;
+		
+	std::cout << "response.path1 " << response.path << std::endl;
+	if (response.path.find("?") != std::string::npos) /* check queries */
 	{
 		response.query = substr_after_rdel(response.path, "?");
-		response.path = substr_befor_rdel(response.path, "?");
+		response.path = substr_before_rdel(response.path, "?");
 	}
+	std::cout << "is_regular_file(response.path) " << is_regular_file(response.path) << std::endl;
 	if (is_regular_file(response.path))
 	{
-		if (!is_matching_ext(response.path, loc.getCgiExtension()))
+		std::cout << "is_matching_ext(response.path, loc->getCgiExtension()) " << is_matching_ext(response.path, loc.getCgiExtension()) << std::endl;
+		if (!response.location_found || !is_matching_ext(response.path, loc.getCgiExtension()))
 		{
-			// setCGIResponse(response, NOT_FOUND);
 			return 1;
 		}
 		response.uploadFile = substr_after_rdel(response.path, "/");
+		std::cout << "response.uploadFile1 " << response.uploadFile << std::endl;
 		setCGIResponse(response, OK);
 		return 0;
 	}
-	else
+	else if (!is_directory(response.path))
 	{
-		if (appendIndexFile(response.path, loc))
+		if (response.location_found && appendIndexFile(response.path, loc))
 		{
-			response.uploadDir = substr_befor_rdel(response.path, "/");
+			// response.uploadDir = substr_before_rdel(response.path, "/");
 			response.uploadFile = substr_after_rdel(response.path, "/");
+			std::cout << "response.uploadFile2 " << response.uploadFile << std::endl;
+			if (is_regular_file(response.path))
+			{
+				if (!is_matching_ext(response.path, loc.getCgiExtension()))
+				{
+					// setCGIResponse(response, NOT_FOUND);
+					return 1;
+				}
+				response.uploadFile = substr_after_rdel(response.path, "/");
+				std::cout << "response.uploadFile3 " << response.uploadFile << std::endl;
+				setCGIResponse(response, OK);
+				return 4;
+			}
+			else if (!is_directory(response.path))
+			{
+				return 3;
+			}
+			else
+			{
+				return 5;
+			}
+		}
+		else
+		{
+			return 2;
 		}
 	}
-	return 2;
+	return 4;
 }
 
 void	Server::setCGIResponse(Response& response, size_t status_code)
@@ -713,7 +742,7 @@ int		Server::searchingUploadDir(std::string requested_path, std::string& path, L
 	}
 	else
 	{
-		p = substr_befor_rdel(requested_path, "/");
+		p = substr_before_rdel(requested_path, "/");
 	}
 	if (!location.getRoot().empty())
 	{

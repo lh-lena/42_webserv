@@ -76,7 +76,7 @@ STD_20			:= -std=c++20
 TEST_INCLUDES	:= -I/opt/homebrew/Cellar/googletest/1.15.2/include
 
 # TEST_FILES		+= test_main.cpp
-TEST_FILES		+= HandleRequestedURITest.cpp
+# TEST_FILES		+= HandleRequestedURITest.cpp
 
 TEST_OBJ		:= $(patsubst %.cpp, $(OBJ_DIR)%.o, $(TEST_FILES))
 

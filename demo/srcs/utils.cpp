@@ -99,10 +99,12 @@ bool		is_regular_file(const std::string& path)
 	struct stat path_stat;
 	if (stat(path.c_str(), &path_stat) != 0)
 	{
-		// std::cerr << "[ERROR]: Accessing path " << path << " failed: " << std::strerror(errno) << std::endl;
+		std::cerr << "[ERROR]: Accessing path " << path << " failed: " << std::strerror(errno) << std::endl;
 		return false;
 	}
-	return S_ISREG(path_stat.st_mode);
+
+	// Check for regular file and not a symbolic link
+    return S_ISREG(path_stat.st_mode) && !S_ISLNK(path_stat.st_mode);
 }
 
 /** If file was not provided, function returns a current time */
@@ -153,10 +155,15 @@ std::string		substr_after_rdel(const std::string& path, std::string del)
 		return std::string();
 	}
 
+	if (pos + 1 > path.length())
+	{
+		return std::string();
+	}
+
 	return path.substr(pos + 1);
 }
 
-std::string		substr_befor_rdel(const std::string& path, std::string del)
+std::string		substr_before_rdel(const std::string& path, std::string del)
 {
 	if (del.empty())
 	{

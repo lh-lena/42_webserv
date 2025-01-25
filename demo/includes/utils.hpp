@@ -42,7 +42,7 @@ std::string		            get_MIME_type(std::string path);
 std::string					get_env_value(char **envp, const std::string &variable);
 std::string					generate_path(const std::string& base_path, const std::string& status_code);
 std::string		            substr_after_rdel(const std::string& path, std::string del);
-std::string	            	substr_befor_rdel(const std::string& path, std::string del);
+std::string	            	substr_before_rdel(const std::string& path, std::string del);
 std::vector<std::string>	ft_split(std::string& s, std::string delimeter);
 int							get_dir_entries(const std::string& dirp, std::vector<std::string>& content);
 bool                        is_matching_ext(const std::string& s, const std::vector<std::string>& exts);
