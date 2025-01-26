@@ -33,7 +33,7 @@ class Server
 		Server( Server const & src );
 		Server &		operator=( Server const & rhs );
 		~Server();
-
+		void								defaultServer( void );
 		void								addLocationNbr(int value);
 		void								setClientMaxBody(int value);
 		void								setWorkCont(int connections);

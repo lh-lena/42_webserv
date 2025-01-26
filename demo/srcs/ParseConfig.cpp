@@ -166,8 +166,10 @@ void 		ParseConfig::parseConfigContent( void )
 	}
 	if (!_conf_content.empty())
 		throw ParseException("[emerg] : Unexpected data in configuration file " + _conf_file_path);
+	/** Create a default server */
 	if (_serverControler.getServBlockNbr() <= 0)
 	{
+		server.defaultServer();
 		_serverControler.setServer(server);
 	}
 	// std::cout << _serverControler << std::endl;

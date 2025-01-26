@@ -12,11 +12,8 @@ Server::Server()
 		_client_max_body_size(1 * 1024 * 1024), //1M
 		_worker_connections(1024),
 		_port(8080), // ?
-		_host("localhost"),
-		_root("var/www/html"), //?
-		_error_log("error.log")
+		_host("localhost")
 {
-	_indexes.push_back("index.html");
 }
 
 Server::Server( const Server & src )
@@ -97,6 +94,12 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 /*
 ** --------------------------------- METHODS ----------------------------------
 */
+
+void		Server::defaultServer( void )
+{
+	setRoot("var/www/html");
+	setIndex("index.42webserver.html");
+}
 
 /** Function to handle requered method and prepare a responce for further sending */
 
