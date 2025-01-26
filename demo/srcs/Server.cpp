@@ -593,6 +593,10 @@ std::string		Server::handleErrorPageResponse(int status_code, const Location& sr
 bool		Server::appendIndexFile(std::string& path, const Location& loc)
 {
 	std::vector<std::string> idxs = loc.getIndexes();
+	if (idxs.size() == 0)
+	{
+		idxs = this->getIndexes();
+	}
 	std::vector<std::string> dir_content;
 
 	get_dir_entries(path, dir_content);
