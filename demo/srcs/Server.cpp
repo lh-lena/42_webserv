@@ -7,7 +7,7 @@
 */
 
 Server::Server()
-	:	
+	:
 		_location_nbr(0),
 		_client_max_body_size(1 * 1024 * 1024), //1M
 		_worker_connections(1024),
@@ -227,8 +227,8 @@ void		Server::handlePOST(const Request& request, Response& response)
 	}
 
 	searchingUploadDir(response.reqURI, response.uploadDir, location, response.location_found);
-	std::cout << "response.uploadDir " << response.uploadDir << std::endl;
-	std::cout << "response.uploadDir " << response.uploadFile << std::endl;
+	// std::cout << "response.uploadDir " << response.uploadDir << std::endl;
+	// std::cout << "response.uploadDir " << response.uploadFile << std::endl;
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
@@ -251,7 +251,7 @@ void		Server::handlePOST(const Request& request, Response& response)
 		std::ofstream file((response.uploadDir + response.uploadFile).c_str()); // "/" ??
 		if (!file.is_open())
 		{
-			std::cerr	<< "Failed to open file: " << response.path 
+			std::cerr	<< "Failed to open file: " << response.path
 						<< " (" << strerror(errno) << ")" << std::endl;
 
 			if (errno == EACCES || errno == EROFS || errno == ENOENT)
@@ -313,10 +313,10 @@ int		Server::handleCGI(Response& response, Location& loc)
 	response.uploadDir = substr_before_rdel(response.path, "/");
 	std::cout << "response.uploadDir1 " << response.uploadDir << std::endl;
 	int rc = searchingUploadDir(response.reqURI, response.uploadDir, loc, response.location_found);
-	
+
 	std::cout << "searchingUploadDir_rc1 " << rc << std::endl;
 	std::cout << "response.uploadDir2 " << response.uploadDir << std::endl;
-		
+
 	std::cout << "response.path1 " << response.path << std::endl;
 	if (response.path.find("?") != std::string::npos) /* check queries */
 	{
@@ -391,7 +391,7 @@ void	Server::setGetResponse(Response& response, size_t status_code)
 {
 	response.content = get_file_content(response.path);
 	response.content_lenght = response.content.length();
-	std::cout << "response.content_lenght " << response.content_lenght << std::endl;
+	// std::cout << "response.content_lenght " << response.content_lenght << std::endl;
 	if (response.content_lenght <= 0)
 	{
 		status_code = NO_CONTENT;
@@ -435,7 +435,7 @@ void	Server::handleAndSetRedirectResponse(Response& response, Location& loc)
 
 void	Server::handleGetDirectoryResponse(Response& response, Location& loc)
 {
-	std::cout << "response.path " << response.path << std::endl;
+	// std::cout << "response.path " << response.path << std::endl;
 	if (!is_directory(response.path))
 	{
 		setErrorResponse(response, NOT_FOUND);
@@ -663,13 +663,12 @@ int		Server::searchingExtensionMatchURI(std::string requested_path, std::string&
 
 /**
  * Normalize a URI by resolving its root and determining the relevant prefix-based location blocks.
- * 
+ *
  * @param requested_path - The requested URI path to handle.
  * @param path - The normalized path will be stored here.
  * @param location - The relevant Location object will be stored here.
  * @return 0 on success, or a redirect code if "return" detected
  */
-
 int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found)
 {
 	if (requested_path.empty())
@@ -729,7 +728,7 @@ int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& pa
 	}
 	path = root + searched_path + rest;
 	std::cout << "\t Path2 " << path << "\n";
-	std::cout << location << "\n";
+	// std::cout << location << "\n";
 	return 0;
 }
 

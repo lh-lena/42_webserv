@@ -1,5 +1,6 @@
 #include "../includes/ServerControler.hpp"
 #include "../includes/Request.hpp"
+#include "../includes/Connection.hpp"
 #include "../includes/utils.hpp"
 
 #include <sys/types.h>
@@ -168,6 +169,18 @@ static int	isInPollfds(int fd, const std::vector<int> & sds)
 	return 0;
 }
 
+static int	getConnPos(int fd, std::vector<Connection> &conns)
+{
+	int size = conns.size();
+
+	for (int i = 0; i < size; i++)
+	{
+		if (conns[i].fd == fd)
+			return i;
+	}
+	return size;
+}
+
 void	ServerControler::startServing()
 {
 	int timeout, size, res;
@@ -178,6 +191,7 @@ void	ServerControler::startServing()
 	int new_fd = -1;
 	char buf[1500];
 	//bool conn_active = false;
+	std::vector<Connection> conns;
 
 	try
 	{
@@ -199,7 +213,7 @@ void	ServerControler::startServing()
 		nfds++;
 	}
 
-	timeout = 3 * 60000;
+	timeout = 1 * 60000;
 	servEnd = false;
 	std::cout << "Waiting on poll" << std::endl;
 	while (!servEnd)
@@ -219,12 +233,12 @@ void	ServerControler::startServing()
 			//close(_socketFds);
 			break;
 		}
-		std::cout << "nfds = " << nfds << std::endl;
+		//std::cout << "nfds = " << nfds << std::endl;
 		for (int i = 0; i < nfds; i++)
 		{
 			if (pfds[i].revents == POLLIN)
 			{
-				std::cout << "POLLIN on poll_fd " << i << std::endl;
+				//std::cout << "POLLIN on poll_fd " << i << std::endl;
 				res = isInPollfds(pfds[i].fd, _socketFds);
 				if (res)
 				{
@@ -239,15 +253,24 @@ void	ServerControler::startServing()
 							pfds[nfds].fd = new_fd;
 							pfds[nfds].events = POLLIN;
 							nfds++;
+							Connection c;
+							c.fd = new_fd;
+							c.active = true;
+							c.start = time(NULL);
+							conns.push_back(c);
 						}
 					} while (new_fd != -1);
 				}
 				else
 				{
 					//conn_active = true;
+					//res = getConnPos(pfds[i].fd, conns);
+
 					request = "";
 					str = "";
 					do
+
+
 					{
 						memset(buf, 0, sizeof(buf));
 						res = recv(pfds[i].fd, buf, sizeof(buf), 0);
@@ -277,6 +300,21 @@ void	ServerControler::startServing()
 					//conn_active = false;
 				}
 			}
+			else if (pfds[i].revents == 0)
+			{
+				res = getConnPos(pfds[i].fd, conns);
+				if (res != static_cast<int>(conns.size()))
+				{
+					time_t t = time(NULL);
+					int countdown = t - conns[res].start;
+					//std::cout << "Time left on connection " << res << " is " << countdown << " sec" << std::endl;
+					if (countdown > 5)
+					{
+						conns.erase(conns.begin() + res);
+						pfds[i].fd = -1;
+					}
+				}
+			}
 			else if (pfds[i].revents == POLLHUP)
 			{
 				std::cout << "POLLHUP on poll_fd " << i << std::endl;
@@ -290,12 +328,12 @@ void	ServerControler::startServing()
 				std::cout << "Unexpected revents on poll_fd " << i << ": pfds[i].revents" << std::endl;
 				break;
 			}
-			else
-			{
-				std::cout << "Poll_fd " << i << " revents = " << pfds[i].revents << std::endl;
-				//if (i == nfds - 1)
-				//	servEnd = true;
-			}
+			// else
+			// {
+			// 	std::cout << "Poll_fd " << i << " revents = " << pfds[i].revents << std::endl;
+			// 	//if (i == nfds - 1)
+			// 	//	servEnd = true;
+			// }
 			for (int n = 0; n < nfds; n++)
 			{
 				if (pfds[n].fd == -1)
@@ -378,7 +416,7 @@ std::string	ServerControler::processRequest(std::string & data)
 	// Server & server = chooseServBlock(request.host);
 
 	//std::string response = "Hello\n";
-	std::cout << data << std::endl;
+	//std::cout << data << std::endl;
 
 	std::string str;
 	Request req;
