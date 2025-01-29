@@ -36,6 +36,7 @@ class ParseConfig
 		void							handleAllowedMethods(const std::pair<std::string, int>& value, Location* instance);
 		void							handleAutoindex(const std::pair<std::string, int>& value, Location* instance);
 		void							handleUploadDir(const std::pair<std::string, int>& value, Location* instance);
+		void							handleAlias(const std::pair<std::string, int>& value, Location* instance);
 		void							handlePath(const std::pair<std::string, int>& value, Location* instance);
 		void							handleRedirect(const std::pair<std::string, int>& value, Location* instance);
 		void							handleCgiExtension(const std::pair<std::string, int>& value, Location* instance);

@@ -148,7 +148,7 @@ void		Server::handleGET(const Request& request, Response& response)
 	{
 		response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
 	}
-	// std::cout << "response.status_code " << response.status_code << std::endl;
+	std::cout << "response.status_code " << response.status_code << std::endl;
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
@@ -636,9 +636,9 @@ int		Server::searchingExtensionMatchURI(std::string requested_path, std::string&
 			continue;
 		location = this->_locations[i];
 		location_found = true;
-		if (!location.getReturn().empty())
+		if (!location.getRedirect().empty())
 		{
-			std::map<int, std::string>::const_iterator it = location.getReturn().begin();
+			std::map<int, std::string>::const_iterator it = location.getRedirect().begin();
 			path = it->second;
 			std::cout << path << std::endl;
 			return it->first;
@@ -692,9 +692,10 @@ int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& pa
 			{
 				location = this->_locations[i];
 				location_found = true;
-				if (!location.getReturn().empty())
+				std::cout << "location.getAlias()  :" << location.getAlias() << std::endl;
+				if (!location.getRedirect().empty())
 				{
-					std::map<int, std::string>::const_iterator it = location.getReturn().begin();
+					std::map<int, std::string>::const_iterator it = location.getRedirect().begin();
 					path = it->second;
 					// searchingPrefixMatchURI(it->second, path, location, location_found);
 					return it->first;
@@ -726,8 +727,8 @@ int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& pa
 			break;
 	}
 	path = root + searched_path + rest;
-	std::cout << "\t Path2 " << path << "\n";
-	// std::cout << location << "\n";
+	std::cout << "\tPath2 " << path << "\n";
+	std::cout << location << "\n";
 	return 0;
 }
 

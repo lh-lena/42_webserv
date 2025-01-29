@@ -47,6 +47,7 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 	this->setLocationDirective("root", &ParseConfig::handleRoot);
 	this->setLocationDirective("path", &ParseConfig::handlePath);
 	this->setLocationDirective("index", &ParseConfig::handleIndex);
+	this->setLocationDirective("alias", &ParseConfig::handleAlias);
 	this->setLocationDirective("redirect", &ParseConfig::handleRedirect);
 	this->setLocationDirective("autoindex", &ParseConfig::handleAutoindex);
 	this->setLocationDirective("error_page", &ParseConfig::handleErrorPage);
@@ -380,6 +381,11 @@ void		ParseConfig::handleErrorLog(const std::pair<std::string, int>& value, Serv
 	instance->setErrorLog(value.first);
 }
 
+void		ParseConfig::handleAlias(const std::pair<std::string, int>& value, Location* instance)
+{
+	instance->setAlias(value.first);
+}
+
 template<typename T> void	ParseConfig::handleClientBodySize(const std::pair<std::string, int>& value, T* instance)
 {
 	int val = 0;
@@ -473,7 +479,7 @@ void	ParseConfig::handleRedirect(const std::pair<std::string, int>& value, Locat
 {
 	std::string 				s = value.first;
 	std::vector<std::string>	vals = ft_split(s, " ");
-	std::string					path;
+	std::string					path = "";
 	int							code;
 
 	if (vals.empty())
@@ -486,8 +492,9 @@ void	ParseConfig::handleRedirect(const std::pair<std::string, int>& value, Locat
 	{
 		throw ParseException("[emerg] : an invalid status code in \"redirect\" directive in " + _conf_file_path + ":" + itos(value.second));
 	}
-	path = vals[1];
-	instance->setReturn(code, path);
+	if (vals.size() == 2)
+		path = vals[1];
+	instance->setRedirect(code, path);
 }
 
 template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::string, int>& value, T* instance)

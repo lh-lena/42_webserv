@@ -34,7 +34,8 @@ Location &				Location::operator=( Location const & rhs )
 	{
 		this->_root = rhs.getRoot();
 		this->_path = rhs.getPath();
-		this->_return = rhs.getReturn();
+		this->_alias = rhs.getAlias();
+		this->_redirect = rhs.getRedirect();
 		this->_indexes = rhs.getIndexes();
 		this->_autoindex = rhs.getAutoindex();
 		this->_upload_dir = rhs.getUploadDir();
@@ -50,6 +51,7 @@ std::ostream&			operator<<( std::ostream & o, Location const& i )
 	o	<< "\n\t** Location **" << std::endl
 		<< "path: " << i.getPath() << std::endl
 		<< "root: " << i.getRoot() << std::endl
+		<< "alias: " << i.getAlias() << std::endl
 		<< "autoindex: " << i.getAutoindex() << std::endl
 		<< "clien max body: " << i.getClientMaxBody() << std::endl
 		<< "upload dir: " << i.getUploadDir() << std::endl;
@@ -80,7 +82,7 @@ std::ostream&			operator<<( std::ostream & o, Location const& i )
 		std::cout  << "\t" << itos(it->first) << ": " << it->second << std::endl;
 	}
 	o	<< "\nredirection: \n";
-	for (it = i.getReturn().begin(); it != i.getReturn().end(); ++it)
+	for (it = i.getRedirect().begin(); it != i.getRedirect().end(); ++it)
 	{
 		std::cout  << "\t" << itos(it->first) << ": " << it->second << std::endl;
 	}
@@ -108,6 +110,11 @@ void	Location::setRoot(const std::string &arg)
 	_root = arg;
 }
 
+void	Location::setAlias(const std::string &arg)
+{
+	_alias = arg;
+}
+
 void	Location::setIndex(const std::string &arg)
 {
 	_indexes.push_back(arg);
@@ -133,9 +140,9 @@ void	Location::addErrorPage(int	key, const std::string &val)
 	_error_pages[key] = val;
 }
 
-void	Location::setReturn( int key, const std::string &val ) 
+void	Location::setRedirect( int key, const std::string &val ) 
 {
-	_return[key] = val;
+	_redirect[key] = val;
 }
 
 void	Location::setCgiExtension( const std::string &arg )
@@ -164,6 +171,11 @@ const std::string&		Location::getRoot( void ) const
 	return (_root);
 }
 
+const std::string&		Location::getAlias( void ) const
+{
+	return (_alias);
+}
+
 const std::vector<std::string>&	Location::getIndexes( void ) const
 {
 	return (_indexes);
@@ -190,9 +202,9 @@ const std::map<int, std::string>&	Location::getErrorPages( void ) const
 	return (_error_pages);
 }
 
-const std::map<int, std::string>&	Location::getReturn( void ) const
+const std::map<int, std::string>&	Location::getRedirect( void ) const
 {
-	return (_return);
+	return (_redirect);
 }
 
 const std::vector<std::string>&		Location::getCgiExtension( void ) const
