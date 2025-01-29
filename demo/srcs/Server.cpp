@@ -148,7 +148,7 @@ void		Server::handleGET(const Request& request, Response& response)
 	{
 		response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
 	}
-	std::cout << "response.status_code " << response.status_code << std::endl;
+	// std::cout << "response.status_code " << response.status_code << std::endl;
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
@@ -163,10 +163,6 @@ void		Server::handleGET(const Request& request, Response& response)
 	{
 		handleRequestedURI(response, location);
 	}
-/* 	else if (starts_with(response.path, "/cgi-bin/"))
-	{
-		handleCGI(response, location);
-	} */
 }
 
 void		Server::handleDELETE(const Request& request, Response& response)
@@ -302,8 +298,10 @@ void		Server::handleRequestedURI(Response& response, Location& loc)
 	}
 }
 
-/** TODO:
+/** NOTES:
  * - parse cgi request
+ * - path also a cgi path to the executable file without query
+ * - 
  */
 
 int		Server::handleCGI(Response& response, Location& loc)
@@ -333,7 +331,8 @@ int		Server::handleCGI(Response& response, Location& loc)
 		}
 		response.uploadFile = substr_after_rdel(response.path, "/");
 		std::cout << "response.uploadFile1 " << response.uploadFile << std::endl;
-		setCGIResponse(response, OK);
+		// setCGIResponse(response, OK);
+		setGetResponse(response, OK);
 		return 0;
 	}
 	else if (!is_directory(response.path))
@@ -347,13 +346,13 @@ int		Server::handleCGI(Response& response, Location& loc)
 			{
 				if (!is_matching_ext(response.path, loc.getCgiExtension()))
 				{
-					// setCGIResponse(response, NOT_FOUND);
 					return 1;
 				}
 				response.uploadFile = substr_after_rdel(response.path, "/");
 				std::cout << "response.uploadFile3 " << response.uploadFile << std::endl;
-				setCGIResponse(response, OK);
-				return 4;
+				// setCGIResponse(response, OK);
+				setGetResponse(response, OK);
+				return 0;
 			}
 			else if (!is_directory(response.path))
 			{
@@ -759,6 +758,8 @@ int		Server::searchingUploadDir(std::string requested_path, std::string& path, L
 	std::cout <<  " path upload dir-> " << path << std::endl;
 	return 0;
 }
+
+
 
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
