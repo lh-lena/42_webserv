@@ -30,7 +30,7 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 	allowed_methods["POST"] = true;
 	allowed_methods["DELETE"] = true;
 	map_template_dir["error_page"] = true;
-	map_template_dir["return"] = true;
+	map_template_dir["redirect"] = true;
 	this->setGlobalDirective("worker_connections", &ParseConfig::handleWorkCont);
 	this->setGlobalDirective("http", &ParseConfig::handleHttpBlock);
 	this->setHttpDirective("server", &ParseConfig::handleServerBlock);
@@ -47,7 +47,7 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 	this->setLocationDirective("root", &ParseConfig::handleRoot);
 	this->setLocationDirective("path", &ParseConfig::handlePath);
 	this->setLocationDirective("index", &ParseConfig::handleIndex);
-	this->setLocationDirective("return", &ParseConfig::handleReturn);
+	this->setLocationDirective("redirect", &ParseConfig::handleRedirect);
 	this->setLocationDirective("autoindex", &ParseConfig::handleAutoindex);
 	this->setLocationDirective("error_page", &ParseConfig::handleErrorPage);
 	this->setLocationDirective("allowed_methods", &ParseConfig::handleAllowedMethods);
@@ -469,7 +469,7 @@ void		ParseConfig::handleAllowedMethods(const std::pair<std::string, int>& value
 	}
 }
 
-void	ParseConfig::handleReturn(const std::pair<std::string, int>& value, Location* instance)
+void	ParseConfig::handleRedirect(const std::pair<std::string, int>& value, Location* instance)
 {
 	std::string 				s = value.first;
 	std::vector<std::string>	vals = ft_split(s, " ");
@@ -478,13 +478,13 @@ void	ParseConfig::handleReturn(const std::pair<std::string, int>& value, Locatio
 
 	if (vals.empty())
 	{
-		throw ParseException("[emerg] : invalid number of arguments in \"return\" directive in " + _conf_file_path + ":" + itos(value.second));
+		throw ParseException("[emerg] : invalid number of arguments in \"redirect\" directive in " + _conf_file_path + ":" + itos(value.second));
 	}
 
 	code = strToUint(vals[0]);
 	if (code <= 0 || !is_status_code(code))
 	{
-		throw ParseException("[emerg] : an invalid status code in \"return\" directive in " + _conf_file_path + ":" + itos(value.second));
+		throw ParseException("[emerg] : an invalid status code in \"redirect\" directive in " + _conf_file_path + ":" + itos(value.second));
 	}
 	path = vals[1];
 	instance->setReturn(code, path);
