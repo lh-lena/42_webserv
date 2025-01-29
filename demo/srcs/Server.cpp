@@ -148,7 +148,7 @@ void		Server::handleGET(const Request& request, Response& response)
 	{
 		response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
 	}
-	std::cout << "response.status_code " << response.status_code << std::endl;
+	// std::cout << "response.status_code " << response.status_code << std::endl;
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
@@ -727,8 +727,8 @@ int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& pa
 			break;
 	}
 	path = root + searched_path + rest;
-	std::cout << "\tPath2 " << path << "\n";
-	std::cout << location << "\n";
+	// std::cout << "\tPath2 " << path << "\n";
+	// std::cout << location << "\n";
 	return 0;
 }
 
