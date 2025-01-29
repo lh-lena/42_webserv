@@ -15,7 +15,9 @@
 #include <vector>
 #include <stdexcept>
 #include <csignal>
-# define _XOPEN_SOURCE_EXTENDED 1
+
+#define _XOPEN_SOURCE_EXTENDED 1
+#define MAX_CONN_NUM 200
 
 volatile bool g_serv_end = false;
 
@@ -171,7 +173,7 @@ void	ServerControler::startServing()
 	int timeout, size, res;
 	std::string str;
 	std::string request;
-	struct pollfd pfds[200]; //max number of connections
+	struct pollfd pfds[MAX_CONN_NUM]; //max number of connections
 	int nfds = 0;
 	int new_fd = -1;
 	char buf[1500];
@@ -197,11 +199,11 @@ void	ServerControler::startServing()
 		nfds++;
 	}
 
-	timeout = 10 * 60000;
+	timeout = 3 * 60000;
 	servEnd = false;
+	std::cout << "Waiting on poll" << std::endl;
 	while (!servEnd)
 	{
-		std::cout << "Waiting on poll" << std::endl;
 		res = poll(pfds, nfds, timeout);
 		if (res < 0)
 		{
@@ -217,10 +219,12 @@ void	ServerControler::startServing()
 			//close(_socketFds);
 			break;
 		}
+		std::cout << "nfds = " << nfds << std::endl;
 		for (int i = 0; i < nfds; i++)
 		{
 			if (pfds[i].revents == POLLIN)
 			{
+				std::cout << "POLLIN on poll_fd " << i << std::endl;
 				res = isInPollfds(pfds[i].fd, _socketFds);
 				if (res)
 				{
@@ -260,12 +264,7 @@ void	ServerControler::startServing()
 					if (!request.empty())
 					{
 						str = processRequest(request);
-						Request req;
-						Response resp;
-						extractPath(request, req.method_r, req.reqURI);
-						Server serv = getServers()[0];
-						serv.handleRequestMethod(req, resp);
-						serv.createResponse(resp, str);
+
 						if (!str.empty())
 						{
 							res = send(pfds[i].fd, str.c_str(), str.size(), 0);
@@ -276,15 +275,26 @@ void	ServerControler::startServing()
 						}
 					}
 					//conn_active = false;
-					close(pfds[i].fd);
-					pfds[i].fd = -1;
 				}
 			}
-			else if (pfds[i].revents != 0)
+			else if (pfds[i].revents == POLLHUP)
+			{
+				std::cout << "POLLHUP on poll_fd " << i << std::endl;
+				close(pfds[i].fd);
+				pfds[i].fd = -1;
+			}
+			else if (pfds[i].revents == POLLERR)
 			{
 				servEnd = true;
 				//close sockets;
-				throw std::runtime_error("Error on poll: unexpected revents");
+				std::cout << "Unexpected revents on poll_fd " << i << ": pfds[i].revents" << std::endl;
+				break;
+			}
+			else
+			{
+				std::cout << "Poll_fd " << i << " revents = " << pfds[i].revents << std::endl;
+				//if (i == nfds - 1)
+				//	servEnd = true;
 			}
 			for (int n = 0; n < nfds; n++)
 			{
@@ -367,9 +377,18 @@ std::string	ServerControler::processRequest(std::string & data)
 
 	// Server & server = chooseServBlock(request.host);
 
-	std::string response = "Hello\n";
+	//std::string response = "Hello\n";
 	std::cout << data << std::endl;
-	return response;
+
+	std::string str;
+	Request req;
+	Response resp;
+	extractPath(data, req.method_r, req.reqURI);
+	Server serv = getServers()[0];
+	serv.handleRequestMethod(req, resp);
+	serv.createResponse(resp, str);
+
+	return str;
 }
 
 size_t		ServerControler::getServBlockNbr( void )

@@ -32,16 +32,16 @@ int	main(int ac, char **av, char **envp)
 		return (1);
 	}
 
-	ServerControler & controler = config.getServControler();
-	try
-	{
-		controler.startServing();
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << '\n';
-		return (1);
-	}
+	//ServerControler & controler = config.getServControler();
+	//try
+	//{
+	//	controler.startServing();
+	//}
+	//catch(const std::exception& e)
+	//{
+	//	std::cerr << e.what() << '\n';
+	//	return (1);
+	//}
 
 	return (0);
 }
