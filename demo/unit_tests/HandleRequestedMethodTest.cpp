@@ -1,7 +1,7 @@
 /*
 Request req;
 Response resp;
-req.method_r = "GET";
+req.method = "GET";
 req.reqURI = extractPath(request);
 Server serv = getServers()[0];
 serv.handleRequestMethod(req, resp);

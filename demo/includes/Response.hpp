@@ -8,7 +8,7 @@
 struct	Response
 {
 	int			status_code;
-	uint		content_lenght;
+	long long	content_lenght;
 	bool		location_found;
 	std::string	reqURI;
 	std::string	path;
@@ -26,6 +26,13 @@ struct	Response
 	std::string	content_encoding; // ?
 	std::string	content_type;
 	std::string	location;
+
+	Response()
+	{
+		content_lenght = 0;
+		status_code = 0;
+		location_found = false;
+	};
 };
 
 #endif /* RESPONSE_HPP */

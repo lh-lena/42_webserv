@@ -20,9 +20,9 @@ std::vector<std::string>	ft_split(std::string& s, std::string delimeter)
 	return parts;
 }
 
-int		strToUint(std::string s)
+long long		strToUlong(std::string s)
 {
-	int	val;
+	long long	val;
 	std::istringstream ss(s);
 	ss >> val;
 	if(ss.fail() || val < 0)

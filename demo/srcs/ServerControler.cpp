@@ -400,14 +400,55 @@ void	ServerControler::createListeningSockets()
 	}
 
 }
+/**
+ * Transfer-Encoding: chunked
+ */
+static int parseRequest(const std::string & data, Request & req)
+{
+	//read data and fill request fields
+	// check for valid request, return error number
 
-// static int parseRequest(std::string & data, Request & req)
-// {
-// 	//read data and fill request fields
-// 	// check for valid request, return error number
+	std::istringstream	iss(data);
+	std::string			line, name, value;
 
-// 	return 0;
-// }
+	std::getline(iss, line);
+	if (line.empty())
+	{
+		return 1;
+	}
+
+	std::istringstream tmp(line);
+
+	tmp >> req.method >> req.reqURI >> req.protocol;
+	if (tmp.fail())
+	{
+		return 2;
+	}
+
+	while (std::getline(iss, line))
+	{
+		std::istringstream tmp(line);
+		// std::cout << "LINE " << line << std::endl;
+		tmp >> name >> value;
+		
+		if (name.compare("Host:") == 0)
+		{
+			req.host = value;
+		}
+		else if (name.compare("Content-Length:") == 0)
+		{
+			req.contentLength = strToUlong(value);
+		}
+	}
+
+/* 	std::cout << "method = " << req.method << std::endl
+		<< "host = " << req.host << std::endl
+		<< "reqURI = " << req.reqURI << std::endl
+		<< "protocol = " << req.protocol << std::endl
+		<< "contentLength = " << req.contentLength << std::endl; */
+
+	return 0;
+}
 
 Server & ServerControler::chooseServBlock(std::string & host)
 {
@@ -421,27 +462,25 @@ Server & ServerControler::chooseServBlock(std::string & host)
 
 std::string	ServerControler::processRequest(std::string & data)
 {
-	// Request request;
+	Request request;
+	Response response_struct;
+	std::string response;
 
-	// int res = parseRequest(data, request);
-	// if (res)
-	// 	return ("Error: invalid request");
+	int res = parseRequest(data, request);
+	if (res != 0)
+		return ("Error: invalid request");
 
 	// Server & server = chooseServBlock(request.host);
 
 	//std::string response = "Hello\n";
-	std::cout << data << std::endl;
+	//std::cout << data << std::endl;
 
-	// std::string str;
-	// Request req;
-	// Response resp;
-	// extractPath(data, req.method_r, req.reqURI);
-	// Server serv = getServers()[0];
-	// serv.handleRequestMethod(req, resp);
-	// serv.createResponse(resp, str);
 
-	// return str;
-	return "Hello";
+	Server serv = getServers()[0];
+	serv.handleRequestMethod(request, response_struct);
+	serv.createResponse(response_struct, response);
+
+	return response;
 }
 
 size_t		ServerControler::getServBlockNbr( void )

@@ -105,17 +105,17 @@ void		Server::defaultServer( void )
 
 void	Server::handleRequestMethod(const Request& request, Response& response)
 {
-	std::cout << request.method_r << std::endl;
-	if (std::strcmp(str_tolower(request.method_r).c_str(), "get") == 0 || \
-		std::strcmp(str_tolower(request.method_r).c_str(), "head") == 0)
+	std::cout << request.method << std::endl;
+	if (std::strcmp(str_tolower(request.method).c_str(), "get") == 0 || \
+		std::strcmp(str_tolower(request.method).c_str(), "head") == 0)
 	{
 		handleGET(request, response);
 	}
-	else if (std::strcmp(str_tolower(request.method_r).c_str(), "post") == 0)
+	else if (std::strcmp(str_tolower(request.method).c_str(), "post") == 0)
 	{
 		handlePOST(request, response);
 	}
-	else if (std::strcmp(str_tolower(request.method_r).c_str(), "delete") == 0)
+	else if (std::strcmp(str_tolower(request.method).c_str(), "delete") == 0)
 	{
 		handleDELETE(request, response);
 	}
@@ -128,9 +128,9 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 
 void	Server::initResponse(Response& response, const Request& request)
 {
-	response.protocol = "HTTP/1.1";
+	response.protocol = request.protocol;
 	response.location_found = false;
-	response.method = request.method_r;
+	response.method = request.method;
 	response.reqURI = request.reqURI;
 	response.server = "42_webserv";
 	response.content_lenght = 0;
@@ -298,6 +298,13 @@ void		Server::handleRequestedURI(Response& response, Location& loc)
 	}
 }
 
+void	Server::setCGIResponse(Response& response, size_t status_code)
+{
+	(void)response;
+	(void)status_code;
+}
+
+
 /** NOTES:
  * - parse cgi request
  * - path also a cgi path to the executable file without query
@@ -310,7 +317,7 @@ int		Server::handleCGI(Response& response, Location& loc)
 
 	response.uploadDir = substr_before_rdel(response.path, "/");
 	std::cout << "response.uploadDir1 " << response.uploadDir << std::endl;
-	int rc = searchingUploadDir(response.reqURI, response.uploadDir, loc, response.location_found);
+	int rc = Server::searchingUploadDir(response.reqURI, response.uploadDir, loc, response.location_found);
 
 	std::cout << "searchingUploadDir_rc1 " << rc << std::endl;
 	std::cout << "response.uploadDir2 " << response.uploadDir << std::endl;
@@ -369,12 +376,6 @@ int		Server::handleCGI(Response& response, Location& loc)
 		}
 	}
 	return 4;
-}
-
-void	Server::setCGIResponse(Response& response, size_t status_code)
-{
-	(void)response;
-	(void)status_code;
 }
 
 void	Server::setErrorResponse(Response& response, size_t status_code)
@@ -692,7 +693,7 @@ int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& pa
 			{
 				location = this->_locations[i];
 				location_found = true;
-				std::cout << "location.getAlias()  :" << location.getAlias() << std::endl;
+				// std::cout << "location.getAlias()  :" << location.getAlias() << std::endl;
 				if (!location.getRedirect().empty())
 				{
 					std::map<int, std::string>::const_iterator it = location.getRedirect().begin();

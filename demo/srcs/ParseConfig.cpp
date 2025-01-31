@@ -359,7 +359,7 @@ void		ParseConfig::handleWorkCont(const std::pair<std::string, int>& value, Serv
 
 	if (!is_digits(s))
 		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required only digits in " + _conf_file_path + ":" + itos(value.second));
-	val = strToUint(s);
+	val = strToUlong(s);
 	if (val <= 0)
 		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required a positive number in " + _conf_file_path + ":" + itos(value.second));
 
@@ -395,7 +395,7 @@ template<typename T> void	ParseConfig::handleClientBodySize(const std::pair<std:
 	std::string nbr = s.substr(0, s.length() - 1);
 	if (!is_digits(nbr))
 		throw ParseException("[emerg] : directive \"client_max_body_size\" required only digits in " + _conf_file_path + ":" + itos(value.second));
-	val = strToUint(nbr);
+	val = strToUlong(nbr);
 	if (val <= 0)
 		throw ParseException("[emerg] : directive \"client_max_body_size\" required a positive number in " + _conf_file_path + ":" + itos(value.second));
 	if (val > 100)
@@ -419,7 +419,7 @@ void		ParseConfig::handleListen(const std::pair<std::string, int>& value, Server
 
 	if (pos == std::string::npos)
 	{
-		port_val = strToUint(s);
+		port_val = strToUlong(s);
 		if(port_val <= 0)
 		{
 			throw  ParseException("[emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + itos(value.second));
@@ -436,7 +436,7 @@ void		ParseConfig::handleListen(const std::pair<std::string, int>& value, Server
 		port = processEnvVar(port);
 	if (host.empty() || port.empty())
 		throw ParseException("[emerg] \"" + value.first + "\" invalid input in " + _conf_file_path + ":" + itos(value.second));
-	port_val = strToUint(port);
+	port_val = strToUlong(port);
 	if(port_val <= 0)
 	{
 		throw  ParseException("[emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + itos(value.second));
@@ -487,7 +487,7 @@ void	ParseConfig::handleRedirect(const std::pair<std::string, int>& value, Locat
 		throw ParseException("[emerg] : invalid number of arguments in \"redirect\" directive in " + _conf_file_path + ":" + itos(value.second));
 	}
 
-	code = strToUint(vals[0]);
+	code = strToUlong(vals[0]);
 	if (code <= 0 || !is_status_code(code))
 	{
 		throw ParseException("[emerg] : an invalid status code in \"redirect\" directive in " + _conf_file_path + ":" + itos(value.second));
@@ -518,7 +518,7 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 		// 	break;
 		if (i == size - 1 && is_regular_file(vals[size - 1])) // to break if last element is a file
 			break;
-		val = strToUint(vals[i]);
+		val = strToUlong(vals[i]);
 		if (val <= 0 || !is_status_code(val))
 		{
 			throw ParseException("[emerg] : invalid status code in \"error_page\" directive in " + _conf_file_path + ":" + itos(value.second));
