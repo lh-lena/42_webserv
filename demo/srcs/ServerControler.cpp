@@ -183,6 +183,7 @@ static int	getConnPos(int fd, std::vector<Connection> &conns)
 
 void	ServerControler::startServing()
 {
+	signal(SIGINT, ServerControler::sig_handler);
 	int timeout, size, res, temp;
 	std::string str;
 	std::string request;
@@ -213,10 +214,10 @@ void	ServerControler::startServing()
 		nfds++;
 	}
 
-	timeout = 1 * 60000;
-	servEnd = false;
+	timeout = 2 * 60000;
+
 	std::cout << "Waiting on poll" << std::endl;
-	while (!servEnd)
+	while (!g_serv_end)
 	{
 		res = poll(pfds, nfds, timeout);
 		if (res < 0)
@@ -229,14 +230,39 @@ void	ServerControler::startServing()
 		if (res == 0)
 		{
 			std::cout << "Timeout" << std::endl;
-			servEnd = true;
+			g_serv_end = true;
 			//close(_socketFds);
 			break;
 		}
 		//std::cout << "nfds = " << nfds << std::endl;
 		for (int i = 0; i < nfds; i++)
 		{
-			if (pfds[i].revents & POLLIN)
+			if (pfds[i].revents == 0)
+			{
+				res = getConnPos(pfds[i].fd, conns);
+				if (res != static_cast<int>(conns.size()))
+				{
+					time_t t = time(NULL);
+					temp = difftime(t, conns[res].start);
+					if (temp > 5)
+					{
+						std::cout << "Timeout on connection " << res << " : " << temp << " sec" << std::endl;
+						conns.erase(conns.begin() + res);
+						close(pfds[i].fd);
+						pfds[i].fd = -1;
+					}
+				}
+			}
+			else if ((pfds[i].revents & POLLHUP) || (pfds[i].revents & POLLERR))
+			{
+				res = getConnPos(pfds[i].fd, conns);
+				if (res != static_cast<int>(conns.size()))
+					conns.erase(conns.begin() + res);
+				close(pfds[i].fd);
+				pfds[i].fd = -1;
+				std::cout << "Connection " << res << " closed because of error or client disconnect" << std::endl;
+			}
+			else if (pfds[i].revents & POLLIN)
 			{
 				//std::cout << "POLLIN on poll_fd " << i << std::endl;
 				res = isInPollfds(pfds[i].fd, _socketFds);
@@ -281,6 +307,20 @@ void	ServerControler::startServing()
 						{
 							request.append(buf);
 						}
+						if (res == 0)
+						{
+							if (temp != static_cast<int>(conns.size()))
+							{
+								time_t t = time(NULL);
+								if (difftime(t, conns[res].start) > 5)
+								{
+									conns.erase(conns.begin() + temp);
+									close(pfds[i].fd);
+									pfds[i].fd = -1;
+									std::cout << "Connection " << temp << " closed because of timeout" << std::endl;
+								}
+							}
+						}
 					} while (res == 1500);
 					if (!request.empty())
 					{
@@ -299,34 +339,6 @@ void	ServerControler::startServing()
 					}
 					//conn_active = false;
 				}
-			}
-			else if (pfds[i].revents == 0)
-			{
-				res = getConnPos(pfds[i].fd, conns);
-				if (res != static_cast<int>(conns.size()))
-				{
-					time_t t = time(NULL);
-					temp = difftime(t, conns[res].start);
-					if (temp > 5)
-					{
-						std::cout << "Timeout on connection " << res << " : " << temp << " sec" << std::endl;
-						conns.erase(conns.begin() + res);
-						pfds[i].fd = -1;
-					}
-				}
-			}
-			else if (pfds[i].revents & POLLHUP)
-			{
-				std::cout << "POLLHUP on poll_fd " << i << std::endl;
-				close(pfds[i].fd);
-				pfds[i].fd = -1;
-			}
-			else if (pfds[i].revents & POLLERR)
-			{
-				servEnd = true;
-				//close sockets;
-				std::cout << "Error revents on poll_fd " << i << ": pfds[i].revents" << std::endl;
-				break;
 			}
 			// else
 			// {
@@ -420,15 +432,16 @@ std::string	ServerControler::processRequest(std::string & data)
 	//std::string response = "Hello\n";
 	std::cout << data << std::endl;
 
-	std::string str;
-	Request req;
-	Response resp;
-	extractPath(data, req.method_r, req.reqURI);
-	Server serv = getServers()[0];
-	serv.handleRequestMethod(req, resp);
-	serv.createResponse(resp, str);
+	// std::string str;
+	// Request req;
+	// Response resp;
+	// extractPath(data, req.method_r, req.reqURI);
+	// Server serv = getServers()[0];
+	// serv.handleRequestMethod(req, resp);
+	// serv.createResponse(resp, str);
 
-	return str;
+	// return str;
+	return "Hello";
 }
 
 size_t		ServerControler::getServBlockNbr( void )
