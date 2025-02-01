@@ -17,6 +17,11 @@ struct Request
 
 	Request() 
 	{
+		method = std::string();
+		host = std::string();
+		reqBody = std::string();
+		reqURI = std::string();
+		protocol = std::string();
 		contentLength = 0;
 	};
 };

@@ -462,8 +462,9 @@ Server & ServerControler::chooseServBlock(std::string & host)
 
 std::string	ServerControler::processRequest(std::string & data)
 {
-	Request request;
-	Response response_struct;
+	Request		request;
+	Response	response_struct;
+	Location	location;
 	std::string response;
 
 	int res = parseRequest(data, request);
@@ -475,10 +476,22 @@ std::string	ServerControler::processRequest(std::string & data)
 	//std::string response = "Hello\n";
 	//std::cout << data << std::endl;
 
-
 	Server serv = getServers()[0];
-	
-	serv.handleStaticRequest(request, response_struct);
+
+	serv.initResponse(response_struct, request);
+	response_struct.location_found = serv.findRequestedLocation(request.reqURI, location);
+
+	if (!response_struct.location_found)
+	{
+		serv.setErrorResponse(response_struct, NOT_FOUND);
+		serv.createResponse(response_struct, response);
+
+		return response;
+	}
+
+	// if (isCGIRequest())
+
+	serv.handleStaticRequest(request, response_struct, location);
 	serv.createResponse(response_struct, response);
 
 	return response;

@@ -112,24 +112,24 @@ void	Server::initResponse(Response& response, const Request& request)
 	response.server = "42_webserv";
 	response.content_lenght = 0;
 	response.status_code = 0;
-	response.location = "";
+	response.host = request.host;
 }
 
-void	Server::handleStaticRequest(const Request& request, Response& response)
+void	Server::handleStaticRequest(const Request& request, Response& response, const Location& loc)
 {
 	std::cout << "request.method " << request.method << std::endl;
 	if (std::strcmp(str_tolower(request.method).c_str(), "get") == 0 || \
 		std::strcmp(str_tolower(request.method).c_str(), "head") == 0)
 	{
-		handleGET(request, response);
+		handleGET(response, loc);
 	}
 	else if (std::strcmp(str_tolower(request.method).c_str(), "post") == 0)
 	{
-		handlePOST(request, response);
+		handlePOST(request, response, loc);
 	}
 	else if (std::strcmp(str_tolower(request.method).c_str(), "delete") == 0)
 	{
-		handleDELETE(request, response);
+		handleDELETE(response, loc);
 	}
 	else
 	{
@@ -138,45 +138,32 @@ void	Server::handleStaticRequest(const Request& request, Response& response)
 	}
 }
 
-
-void		Server::handleGET(const Request& request, Response& response)
+void		Server::handleGET(Response& response, const Location& loc)
 {
-	Location		location;
-
-	initResponse(response, request);
-	response.status_code = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
-	if (response.status_code == -1)
-	{
-		response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
-	}
-	// std::cout << "response.status_code " << response.status_code << std::endl;
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
 		setErrorResponse(response, NOT_FOUND);
 	}
 	/** 405 Method Not Allowed */
-	else if (!is_str_in_vector(response.method, location.getAllowedMethods()))
+	else if (!is_str_in_vector(response.method, loc.getAllowedMethods()))
 	{
-		handleMethodNotAllowed(response, location);
+		handleMethodNotAllowed(response, loc);
 	}
 	else
 	{
-		handleRequestedURI(response, location);
+		handleRequestedURI(response, loc);
 	}
 }
 
-void		Server::handleDELETE(const Request& request, Response& response)
+void		Server::handleDELETE(Response& response, const Location& loc)
 {
-	Location		location;
-
-	initResponse(response, request);
-	response.status_code = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
-	if (response.status_code == -1)
+	if (!loc.getRedirect().empty())
 	{
-		response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
-	}
-	std::string path = response.path;
+        handleAndSetRedirectResponse(response, loc);
+        return;
+    }
+	response.path = determineFilePath(response.reqURI, loc);
 
 	/** 404 Not Found */
 	if (!response.location_found)
@@ -184,23 +171,23 @@ void		Server::handleDELETE(const Request& request, Response& response)
 		setErrorResponse(response, NOT_FOUND);
 	}
 	/** 405 Method Not Allowed */
-	else if (!is_str_in_vector(response.method, location.getAllowedMethods()))
+	else if (!is_str_in_vector(response.method, loc.getAllowedMethods()))
 	{
-		handleMethodNotAllowed(response, location);
+		handleMethodNotAllowed(response, loc);
 	}
 	/** 403 Forbidden */
-	else if (!has_write_permission(path))
+	else if (!has_write_permission(response.path))
 	{
 		setErrorResponse(response, FORBIDDEN);
 	}
 	else
 	{
-		if (is_regular_file(path))
+		if (is_regular_file(response.path))
 		{
-			response.status_code = remove_file(path);
+			response.status_code = remove_file(response.path);
 			setDeleteResponse(response, response.status_code);
 		}
-		else if (is_directory(path))
+		else if (is_directory(response.path))
 		{
 			response.status_code = handleDeleteDirectoryResponse(response);
 			setDeleteResponse(response, response.status_code);
@@ -212,29 +199,19 @@ void		Server::handleDELETE(const Request& request, Response& response)
 	}
 }
 
-void		Server::handlePOST(const Request& request, Response& response)
+void		Server::handlePOST(const Request& request, Response& response, const Location& loc)
 {
-	Location		location;
-
-	initResponse(response, request);
-	response.status_code = searchingExtensionMatchURI(request.reqURI, response.path, location, response.location_found); //added
-	if (response.status_code == -1)
-	{
-		response.status_code = searchingPrefixMatchURI(request.reqURI, response.path, location, response.location_found);
-	}
-
-	searchingUploadDir(response.reqURI, response.uploadDir, location, response.location_found);
-	// std::cout << "response.uploadDir " << response.uploadDir << std::endl;
-	// std::cout << "response.uploadDir " << response.uploadFile << std::endl;
+	searchingUploadDir(response.reqURI, response.uploadDir, loc, response.location_found);
+	std::cout << "response.uploadDir " << response.uploadFile << std::endl;
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
 		setErrorResponse(response, NOT_FOUND);
 	}
 	/** 405 Method Not Allowed */
-	else if (!is_str_in_vector(response.method, location.getAllowedMethods()))
+	else if (!is_str_in_vector(response.method, loc.getAllowedMethods()))
 	{
-		handleMethodNotAllowed(response, location);
+		handleMethodNotAllowed(response, loc);
 	}
 	else
 	{
@@ -283,13 +260,16 @@ void Server::handleMethodNotAllowed(Response& response, const Location& location
 	setErrorResponse(response, METHOD_NOT_ALLOWED);
 }
 
-void		Server::handleRequestedURI(Response& response, Location& loc)
+void		Server::handleRequestedURI(Response& response, const Location& loc)
 {
-	if (response.status_code != 0)
+	if (!loc.getRedirect().empty())
 	{
-		handleAndSetRedirectResponse(response, loc);
-	}
-	else if (is_regular_file(response.path))
+        handleAndSetRedirectResponse(response, loc);
+        return;
+    }
+	std::cout << "determineFilePath " << response.path << std::endl;
+	response.path = determineFilePath(response.reqURI, loc);
+	if (is_regular_file(response.path))
 	{
 		setGetResponse(response, OK);
 	}
@@ -379,6 +359,22 @@ int		Server::handleCGI(Response& response, Location& loc)
 	return 4;
 }
 
+/** Based on a requested path searching for the location */
+bool		Server::findRequestedLocation(const std::string& path, Location& loc)
+{
+	bool location_found;
+
+	location_found = searchingExtensionMatchLocation(path, loc);
+	if (!location_found)
+	{
+		location_found = searchingPrefixMatchLocation(path, loc);
+	}
+
+	// std::cout << "location:" << loc;
+
+	return location_found;
+}
+
 void	Server::setErrorResponse(Response& response, size_t status_code)
 {
 	response.status_code = status_code;
@@ -420,10 +416,16 @@ void	Server::setDeleteResponse(Response& response, size_t status_code)
 }
 
 /** formats path if requied, and use a path as a file, otherwise to generate default */
-void	Server::handleAndSetRedirectResponse(Response& response, Location& loc)
+void	Server::handleAndSetRedirectResponse(Response& response, const Location& loc)
 {
-	(void)loc;
-	searchingPrefixMatchURI(response.path, response.path, loc, response.location_found);
+	if (!loc.getRedirect().empty())
+	{
+		std::map<int, std::string>::const_iterator it = loc.getRedirect().begin();
+		response.status_code = it->first;
+		response.path = it->second; // what with root???
+		// searchingPrefixMatchLocation(it->second, path, location, location_found);
+	}
+	// searchingPrefixMatchLocation(response.path, response.path, loc, response.location_found);
 	if (is_regular_file(response.path))
 	{
 		setGetResponse(response, response.status_code);
@@ -434,7 +436,7 @@ void	Server::handleAndSetRedirectResponse(Response& response, Location& loc)
 	}
 }
 
-void	Server::handleGetDirectoryResponse(Response& response, Location& loc)
+void	Server::handleGetDirectoryResponse(Response& response, const Location& loc)
 {
 	// std::cout << "response.path " << response.path << std::endl;
 	if (!is_directory(response.path))
@@ -462,6 +464,7 @@ void	Server::handleGetDirectoryResponse(Response& response, Location& loc)
 	}
 }
 
+/** @return status code */
 size_t	Server::handleDeleteDirectoryResponse(Response& response)
 {
 	if (!ends_with(response.path, "/"))
@@ -571,23 +574,30 @@ std::string	Server::formatDate(time_t timestamp)
 	return std::string(buf);
 }
 
-/** Check for custom error pages if any, othewise generate default html error page */
+/** Check for custom error pages if any, othewise generate default html error page 
+ * TODO: add to main logic
+*/
 std::string		Server::handleErrorPageResponse(int status_code, const Location& src)
 {
 	std::string					path;
 	Location					loc;
-	bool						found_location;
+	bool						location_found = false;
 	std::map<int, std::string>	er_pages;
 
 	er_pages = src.getErrorPages();
-	if (er_pages.size() == 0)
+	if (er_pages.size() == 0 && !this->getErrorPages().empty())
 	{
 		er_pages = this->getErrorPages();
 	}
 
 	if (er_pages.size() > 0 && er_pages.find(status_code) != er_pages.end())
 	{
-		searchingPrefixMatchURI(er_pages[status_code], path, loc, found_location);
+		if ((location_found = findRequestedLocation(er_pages[status_code], loc)) == true)
+		{
+			path = determineFilePath(er_pages[status_code], loc);
+		}
+		// searchingPrefixMatchLocation(er_pages[status_code], path, loc, found_location);
+		std::cout << "std::string	Server::handleErrorPageResponse(int status_code, const Location& src)" << std::endl;
 		return path;
 	}
 	path = generate_html_error_page(status_code);
@@ -618,12 +628,9 @@ bool		Server::appendIndexFile(std::string& path, const Location& loc)
 }
 
 // uri: /dir/*.bla */
-int		Server::searchingExtensionMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found)
+bool		Server::searchingExtensionMatchLocation(std::string requested_path, Location& location)
 {
-	location_found = false;
 	size_t pos = 0;
-	std::string root = this->_root;
-	path = "";
 
 	for (int i = 0; i < this->_location_nbr; i++)
 	{
@@ -637,53 +644,29 @@ int		Server::searchingExtensionMatchURI(std::string requested_path, std::string&
 		if (!loc_path.empty() && std::strncmp(loc_path.c_str(), requested_path.c_str(), loc_path.length()) != 0)
 			continue;
 		location = this->_locations[i];
-		location_found = true;
-		if (!location.getRedirect().empty())
-		{
-			std::map<int, std::string>::const_iterator it = location.getRedirect().begin();
-			path = it->second;
-			std::cout << path << std::endl;
-			return it->first;
-		}
-		if (!location.getRoot().empty())
-		{
-			root = location.getRoot();
-		}
-		if (!location.getUploadDir().empty())
-		{
-			root = location.getUploadDir();
-		}
-		if (!root.empty() && std::strncmp(loc_path.c_str(), requested_path.c_str(), loc_path.length()) == 0)
-		{
-			path = root + requested_path;
-			return 0;
-		}
+		return true;
 	}
-	return -1;
+	return false;
 }
 
 /**
  * Normalize a URI by resolving its root and determining the relevant prefix-based location blocks.
  *
- * @param requested_path - The requested URI path to handle.
- * @param path - The normalized path will be stored here.
+ * @param requested_path - The requested URI path
  * @param location - The relevant Location object will be stored here.
- * @return 0 on success, or a redirect code if "return" detected
+ * @return true - if the location found
  */
-int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found)
+bool		Server::searchingPrefixMatchLocation(std::string requested_path, Location& location)
 {
 	if (requested_path.empty())
 	{
 		requested_path = "/";
 	}
 
-	size_t				pos = 0;
-	std::string 		rest = "";
-	std::string 		root = this->_root;
-	std::string 		searched_path = requested_path;
-
-	path = "";
-	location_found = false;
+	std::string	searched_path = requested_path;
+	std::string	rest = std::string();
+	bool	location_found = false;
+	size_t	pos = 0;
 
 	while (!searched_path.empty())
 	{
@@ -693,19 +676,7 @@ int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& pa
 			if (std::strcmp(searched_path.c_str(), loc_path.c_str()) == 0)
 			{
 				location = this->_locations[i];
-				location_found = true;
-				// std::cout << "location.getAlias()  :" << location.getAlias() << std::endl;
-				if (!location.getRedirect().empty())
-				{
-					std::map<int, std::string>::const_iterator it = location.getRedirect().begin();
-					path = it->second;
-					// searchingPrefixMatchURI(it->second, path, location, location_found);
-					return it->first;
-				}
-				if (!location.getRoot().empty())
-				{
-					root = location.getRoot();
-				}
+				location_found =  true;
 				break;
 			}
 		}
@@ -728,13 +699,55 @@ int		Server::searchingPrefixMatchURI(std::string requested_path, std::string& pa
 		if (location_found)
 			break;
 	}
-	path = root + searched_path + rest;
-	// std::cout << "\tPath2 " << path << "\n";
-	// std::cout << location << "\n";
-	return 0;
+	return location_found;
 }
 
-int		Server::searchingUploadDir(std::string requested_path, std::string& path, Location& location, bool& location_found)
+/** Formates the relative requested URI based on root and alias directive from server and location block */
+std::string			Server::determineFilePath(std::string requested_path, const Location& loc)
+{
+	std::string path = std::string();
+	std::string	root = std::string();
+	if (!loc.getRoot().empty())
+	{
+		root = loc.getRoot();
+	}
+	else if (!this->getRoot().empty())
+	{
+		root = this->getRoot();
+	}
+
+	if (!loc.getAlias().empty())
+	{
+		std::string	loc_path = loc.getPath();
+		root = loc.getAlias();
+		requested_path = requested_path.substr(loc_path.length());
+	}
+	path = root + requested_path;
+	return path;
+}
+
+// if (!location.getRedirect().empty())
+// {
+// 	std::map<int, std::string>::const_iterator it = location.getRedirect().begin();
+// 	path = it->second;
+// 	std::cout << path << std::endl;
+// 	return it->first;
+// }
+// if (!location.getRoot().empty())
+// {
+// 	root = location.getRoot();
+// }
+// if (!location.getUploadDir().empty())
+// {
+// 	root = location.getUploadDir();
+// }
+// if (!root.empty() && std::strncmp(loc_path.c_str(), requested_path.c_str(), loc_path.length()) == 0)
+// {
+// 	path = root + requested_path;
+// 	return 0;
+// }
+
+int		Server::searchingUploadDir(std::string requested_path, std::string& path, const Location& location, bool& location_found)
 {
 	if (!location_found)
 	{
@@ -742,7 +755,9 @@ int		Server::searchingUploadDir(std::string requested_path, std::string& path, L
 	}
 
 	std::string p = "";
-	std::string root = this->getRoot();
+	std::string root = std::string();
+	root = this->getRoot().empty() == false ? this->getRoot() : std::string();
+
 	if (!location.getUploadDir().empty())
 	{
 		p = location.getUploadDir(); /** what if there another root as well? */

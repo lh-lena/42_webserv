@@ -23,7 +23,7 @@ struct	Response
 	std::string	content;
 	std::string	server;
 	std::string	allow;
-	std::string	content_encoding; // ?
+	std::string	host;
 	std::string	content_type;
 	std::string	location;
 
@@ -32,6 +32,21 @@ struct	Response
 		content_lenght = 0;
 		status_code = 0;
 		location_found = false;
+		reqURI = std::string();
+		path = std::string();
+		uploadDir = std::string();
+		uploadFile = std::string();
+		method = std::string();
+		protocol = std::string();
+		query = std::string();
+		reason_phrase = std::string();
+		date = std::string();
+		last_mod = std::string();
+		content = std::string();
+		server = std::string();
+		allow = std::string();
+		content_type = std::string();
+		location = std::string();
 	};
 };
 

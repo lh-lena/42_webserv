@@ -23,7 +23,7 @@ std::vector<std::string>	ft_split(std::string& s, std::string delimeter)
 long long		strToUlong(std::string s)
 {
 	long long	val;
-	std::istringstream ss(s);
+	std::stringstream ss(s);
 	ss >> val;
 	if(ss.fail() || val < 0)
 	{
@@ -97,6 +97,12 @@ bool		is_directory(const std::string& path)
 bool		is_regular_file(const std::string& path)
 {
 	struct stat path_stat;
+
+	if (path.empty())
+	{
+		return false;
+	}
+
 	if (stat(path.c_str(), &path_stat) != 0)
 	{
 		std::cerr << "[ERROR]: Accessing path " << path << " failed: " << std::strerror(errno) << std::endl;

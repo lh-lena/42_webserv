@@ -497,12 +497,15 @@ void	ParseConfig::handleRedirect(const std::pair<std::string, int>& value, Locat
 	instance->setRedirect(code, path);
 }
 
+/** TODO:
+ * error_page 404 405 /error_pages/40*.html;
+ */
 template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::string, int>& value, T* instance)
 {
 	std::string					s = value.first;
 	std::vector<std::string>	vals;
-	std::string					path = "";
-	int 						val;
+	std::string					path = std::string();
+	int 						errorCode;
 
 	vals = ft_split(s, " ");
 	int size = vals.size();
@@ -512,26 +515,42 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 		throw ParseException("[emerg] : invalid number of arguments in \"error_page\" directive in " + _conf_file_path + ":" + itos(value.second));
 	}
 
+	std::cout << "size: " << size << std::endl;
+
 	for (int i = 0; i < size; i++)
 	{
-		// if (i == size - 1 && ends_with(vals[size - 1], ".html")) // to break if last element is a path
-		// 	break;
-		if (i == size - 1 && is_regular_file(vals[size - 1])) // to break if last element is a file
+		if (strToUlong(vals[size - 1]) == -1)
+			path = vals[size - 1];
+		if (i == size - 1 && strToUlong(vals[size - 1]) == -1) // to break if last element is a file
 			break;
-		val = strToUlong(vals[i]);
-		if (val <= 0 || !is_status_code(val))
+		errorCode = strToUlong(vals[i]);
+		if (errorCode <= 0 || !is_status_code(errorCode))
 		{
 			throw ParseException("[emerg] : invalid status code in \"error_page\" directive in " + _conf_file_path + ":" + itos(value.second));
 		}
 		if (size == 1)
 		{
-			instance->addErrorPage(val, path);
+			instance->addErrorPage(errorCode, std::string());
 			break;
 		}
-		path = generate_path(vals[size - 1], vals[i]);
-		// if (!is_regular_file(path))
-		// 	path = vals[size - 1]; // path to default error page, if none provided
-		instance->addErrorPage(val, path);
+		std::cout << "i: " << i << std::endl;
+		size_t pos = path.find('*');
+		std::cout << "path: " << path << std::endl;
+		std::cout << "errorCode: " << errorCode << std::endl;
+		if (pos != std::string::npos)
+		{
+			int divisor = 100;
+			while (pos != std::string::npos && divisor > 0)
+			{
+				int digit = (errorCode / divisor) % 10;
+				std::cout << "digit: " << digit << std::endl;
+				path.replace(pos, 1, itos(digit));
+				pos = path.find('*', pos + 1);
+				divisor /= 10;
+			}
+			std::cout << "path2 : " << path << std::endl;
+    	}
+		instance->addErrorPage(errorCode, path);
 	}
 }
 
@@ -546,8 +565,7 @@ void		ParseConfig::handleCgiExtension(const std::pair<std::string, int>& value, 
 }
 
 /**
- * The function `exceptTocken` checks if the front element of a list matches a given token and prints a
- * message accordingly.
+ * The function `exceptTocken` checks if the front element of a list matches a given token and prints an error message accordingly.
  */
 int		ParseConfig::exceptTocken(std::list<std::pair<std::string, int> > *src, std::pair<std::string, int> tocken, int expected)
 {
