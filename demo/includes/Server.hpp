@@ -76,12 +76,12 @@ class Server
 		void								handleMethodNotAllowed(Response& response, const Location& location);
 		void								handleAndSetRedirectResponse(Response& response, const Location& loc);
 		void								handleGetDirectoryResponse(Response& response, const Location& loc);
-		void								createResponse(const Response& response, std::string& result);
+		static void								createResponse(const Response& response, std::string& result);
 		void								initResponse(Response& response, const Request& request);
 		size_t								handleDeleteDirectoryResponse(Response& response);
 		size_t								remove_file(const std::string& path);
 		size_t								remove_directory(const std::string& path);
-		std::string							formatDate(time_t timestamp);
+		static std::string							formatDate(time_t timestamp);
 		int									handleCGI(Response& response, Location& loc);
 		void								setCGIResponse(Response& response, size_t status_code);
 

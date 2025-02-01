@@ -580,20 +580,6 @@ void	Server::createResponse(const Response& response, std::string& result)
 	}
 }
 
-
-std::string	Server::formatDate(time_t timestamp)
-{
-	/** RFC7231: IMF-fixdate  = day-name "," SP date1 SP time-of-day SP GMT */
-
-	struct tm datetime;
-	char buf[100];
-
-	gmtime_r(&timestamp, &datetime);
-	std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", &datetime);
-
-	return std::string(buf);
-}
-
 /** Check for custom error pages if any, othewise generate default html error page */
 std::string		Server::getCustomErrorPage(int status_code, const Location& src)
 {

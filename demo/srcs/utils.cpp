@@ -1,5 +1,18 @@
 #include "../includes/utils.hpp"
 
+std::string		formatDate(time_t timestamp)
+{
+	/** RFC7231: IMF-fixdate  = day-name "," SP date1 SP time-of-day SP GMT */
+
+	struct tm datetime;
+	char buf[100];
+
+	gmtime_r(&timestamp, &datetime);
+	std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", &datetime);
+
+	return std::string(buf);
+}
+
 std::vector<std::string>	ft_split(std::string& s, std::string delimeter)
 {
 	size_t pos = 0;
@@ -334,6 +347,25 @@ bool	has_write_permission(const std::string& path)
 		return (path_stat.st_mode & S_IWUSR) != 0; 
 	}
 	return false;
+}
+
+std::string 	get_interpreter(const std::string& s)
+{
+	std::string ext = substr_after_rdel(s, ".");
+
+	if (ext.empty())
+		return std::string();
+
+	if(std::strcmp(ext.c_str(), "py") == 0)
+		return "/usr/bin/python3";
+	if(std::strcmp(ext.c_str(), "rb") == 0)
+		return "/usr/bin/ruby";
+	if(std::strcmp(ext.c_str(), "sh") == 0)
+		return "/usr/bin/bash";
+	if(std::strcmp(ext.c_str(), "php") == 0)
+		return "/usr/bin/php";
+	if(std::strcmp(ext.c_str(), "pl") == 0)
+		return "/usr/bin/perl";
 }
 
 std::string		get_reason_phrase(int code)
