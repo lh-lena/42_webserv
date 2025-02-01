@@ -594,9 +594,7 @@ std::string	Server::formatDate(time_t timestamp)
 	return std::string(buf);
 }
 
-/** Check for custom error pages if any, othewise generate default html error page 
- * TODO: add to main logic
-*/
+/** Check for custom error pages if any, othewise generate default html error page */
 std::string		Server::getCustomErrorPage(int status_code, const Location& src)
 {
 	std::string					path = std::string();
@@ -616,10 +614,8 @@ std::string		Server::getCustomErrorPage(int status_code, const Location& src)
 		{
 			path = determineFilePath(er_pages[status_code], loc);
 		}
-		// searchingPrefixMatchLocation(er_pages[status_code], path, loc, found_location);
-		std::cout << "std::string	Server::getCustomErrorPage(int status_code, const Location& src)" << std::endl;
+		// std::cout << "std::string	Server::getCustomErrorPage(int status_code, const Location& src)" << std::endl;
 	}
-	// path = generate_html_error_page(status_code);
 	return path;
 }
 
@@ -744,27 +740,6 @@ std::string			Server::determineFilePath(std::string requested_path, const Locati
 	path = root + requested_path;
 	return path;
 }
-
-// if (!location.getRedirect().empty())
-// {
-// 	std::map<int, std::string>::const_iterator it = location.getRedirect().begin();
-// 	path = it->second;
-// 	std::cout << path << std::endl;
-// 	return it->first;
-// }
-// if (!location.getRoot().empty())
-// {
-// 	root = location.getRoot();
-// }
-// if (!location.getUploadDir().empty())
-// {
-// 	root = location.getUploadDir();
-// }
-// if (!root.empty() && std::strncmp(loc_path.c_str(), requested_path.c_str(), loc_path.length()) == 0)
-// {
-// 	path = root + requested_path;
-// 	return 0;
-// }
 
 int		Server::searchingUploadDir(std::string requested_path, std::string& path, const Location& location, bool& location_found)
 {
