@@ -103,9 +103,21 @@ void		Server::defaultServer( void )
 
 /** Function to handle requered method and prepare a responce for further sending */
 
-void	Server::handleRequestMethod(const Request& request, Response& response)
+void	Server::initResponse(Response& response, const Request& request)
 {
-	std::cout << request.method << std::endl;
+	response.protocol = request.protocol;
+	response.location_found = false;
+	response.method = request.method;
+	response.reqURI = request.reqURI;
+	response.server = "42_webserv";
+	response.content_lenght = 0;
+	response.status_code = 0;
+	response.location = "";
+}
+
+void	Server::handleStaticRequest(const Request& request, Response& response)
+{
+	std::cout << "request.method " << request.method << std::endl;
 	if (std::strcmp(str_tolower(request.method).c_str(), "get") == 0 || \
 		std::strcmp(str_tolower(request.method).c_str(), "head") == 0)
 	{
@@ -126,17 +138,6 @@ void	Server::handleRequestMethod(const Request& request, Response& response)
 	}
 }
 
-void	Server::initResponse(Response& response, const Request& request)
-{
-	response.protocol = request.protocol;
-	response.location_found = false;
-	response.method = request.method;
-	response.reqURI = request.reqURI;
-	response.server = "42_webserv";
-	response.content_lenght = 0;
-	response.status_code = 0;
-	response.location = "";
-}
 
 void		Server::handleGET(const Request& request, Response& response)
 {

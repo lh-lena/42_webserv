@@ -57,7 +57,7 @@ class Server
 		const std::vector<std::string>&		getServerNames( void ) const;
 		const std::map<int, std::string>&	getErrorPages( void ) const;
 		std::string							handleErrorPageResponse(int status_code, const Location& src);
-		void								handleRequestMethod(const Request& request, Response& response);
+		void								handleStaticRequest(const Request& request, Response& response);
 		// int									handleRequestedURI(std::string requested_path, std::string& path, Location& loc, bool& location_found);
 		void								handleRequestedURI(Response& response, Location& loc);
 		int									searchingPrefixMatchURI(std::string requested_path, std::string& path, Location& location, bool& location_found);

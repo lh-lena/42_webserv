@@ -477,7 +477,8 @@ std::string	ServerControler::processRequest(std::string & data)
 
 
 	Server serv = getServers()[0];
-	serv.handleRequestMethod(request, response_struct);
+	
+	serv.handleStaticRequest(request, response_struct);
 	serv.createResponse(response_struct, response);
 
 	return response;
