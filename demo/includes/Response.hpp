@@ -12,6 +12,7 @@ struct	Response
 	bool		location_found;
 	std::string	reqURI;
 	std::string	path;
+	std::string	error_path;
 	std::string	uploadDir;
 	std::string	uploadFile;
 	std::string	method;
@@ -34,6 +35,7 @@ struct	Response
 		location_found = false;
 		reqURI = std::string();
 		path = std::string();
+		error_path = std::string();
 		uploadDir = std::string();
 		uploadFile = std::string();
 		method = std::string();

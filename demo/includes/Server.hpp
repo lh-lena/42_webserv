@@ -56,7 +56,7 @@ class Server
 		const std::vector<std::string>&		getIndexes( void ) const;
 		const std::vector<std::string>&		getServerNames( void ) const;
 		const std::map<int, std::string>&	getErrorPages( void ) const;
-		std::string							handleErrorPageResponse(int status_code, const Location& src);
+		std::string							getCustomErrorPage(int status_code, const Location& src);
 		void								handleStaticRequest(const Request& request, Response& response, const Location& loc);
 		bool								findRequestedLocation(const std::string& path, Location& loc);
 		// int									handleRequestedURI(std::string requested_path, std::string& path, Location& loc, bool& location_found);

@@ -134,6 +134,7 @@ void	Server::handleStaticRequest(const Request& request, Response& response, con
 	else
 	{
 		/* 501 Not Implemented */
+		response.error_path = getCustomErrorPage(NOT_IMPLEMENTED, loc);
 		setErrorResponse(response, NOT_IMPLEMENTED);
 	}
 }
@@ -143,6 +144,7 @@ void		Server::handleGET(Response& response, const Location& loc)
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
+		response.error_path = getCustomErrorPage(NOT_FOUND, loc);
 		setErrorResponse(response, NOT_FOUND);
 	}
 	/** 405 Method Not Allowed */
@@ -160,14 +162,15 @@ void		Server::handleDELETE(Response& response, const Location& loc)
 {
 	if (!loc.getRedirect().empty())
 	{
-        handleAndSetRedirectResponse(response, loc);
-        return;
-    }
+		handleAndSetRedirectResponse(response, loc);
+		return;
+	}
 	response.path = determineFilePath(response.reqURI, loc);
 
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
+		response.error_path = getCustomErrorPage(NOT_FOUND, loc);
 		setErrorResponse(response, NOT_FOUND);
 	}
 	/** 405 Method Not Allowed */
@@ -178,6 +181,7 @@ void		Server::handleDELETE(Response& response, const Location& loc)
 	/** 403 Forbidden */
 	else if (!has_write_permission(response.path))
 	{
+		response.error_path = getCustomErrorPage(FORBIDDEN, loc);
 		setErrorResponse(response, FORBIDDEN);
 	}
 	else
@@ -185,15 +189,18 @@ void		Server::handleDELETE(Response& response, const Location& loc)
 		if (is_regular_file(response.path))
 		{
 			response.status_code = remove_file(response.path);
+			response.error_path = getCustomErrorPage(response.status_code, loc);
 			setDeleteResponse(response, response.status_code);
 		}
 		else if (is_directory(response.path))
 		{
 			response.status_code = handleDeleteDirectoryResponse(response);
+			response.error_path = getCustomErrorPage(response.status_code, loc);
 			setDeleteResponse(response, response.status_code);
 		}
 		else
 		{
+			response.error_path = getCustomErrorPage(NOT_FOUND, loc);
 			setErrorResponse(response, NOT_FOUND);
 		}
 	}
@@ -206,6 +213,7 @@ void		Server::handlePOST(const Request& request, Response& response, const Locat
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
+		response.error_path = getCustomErrorPage(NOT_FOUND, loc);
 		setErrorResponse(response, NOT_FOUND);
 	}
 	/** 405 Method Not Allowed */
@@ -218,6 +226,7 @@ void		Server::handlePOST(const Request& request, Response& response, const Locat
 		/** if the path not a dir ??*/
 		if (substr_after_rdel(response.path, ".").empty())
 		{
+			response.error_path = getCustomErrorPage(FORBIDDEN, loc);
 			setErrorResponse(response, FORBIDDEN);
 			return;
 		}
@@ -230,10 +239,12 @@ void		Server::handlePOST(const Request& request, Response& response, const Locat
 
 			if (errno == EACCES || errno == EROFS || errno == ENOENT)
 			{
+				response.error_path = getCustomErrorPage(FORBIDDEN, loc);
 				setErrorResponse(response, FORBIDDEN);
 			}
 			else
 			{
+				response.error_path = getCustomErrorPage(INTERNAL_SERVER_ERROR, loc);
 				setErrorResponse(response, INTERNAL_SERVER_ERROR);
 			}
 
@@ -244,6 +255,7 @@ void		Server::handlePOST(const Request& request, Response& response, const Locat
 		if (file.fail())
 		{
 			std::cerr << "Error writing to file: " << response.uploadDir + response.uploadFile << std::endl;
+			response.error_path = getCustomErrorPage(INTERNAL_SERVER_ERROR, loc);
 			setErrorResponse(response, INTERNAL_SERVER_ERROR);
 			file.close();
 			return;
@@ -257,6 +269,7 @@ void		Server::handlePOST(const Request& request, Response& response, const Locat
 void Server::handleMethodNotAllowed(Response& response, const Location& location)
 {
 	response.allow = vector_tostr(location.getAllowedMethods());
+	response.error_path = getCustomErrorPage(METHOD_NOT_ALLOWED, location);
 	setErrorResponse(response, METHOD_NOT_ALLOWED);
 }
 
@@ -264,9 +277,9 @@ void		Server::handleRequestedURI(Response& response, const Location& loc)
 {
 	if (!loc.getRedirect().empty())
 	{
-        handleAndSetRedirectResponse(response, loc);
-        return;
-    }
+		handleAndSetRedirectResponse(response, loc);
+		return;
+	}
 	std::cout << "determineFilePath " << response.path << std::endl;
 	response.path = determineFilePath(response.reqURI, loc);
 	if (is_regular_file(response.path))
@@ -379,7 +392,10 @@ void	Server::setErrorResponse(Response& response, size_t status_code)
 {
 	response.status_code = status_code;
 	response.reason_phrase = get_reason_phrase(status_code);
-	response.content = generate_html_error_page(status_code);
+	if (!response.error_path.empty())
+		response.content = get_file_content(response.error_path);
+	else
+		response.content = generate_html_error_page(status_code);
 	response.content_lenght = response.content.length();
 	response.content_type = get_MIME_type(response.content);
 }
@@ -432,6 +448,7 @@ void	Server::handleAndSetRedirectResponse(Response& response, const Location& lo
 	}
 	else
 	{
+		response.error_path = getCustomErrorPage(response.status_code, loc);
 		setErrorResponse(response, response.status_code);
 	}
 }
@@ -441,12 +458,14 @@ void	Server::handleGetDirectoryResponse(Response& response, const Location& loc)
 	// std::cout << "response.path " << response.path << std::endl;
 	if (!is_directory(response.path))
 	{
+		response.error_path = getCustomErrorPage(NOT_FOUND, loc);
 		setErrorResponse(response, NOT_FOUND);
 	}
 	else if (!ends_with(response.path, "/"))
 	{
 		// path += "/"; // Redirect by appending '/' /** ?? */
 		response.location = "http://localhost:8080" + response.reqURI + "/"; /** ideally change to scheme "http://localhost:8080" */
+		response.error_path = getCustomErrorPage(MOVED_PERMANENTLY, loc);
 		setErrorResponse(response, MOVED_PERMANENTLY);
 	}
 	else if (appendIndexFile(response.path, loc))
@@ -455,6 +474,7 @@ void	Server::handleGetDirectoryResponse(Response& response, const Location& loc)
 	}
 	else if (!loc.getAutoindex())
 	{
+		response.error_path = getCustomErrorPage(FORBIDDEN, loc);
 		setErrorResponse(response, FORBIDDEN);
 	}
 	else
@@ -577,9 +597,9 @@ std::string	Server::formatDate(time_t timestamp)
 /** Check for custom error pages if any, othewise generate default html error page 
  * TODO: add to main logic
 */
-std::string		Server::handleErrorPageResponse(int status_code, const Location& src)
+std::string		Server::getCustomErrorPage(int status_code, const Location& src)
 {
-	std::string					path;
+	std::string					path = std::string();
 	Location					loc;
 	bool						location_found = false;
 	std::map<int, std::string>	er_pages;
@@ -597,10 +617,9 @@ std::string		Server::handleErrorPageResponse(int status_code, const Location& sr
 			path = determineFilePath(er_pages[status_code], loc);
 		}
 		// searchingPrefixMatchLocation(er_pages[status_code], path, loc, found_location);
-		std::cout << "std::string	Server::handleErrorPageResponse(int status_code, const Location& src)" << std::endl;
-		return path;
+		std::cout << "std::string	Server::getCustomErrorPage(int status_code, const Location& src)" << std::endl;
 	}
-	path = generate_html_error_page(status_code);
+	// path = generate_html_error_page(status_code);
 	return path;
 }
 
