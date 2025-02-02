@@ -64,7 +64,7 @@ class Server
 		std::string							searchingUploadDir(std::string requested_path, const Location* loc);
 		std::string							determineFilePath(std::string requested_path, const Location* loc);	
 		std::string							canonicalizePath(const std::string& path);
-		std::string							encodeURI(const std::string& path);
+		std::string							decodeURI(const std::string& path);
 		bool								appendIndexFile(std::string& path, const Location& loc);
 		void								handleGET(Response& response, const Location& loc);
 		void								handlePOST(const Request& request, Response& response, const Location& loc);

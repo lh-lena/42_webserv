@@ -108,7 +108,7 @@ void	Server::initResponse(Response& response, const Request& request)
 	response.protocol = request.protocol;
 	response.location_found = false;
 	response.method = request.method;
-	response.reqURI = request.reqURI;
+	response.reqURI = canonicalizePath(request.reqURI);
 	response.server = "42_webserv";
 	response.content_lenght = 0;
 	response.status_code = 0;
@@ -660,10 +660,10 @@ bool		Server::searchingExtensionMatchLocation(std::string requested_path, Locati
  */
 bool		Server::searchingPrefixMatchLocation(std::string requested_path, Location& location)
 {
-	if (requested_path.empty())
-	{
-		requested_path = "/";
-	}
+	// if (requested_path.empty())
+	// {
+	// 	requested_path = "/";
+	// }
 
 	std::string	searched_path = requested_path;
 	std::string	rest = std::string();
@@ -704,10 +704,26 @@ bool		Server::searchingPrefixMatchLocation(std::string requested_path, Location&
 	return location_found;
 }
 
-/* std::string			Server::encodeURI(const std::string& path)
+std::string			Server::decodeURI(const std::string& path)
 {
-
-} */
+	std::ostringstream decoded;
+	for (size_t i = 0; i < path.length(); ++i)
+	{
+		if (path[i] == '%' && i + 2 < path.length() && isxdigit(path[i + 1]) && isxdigit(path[i + 2]))
+		{
+			int value;
+			std::istringstream hexStream(path.substr(i + 1, 2));
+			hexStream >> std::hex >> value;
+			decoded << static_cast<char>(value);
+			i += 2;
+		}
+		else
+		{
+			decoded << path[i];
+		}
+	}
+	return decoded.str();
+}
 
 
 std::string			Server::canonicalizePath(const std::string& path)
@@ -720,7 +736,7 @@ std::string			Server::canonicalizePath(const std::string& path)
 	if (new_path[0] != '/')
 		new_path = "/" + new_path;
 	
-	// new_path = encodeURI(new_path);
+	new_path = decodeURI(new_path);
 	return new_path;
 }
 

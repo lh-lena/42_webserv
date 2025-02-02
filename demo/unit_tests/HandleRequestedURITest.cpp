@@ -12,7 +12,7 @@
 #include "../includes/Location.hpp"
 #include "../includes/ParseConfig.hpp"
 #include "../includes/ServerControler.hpp"
-#include "../includes/generate_html.hpp"
+#include "../includes/utils.hpp"
 
 Server server;
 
