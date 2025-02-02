@@ -77,7 +77,7 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 	std::map<int, std::string>::const_iterator it;
 	for (it = i.getErrorPages().begin(); it != i.getErrorPages().end(); ++it)
 	{
-		std::cout  << "\t" << itos(it->first) << ": " << it->second << std::endl;
+		std::cout  << "\t" << utils::itos(it->first) << ": " << it->second << std::endl;
 	}
 	o << std::endl;
 
@@ -118,16 +118,16 @@ void	Server::initResponse(Response& response, const Request& request)
 void	Server::handleStaticRequest(const Request& request, Response& response, const Location& loc)
 {
 	// std::cout << "request.method " << request.method << std::endl;
-	if (std::strcmp(str_tolower(request.method).c_str(), "get") == 0 || \
-		std::strcmp(str_tolower(request.method).c_str(), "head") == 0)
+	if (std::strcmp(utils::str_tolower(request.method).c_str(), "get") == 0 || \
+		std::strcmp(utils::str_tolower(request.method).c_str(), "head") == 0)
 	{
 		handleGET(response, loc);
 	}
-	else if (std::strcmp(str_tolower(request.method).c_str(), "post") == 0)
+	else if (std::strcmp(utils::str_tolower(request.method).c_str(), "post") == 0)
 	{
 		handlePOST(request, response, loc);
 	}
-	else if (std::strcmp(str_tolower(request.method).c_str(), "delete") == 0)
+	else if (std::strcmp(utils::str_tolower(request.method).c_str(), "delete") == 0)
 	{
 		handleDELETE(response, loc);
 	}
@@ -148,7 +148,7 @@ void		Server::handleGET(Response& response, const Location& loc)
 		setErrorResponse(response, NOT_FOUND);
 	}
 	/** 405 Method Not Allowed */
-	else if (!is_str_in_vector(response.method, loc.getAllowedMethods()))
+	else if (!utils::is_str_in_vector(response.method, loc.getAllowedMethods()))
 	{
 		handleMethodNotAllowed(response, loc);
 	}
@@ -174,25 +174,25 @@ void		Server::handleDELETE(Response& response, const Location& loc)
 		setErrorResponse(response, NOT_FOUND);
 	}
 	/** 405 Method Not Allowed */
-	else if (!is_str_in_vector(response.method, loc.getAllowedMethods()))
+	else if (!utils::is_str_in_vector(response.method, loc.getAllowedMethods()))
 	{
 		handleMethodNotAllowed(response, loc);
 	}
 	/** 403 Forbidden */
-	else if (!has_write_permission(response.path))
+	else if (!utils::has_write_permission(response.path))
 	{
 		response.error_path = getCustomErrorPage(FORBIDDEN, loc);
 		setErrorResponse(response, FORBIDDEN);
 	}
 	else
 	{
-		if (is_regular_file(response.path))
+		if (utils::is_regular_file(response.path))
 		{
 			response.status_code = remove_file(response.path);
 			response.error_path = getCustomErrorPage(response.status_code, loc);
 			setDeleteResponse(response, response.status_code);
 		}
-		else if (is_directory(response.path))
+		else if (utils::is_directory(response.path))
 		{
 			response.status_code = handleDeleteDirectoryResponse(response);
 			response.error_path = getCustomErrorPage(response.status_code, loc);
@@ -217,20 +217,20 @@ void		Server::handlePOST(const Request& request, Response& response, const Locat
 		setErrorResponse(response, NOT_FOUND);
 	}
 	/** 405 Method Not Allowed */
-	else if (!is_str_in_vector(response.method, loc.getAllowedMethods()))
+	else if (!utils::is_str_in_vector(response.method, loc.getAllowedMethods()))
 	{
 		handleMethodNotAllowed(response, loc);
 	}
 	else
 	{
 		// std::cout << "response1 " << response << std::endl;
-		if (substr_after_rdel(response.path, ".").empty())
+		if (utils::substr_after_rdel(response.path, ".").empty())
 		{
 			response.error_path = getCustomErrorPage(FORBIDDEN, loc);
 			setErrorResponse(response, FORBIDDEN);
 			return;
 		}
-		response.uploadFile = substr_after_rdel(response.path, "/");
+		response.uploadFile = utils::substr_after_rdel(response.path, "/");
 		std::cout << "response.uploadFile1 " << response.uploadFile << std::endl;
 		std::ofstream file((response.uploadDir + response.uploadFile).c_str()); // "/" ??
 		if (!file.is_open())
@@ -269,7 +269,7 @@ void		Server::handlePOST(const Request& request, Response& response, const Locat
 
 void Server::handleMethodNotAllowed(Response& response, const Location& location)
 {
-	response.allow = vector_tostr(location.getAllowedMethods());
+	response.allow = utils::vector_tostr(location.getAllowedMethods());
 	response.error_path = getCustomErrorPage(METHOD_NOT_ALLOWED, location);
 	setErrorResponse(response, METHOD_NOT_ALLOWED);
 }
@@ -283,7 +283,7 @@ void		Server::handleRequestedURI(Response& response, const Location& loc)
 	}
 	response.path = determineFilePath(response.reqURI, &loc);
 	// std::cout << "determineFilePath " << response.path << std::endl;
-	if (is_regular_file(response.path))
+	if (utils::is_regular_file(response.path))
 	{
 		setGetResponse(response, OK);
 	}
@@ -310,7 +310,7 @@ int		Server::handleCGI(Response& response, Location& loc)
 {
 	std::cout << "response.status_code " << response.status_code << std::endl;
 
-	response.uploadDir = substr_before_rdel(response.path, "/");
+	response.uploadDir = utils::substr_before_rdel(response.path, "/");
 	std::cout << "response.uploadDir1 " << response.uploadDir << std::endl;
 	response.uploadDir = Server::searchingUploadDir(response.reqURI, &loc);
 
@@ -319,43 +319,43 @@ int		Server::handleCGI(Response& response, Location& loc)
 	std::cout << "response.path1 " << response.path << std::endl;
 	if (response.path.find("?") != std::string::npos) /* check queries */
 	{
-		response.query = substr_after_rdel(response.path, "?");
-		response.path = substr_before_rdel(response.path, "?");
+		response.query = utils::substr_after_rdel(response.path, "?");
+		response.path = utils::substr_before_rdel(response.path, "?");
 	}
-	std::cout << "is_regular_file(response.path) " << is_regular_file(response.path) << std::endl;
-	if (is_regular_file(response.path))
+	std::cout << "is_regular_file(response.path) " << utils::is_regular_file(response.path) << std::endl;
+	if (utils::is_regular_file(response.path))
 	{
-		std::cout << "is_matching_ext(response.path, loc->getCgiExtension()) " << is_matching_ext(response.path, loc.getCgiExtension()) << std::endl;
-		if (!response.location_found || !is_matching_ext(response.path, loc.getCgiExtension()))
+		std::cout << "is_matching_ext(response.path, loc->getCgiExtension()) " << utils::is_matching_ext(response.path, loc.getCgiExtension()) << std::endl;
+		if (!response.location_found || !utils::is_matching_ext(response.path, loc.getCgiExtension()))
 		{
 			return 1;
 		}
-		response.uploadFile = substr_after_rdel(response.path, "/");
+		response.uploadFile = utils::substr_after_rdel(response.path, "/");
 		std::cout << "response.uploadFile1 " << response.uploadFile << std::endl;
 		// setCGIResponse(response, OK);
 		setGetResponse(response, OK);
 		return 0;
 	}
-	else if (!is_directory(response.path))
+	else if (!utils::is_directory(response.path))
 	{
 		if (response.location_found && appendIndexFile(response.path, loc))
 		{
 			// response.uploadDir = substr_before_rdel(response.path, "/");
-			response.uploadFile = substr_after_rdel(response.path, "/");
+			response.uploadFile = utils::substr_after_rdel(response.path, "/");
 			std::cout << "response.uploadFile2 " << response.uploadFile << std::endl;
-			if (is_regular_file(response.path))
+			if (utils::is_regular_file(response.path))
 			{
-				if (!is_matching_ext(response.path, loc.getCgiExtension()))
+				if (!utils::is_matching_ext(response.path, loc.getCgiExtension()))
 				{
 					return 1;
 				}
-				response.uploadFile = substr_after_rdel(response.path, "/");
+				response.uploadFile = utils::substr_after_rdel(response.path, "/");
 				std::cout << "response.uploadFile3 " << response.uploadFile << std::endl;
 				// setCGIResponse(response, OK);
 				setGetResponse(response, OK);
 				return 0;
 			}
-			else if (!is_directory(response.path))
+			else if (!utils::is_directory(response.path))
 			{
 				return 3;
 			}
@@ -391,44 +391,44 @@ bool		Server::findRequestedLocation(const std::string& path, Location& loc)
 void	Server::setErrorResponse(Response& response, size_t status_code)
 {
 	response.status_code = status_code;
-	response.reason_phrase = get_reason_phrase(status_code);
+	response.reason_phrase = utils::get_reason_phrase(status_code);
 	if (!response.error_path.empty())
-		response.content = get_file_content(response.error_path);
+		response.content = utils::get_file_content(response.error_path);
 	else
-		response.content = generate_html_error_page(status_code);
+		response.content = utils::generate_html_error_page(status_code);
 	response.content_lenght = response.content.length();
-	response.content_type = get_MIME_type(response.content);
+	response.content_type = utils::get_MIME_type(response.content);
 }
 
 void	Server::setGetResponse(Response& response, size_t status_code)
 {
-	response.content = get_file_content(response.path);
+	response.content = utils::get_file_content(response.path);
 	response.content_lenght = response.content.length();
 	// std::cout << "response.content_lenght " << response.content_lenght << std::endl;
 	if (response.content_lenght <= 0)
 	{
 		status_code = NO_CONTENT;
 	}
-	response.content_type = get_MIME_type(response.path);
+	response.content_type = utils::get_MIME_type(response.path);
 	response.status_code = status_code;
-	response.reason_phrase = get_reason_phrase(status_code);
+	response.reason_phrase = utils::get_reason_phrase(status_code);
 }
 
 void	Server::setPostResponse(Response& response, size_t status_code)
 {
 	response.status_code = status_code;
-	response.reason_phrase = get_reason_phrase(status_code);
+	response.reason_phrase = utils::get_reason_phrase(status_code);
 }
 
 void	Server::setDeleteResponse(Response& response, size_t status_code)
 {
-	if (is_client_error(status_code) || is_server_error(status_code))
+	if (utils::is_client_error(status_code) || utils::is_server_error(status_code))
 	{
 		setErrorResponse(response, status_code);
 		return;
 	}
 	response.status_code = status_code;
-	response.reason_phrase = get_reason_phrase(status_code);
+	response.reason_phrase = utils::get_reason_phrase(status_code);
 }
 
 /** formats path if requied, and use a path as a file, otherwise to generate default */
@@ -438,12 +438,12 @@ void	Server::handleAndSetRedirectResponse(Response& response, const Location& lo
 	{
 		std::map<int, std::string>::const_iterator it = loc.getRedirect().begin();
 		response.status_code = it->first;
-		response.location = "http://localhost:8080" + it->second;
+		response.location = it->second; // "http://localhost:8080" + 
 		// response.path = it->second; // what with root???
 		// searchingPrefixMatchLocation(it->second, path, location, location_found);
 	}
 	// searchingPrefixMatchLocation(response.path, response.path, loc, response.location_found);
-	if (is_regular_file(response.path))
+	if (utils::is_regular_file(response.path))
 	{
 		setGetResponse(response, response.status_code);
 	}
@@ -457,15 +457,15 @@ void	Server::handleAndSetRedirectResponse(Response& response, const Location& lo
 void	Server::handleGetDirectoryResponse(Response& response, const Location& loc)
 {
 	// std::cout << "response.path " << response.path << std::endl;
-	if (!is_directory(response.path))
+	if (!utils::is_directory(response.path))
 	{
 		response.error_path = getCustomErrorPage(NOT_FOUND, loc);
 		setErrorResponse(response, NOT_FOUND);
 	}
-	else if (!ends_with(response.path, "/"))
+	else if (!utils::ends_with(response.path, "/"))
 	{
 		// path += "/"; // Redirect by appending '/' /** ?? */
-		response.location = "http://localhost:8080" + response.reqURI + "/"; /** ideally change to scheme "http://localhost:8080" */
+		response.location = response.reqURI + "/"; /** ideally change to scheme "http://localhost:8080" */ // "http://localhost:8080" +
 		response.error_path = getCustomErrorPage(MOVED_PERMANENTLY, loc);
 		setErrorResponse(response, MOVED_PERMANENTLY);
 	}
@@ -480,7 +480,7 @@ void	Server::handleGetDirectoryResponse(Response& response, const Location& loc)
 	}
 	else
 	{
-		response.path = generate_html_directory_listing(response.path);
+		response.path = utils::generate_html_directory_listing(response.path);
 		setGetResponse(response, OK);
 	}
 }
@@ -488,11 +488,11 @@ void	Server::handleGetDirectoryResponse(Response& response, const Location& loc)
 /** @return status code */
 size_t	Server::handleDeleteDirectoryResponse(Response& response)
 {
-	if (!ends_with(response.path, "/"))
+	if (!utils::ends_with(response.path, "/"))
 	{
 		return CONFLICT;
 	}
-	else if (!has_write_permission(response.path))
+	else if (!utils::has_write_permission(response.path))
 	{
 		return FORBIDDEN;
 	}
@@ -514,7 +514,7 @@ size_t	Server::remove_file(const std::string& path)
 size_t	Server::remove_directory(const std::string& path)
 {
 	std::vector<std::string> cont;
-	if (get_dir_entries(path, cont) == 0)
+	if (utils::get_dir_entries(path, cont) == 0)
 	{
 		return CONFLICT;
 	}
@@ -533,13 +533,13 @@ void	Server::createResponse(const Response& response, std::string& result)
 
 	result.append(response.protocol);
 	result.append(SP);
-	result.append(itos(response.status_code));
+	result.append(utils::itos(response.status_code));
 	result.append(SP);
 	result.append(response.reason_phrase);
 	result.append(CRLF);
 	result.append("Date:");
 	result.append(SP);
-	result.append(formatDate(get_timestamp("")));
+	result.append(utils::formatDate(utils::get_timestamp("")));
 	result.append(CRLF);
 	result.append("Server:");
 	result.append(SP);
@@ -547,7 +547,7 @@ void	Server::createResponse(const Response& response, std::string& result)
 	result.append(CRLF);
 	result.append("Last-Modified:");
 	result.append(SP);
-	result.append(formatDate(get_timestamp(response.path)));
+	result.append(utils::formatDate(utils::get_timestamp(response.path)));
 	result.append(CRLF);
 	if (response.status_code == METHOD_NOT_ALLOWED)
 	{
@@ -556,7 +556,7 @@ void	Server::createResponse(const Response& response, std::string& result)
 		result.append(response.allow);
 		result.append(CRLF);
 	}
-	if (response.status_code != NO_CONTENT && !is_informational(response.status_code))
+	if (response.status_code != NO_CONTENT && !utils::is_informational(response.status_code))
 	{
 		result.append("Content-Type:");
 		result.append(SP);
@@ -564,7 +564,7 @@ void	Server::createResponse(const Response& response, std::string& result)
 		result.append(CRLF);
 		result.append("Content-Length:");
 		result.append(SP);
-		result.append(itos(response.content_lenght));
+		result.append(utils::itos(response.content_lenght));
 		result.append(CRLF);
 	}
 	if (!response.location.empty())
@@ -574,7 +574,7 @@ void	Server::createResponse(const Response& response, std::string& result)
 		result.append(response.location);
 		result.append(CRLF);
 	}
-	if (std::strcmp(str_tolower(response.method).c_str(), "post") != 0)
+	if (std::strcmp(utils::str_tolower(response.method).c_str(), "post") != 0)
 	{
 		result.append(CRLF);
 		result.append(response.content);
@@ -615,11 +615,11 @@ bool		Server::appendIndexFile(std::string& path, const Location& loc)
 	}
 	std::vector<std::string> dir_content;
 
-	get_dir_entries(path, dir_content);
+	utils::get_dir_entries(path, dir_content);
 
 	for (size_t i = 0; i < idxs.size(); i++)
 	{
-		if (is_str_in_vector(idxs[i], dir_content))
+		if (utils::is_str_in_vector(idxs[i], dir_content))
 		{
 			path += idxs[i];
 			return true;
@@ -641,7 +641,7 @@ bool		Server::searchingExtensionMatchLocation(std::string requested_path, Locati
 			continue;
 		std::string ext = loc_path.substr(pos + 1);
 		loc_path = loc_path.substr(0, pos);
-		if (!ends_with(requested_path, ext))
+		if (!utils::ends_with(requested_path, ext))
 			continue;
 		if (!loc_path.empty() && std::strncmp(loc_path.c_str(), requested_path.c_str(), loc_path.length()) != 0)
 			continue;
@@ -683,7 +683,7 @@ bool		Server::searchingPrefixMatchLocation(std::string requested_path, Location&
 			}
 		}
 		pos = searched_path.rfind("/");
-		if (pos != std::string::npos && ends_with(searched_path, "/"))
+		if (pos != std::string::npos && utils::ends_with(searched_path, "/"))
 		{
 			rest = requested_path.substr(pos);
 			searched_path = searched_path.erase(pos);
@@ -702,6 +702,26 @@ bool		Server::searchingPrefixMatchLocation(std::string requested_path, Location&
 			break;
 	}
 	return location_found;
+}
+
+/* std::string			Server::encodeURI(const std::string& path)
+{
+
+} */
+
+
+std::string			Server::canonicalizePath(const std::string& path)
+{
+	/* https://datatracker.ietf.org/doc/html/rfc3986#section-3.3 */
+	if (path.empty())
+		return "/";
+	std::string new_path = path;
+	
+	if (new_path[0] != '/')
+		new_path = "/" + new_path;
+	
+	// new_path = encodeURI(new_path);
+	return new_path;
 }
 
 /** Formates the relative requested URI based on root and alias directive from server and location block */
@@ -752,7 +772,7 @@ std::string		Server::searchingUploadDir(std::string requested_path, const Locati
 	}
 	else
 	{
-		p = substr_before_rdel(requested_path, "/");
+		p = utils::substr_before_rdel(requested_path, "/");
 		full_path = determineFilePath(p, loc);
 	}
 	return full_path;

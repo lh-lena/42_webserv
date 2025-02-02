@@ -87,7 +87,7 @@ ParseConfig::ParseException::~ParseException() throw() {};
 
 void		ParseConfig::readFileContent( void )
 {
-	if (is_directory(_conf_file_path))
+	if (utils::is_directory(_conf_file_path))
 		throw ParseException("[emerg] : open() " + _conf_file_path + " failed (Is a directory)");
 
 	std::ifstream conf_file(_conf_file_path.c_str());
@@ -192,7 +192,7 @@ void		ParseConfig::handleHttpBlock(const std::pair<std::string, int>& value, Ser
 		if (directive == "}")
 			break;
 		if (_http_directives.find(directive) == _http_directives.end())
-			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path + ":" + itos(value.second));
+			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path + ":" + utils::itos(value.second));
 		exceptTocken(&_conf_content, el, 0);
 		el = getToken(&_conf_content);
 		val = el.first;
@@ -239,7 +239,7 @@ void		ParseConfig::handleServerBlock(const std::pair<std::string, int>& value, S
 		if (directive == "}")
 			break;
 		if (_server_directives.find(directive) == _server_directives.end())
-			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path + ":" + itos(value.second));
+			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path + ":" + utils::itos(value.second));
 		exceptTocken(&_conf_content, el, 0);
 		el = getToken(&_conf_content);
 		val = el.first;
@@ -309,7 +309,7 @@ void		ParseConfig::handleLocationBlock(const std::pair<std::string, int>& value,
 		if (directive == "}")
 			break;
 		if (_location_directives.find(directive) == _location_directives.end())
-			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path + ":" + itos(value.second));
+			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path + ":" + utils::itos(value.second));
 		exceptTocken(&_conf_content, el, 0);
 		el = getToken(&_conf_content);
 		val = el.first;
@@ -357,11 +357,11 @@ void		ParseConfig::handleWorkCont(const std::pair<std::string, int>& value, Serv
 
 	std::string s = value.first;
 
-	if (!is_digits(s))
-		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required only digits in " + _conf_file_path + ":" + itos(value.second));
-	val = strToUlong(s);
+	if (!utils::is_digits(s))
+		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required only digits in " + _conf_file_path + ":" + utils::itos(value.second));
+	val = utils::strToUlong(s);
 	if (val <= 0)
-		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required a positive number in " + _conf_file_path + ":" + itos(value.second));
+		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required a positive number in " + _conf_file_path + ":" + utils::itos(value.second));
 
 	instance->setWorkCont(val);
 }
@@ -393,15 +393,15 @@ template<typename T> void	ParseConfig::handleClientBodySize(const std::pair<std:
 
 	std::string unit = s.substr(s.length() - 1);
 	std::string nbr = s.substr(0, s.length() - 1);
-	if (!is_digits(nbr))
-		throw ParseException("[emerg] : directive \"client_max_body_size\" required only digits in " + _conf_file_path + ":" + itos(value.second));
-	val = strToUlong(nbr);
+	if (!utils::is_digits(nbr))
+		throw ParseException("[emerg] : directive \"client_max_body_size\" required only digits in " + _conf_file_path + ":" + utils::itos(value.second));
+	val = utils::strToUlong(nbr);
 	if (val <= 0)
-		throw ParseException("[emerg] : directive \"client_max_body_size\" required a positive number in " + _conf_file_path + ":" + itos(value.second));
+		throw ParseException("[emerg] : directive \"client_max_body_size\" required a positive number in " + _conf_file_path + ":" + utils::itos(value.second));
 	if (val > 100)
-		throw ParseException("[emerg] : directive \"client_max_body_size\" limited size up to 100 Megabytes in " + _conf_file_path + ":" + itos(value.second));
+		throw ParseException("[emerg] : directive \"client_max_body_size\" limited size up to 100 Megabytes in " + _conf_file_path + ":" + utils::itos(value.second));
 	if (unit != "M")
-		throw ParseException("[emerg] : directive \"client_max_body_size\" required a number's unit in Megabytes in " + _conf_file_path + ":" + itos(value.second));
+		throw ParseException("[emerg] : directive \"client_max_body_size\" required a number's unit in Megabytes in " + _conf_file_path + ":" + utils::itos(value.second));
 	val = val * 1024 * 1024;
 	instance->setClientMaxBody(val);
 }
@@ -419,10 +419,10 @@ void		ParseConfig::handleListen(const std::pair<std::string, int>& value, Server
 
 	if (pos == std::string::npos)
 	{
-		port_val = strToUlong(s);
+		port_val = utils::strToUlong(s);
 		if(port_val <= 0)
 		{
-			throw  ParseException("[emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + itos(value.second));
+			throw  ParseException("[emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + utils::itos(value.second));
 		}
 		instance->setPort(port_val);
 		return;
@@ -435,11 +435,11 @@ void		ParseConfig::handleListen(const std::pair<std::string, int>& value, Server
 	if (port[0] == '$')
 		port = processEnvVar(port);
 	if (host.empty() || port.empty())
-		throw ParseException("[emerg] \"" + value.first + "\" invalid input in " + _conf_file_path + ":" + itos(value.second));
-	port_val = strToUlong(port);
+		throw ParseException("[emerg] \"" + value.first + "\" invalid input in " + _conf_file_path + ":" + utils::itos(value.second));
+	port_val = utils::strToUlong(port);
 	if(port_val <= 0)
 	{
-		throw  ParseException("[emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + itos(value.second));
+		throw  ParseException("[emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 	instance->setPort(port_val);
 }
@@ -458,7 +458,7 @@ void		ParseConfig::handleAutoindex(const std::pair<std::string, int>& value, Loc
 	else if (s == "off")
 		instance->setAutoindex(false);
 	else
-		throw ParseException("[emerg] : directive \"autoindex\" misses 'on' or 'off' statement in " + _conf_file_path + ":" + itos(value.second));
+		throw ParseException("[emerg] : directive \"autoindex\" misses 'on' or 'off' statement in " + _conf_file_path + ":" + utils::itos(value.second));
 }
 
 void		ParseConfig::handleAllowedMethods(const std::pair<std::string, int>& value, Location* instance)
@@ -471,26 +471,26 @@ void		ParseConfig::handleAllowedMethods(const std::pair<std::string, int>& value
 	}
 	else
 	{
-		throw ParseException("[emerg] : method \"" + s + "\" not allowed in " + _conf_file_path + ":" + itos(value.second));
+		throw ParseException("[emerg] : method \"" + s + "\" not allowed in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 }
 
 void	ParseConfig::handleRedirect(const std::pair<std::string, int>& value, Location* instance)
 {
 	std::string 				s = value.first;
-	std::vector<std::string>	vals = ft_split(s, " ");
+	std::vector<std::string>	vals = utils::ft_split(s, " ");
 	std::string					path = "";
 	int							code;
 
 	if (vals.empty())
 	{
-		throw ParseException("[emerg] : invalid number of arguments in \"redirect\" directive in " + _conf_file_path + ":" + itos(value.second));
+		throw ParseException("[emerg] : invalid number of arguments in \"redirect\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 
-	code = strToUlong(vals[0]);
-	if (code <= 0 || !is_status_code(code))
+	code = utils::strToUlong(vals[0]);
+	if (code <= 0 || !utils::is_status_code(code))
 	{
-		throw ParseException("[emerg] : an invalid status code in \"redirect\" directive in " + _conf_file_path + ":" + itos(value.second));
+		throw ParseException("[emerg] : an invalid status code in \"redirect\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 	if (vals.size() == 2)
 		path = vals[1];
@@ -507,24 +507,24 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 	std::string					path = std::string();
 	int 						errorCode;
 
-	vals = ft_split(s, " ");
+	vals = utils::ft_split(s, " ");
 	int size = vals.size();
 
 	if (vals.empty())
 	{
-		throw ParseException("[emerg] : invalid number of arguments in \"error_page\" directive in " + _conf_file_path + ":" + itos(value.second));
+		throw ParseException("[emerg] : invalid number of arguments in \"error_page\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 
 	for (int i = 0; i < size; i++)
 	{
-		if (strToUlong(vals[size - 1]) == -1)
+		if (utils::strToUlong(vals[size - 1]) == -1)
 			path = vals[size - 1];
-		if (i == size - 1 && strToUlong(vals[size - 1]) == -1)
+		if (i == size - 1 && utils::strToUlong(vals[size - 1]) == -1)
 			break;
-		errorCode = strToUlong(vals[i]);
-		if (errorCode <= 0 || !is_status_code(errorCode))
+		errorCode = utils::strToUlong(vals[i]);
+		if (errorCode <= 0 || !utils::is_status_code(errorCode))
 		{
-			throw ParseException("[emerg] : invalid status code in \"error_page\" directive in " + _conf_file_path + ":" + itos(value.second));
+			throw ParseException("[emerg] : invalid status code in \"error_page\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
 		}
 		if (size == 1)
 		{
@@ -543,7 +543,7 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 					divisor *= 10;
 				}
 				int digit = (errorCode / divisor) % 10;
-				path.replace(pos, 1, itos(digit));
+				path.replace(pos, 1, utils::itos(digit));
 				pos = path.find('*', pos + 1);
 				divisor /= 10;
 			}
@@ -574,11 +574,11 @@ int		ParseConfig::exceptTocken(std::list<std::pair<std::string, int> > *src, std
 	if (front.first != tocken.first)
 	{
 		if (expected == 2)
-			throw ParseException("[emerg] : directive has no opening \"" + tocken.first + "\" in " + _conf_file_path + ":" + itos(tocken.second));
+			throw ParseException("[emerg] : directive has no opening \"" + tocken.first + "\" in " + _conf_file_path + ":" + utils::itos(tocken.second));
 		else if (expected)
-			throw ParseException("[emerg] : is not terminated by \"" + tocken.first + "\" in " + _conf_file_path + ":" + itos(tocken.second));
+			throw ParseException("[emerg] : is not terminated by \"" + tocken.first + "\" in " + _conf_file_path + ":" + utils::itos(tocken.second));
 		else
-			throw ParseException("[emerg] : unexpected \"" + tocken.first + "\" in " + _conf_file_path + ":" + itos(tocken.second));
+			throw ParseException("[emerg] : unexpected \"" + tocken.first + "\" in " + _conf_file_path + ":" + utils::itos(tocken.second));
 	}
 
 	src->pop_front();
@@ -598,7 +598,7 @@ std::string ParseConfig::processEnvVar(const std::string &input)
 	if (start != std::string::npos && end != std::string::npos && (start + 2) != end)
 	{
 		std::string var = input.substr(start + 2, end - start - 2);
-		res = get_env_value(_envp, var);
+		res = utils::get_env_value(_envp, var);
 		return res;
 	}
 	else

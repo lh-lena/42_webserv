@@ -15,7 +15,6 @@ SRC_FILES	+= ParseConfig.cpp
 SRC_FILES	+= Server.cpp
 SRC_FILES	+= ServerControler.cpp
 SRC_FILES	+= utils.cpp
-SRC_FILES	+= generate_html.cpp
 
 OBJ_DIR		:= obj/
 OBJ_FILES	:= $(patsubst %.cpp, $(OBJ_DIR)%.o, $(SRC_FILES))

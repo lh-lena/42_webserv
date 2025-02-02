@@ -437,7 +437,7 @@ static int parseRequest(const std::string & data, Request & req)
 		}
 		else if (name.compare("Content-Length:") == 0)
 		{
-			req.contentLength = strToUlong(value);
+			req.contentLength = utils::strToUlong(value);
 		}
 		else if (name.compare("Content-Type:") == 0)
 		{
@@ -473,7 +473,7 @@ std::string	ServerControler::processRequest(std::string & data)
 
 	int res = parseRequest(data, request);
 	if (res != 0)
-		return ("Error: invalid request. code " + itos(res));
+		return ("Error: invalid request. code " + utils::itos(res));
 
 	// Server & server = chooseServBlock(request.host);
 

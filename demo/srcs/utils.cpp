@@ -1,6 +1,6 @@
 #include "../includes/utils.hpp"
 
-std::string		formatDate(time_t timestamp)
+std::string		utils::formatDate(time_t timestamp)
 {
 	/** RFC7231: IMF-fixdate  = day-name "," SP date1 SP time-of-day SP GMT */
 
@@ -13,7 +13,7 @@ std::string		formatDate(time_t timestamp)
 	return std::string(buf);
 }
 
-std::vector<std::string>	ft_split(std::string& s, std::string delimeter)
+std::vector<std::string>	utils::ft_split(std::string& s, std::string delimeter)
 {
 	size_t pos = 0;
 	std::vector<std::string> parts;
@@ -33,7 +33,7 @@ std::vector<std::string>	ft_split(std::string& s, std::string delimeter)
 	return parts;
 }
 
-long long		strToUlong(std::string s)
+long long		utils::strToUlong(std::string s)
 {
 	long long	val;
 	std::stringstream ss(s);
@@ -45,7 +45,7 @@ long long		strToUlong(std::string s)
 	return val;
 }
 
-std::string		itos(int i)
+std::string		utils::itos(int i)
 {
 	std::stringstream ss;
 
@@ -55,7 +55,7 @@ std::string		itos(int i)
 	return str;
 }
 
-std::string		vector_tostr(const std::vector<std::string>& vec)
+std::string		utils::vector_tostr(const std::vector<std::string>& vec)
 {
 	std::string s = "";
 	std::vector<std::string>::const_iterator cit;
@@ -71,7 +71,7 @@ std::string		vector_tostr(const std::vector<std::string>& vec)
 	return s;	
 }
 
-bool		is_digits(const std::string& str)
+bool		utils::is_digits(const std::string& str)
 {
 	size_t len = str.size();
 	for (size_t i = 0; i < len; i++)
@@ -82,7 +82,7 @@ bool		is_digits(const std::string& str)
 	return true;
 }
 
-std::string		get_file_content(const std::string& path)
+std::string		utils::get_file_content(const std::string& path)
 {
 	if (is_html_genereted_page(path))
 	{
@@ -96,7 +96,7 @@ std::string		get_file_content(const std::string& path)
 	return content;
 }
 
-bool		is_directory(const std::string& path)
+bool		utils::is_directory(const std::string& path)
 {
 	struct stat path_stat;
 	if (stat(path.c_str(), &path_stat) != 0)
@@ -107,7 +107,7 @@ bool		is_directory(const std::string& path)
 	return S_ISDIR(path_stat.st_mode);
 }
 
-bool		is_regular_file(const std::string& path)
+bool		utils::is_regular_file(const std::string& path)
 {
 	struct stat path_stat;
 
@@ -127,7 +127,7 @@ bool		is_regular_file(const std::string& path)
 }
 
 /** If file was not provided, function returns a current time */
-time_t		get_timestamp(std::string path)
+time_t		utils::get_timestamp(std::string path)
 {
 	struct stat result;
 
@@ -142,7 +142,7 @@ time_t		get_timestamp(std::string path)
     return currentTime;
 }
 
-std::string		get_env_value(char **envp, const std::string &variable)
+std::string		utils::get_env_value(char **envp, const std::string &variable)
 {
 	std::string value = "";
 	size_t var_len = variable.length();
@@ -160,7 +160,7 @@ std::string		get_env_value(char **envp, const std::string &variable)
 /** returns substring after delimetr in a path.
  * If failed empty string
  */
-std::string		substr_after_rdel(const std::string& path, std::string del)
+std::string		utils::substr_after_rdel(const std::string& path, std::string del)
 {
 	if (del.empty())
 	{
@@ -182,7 +182,7 @@ std::string		substr_after_rdel(const std::string& path, std::string del)
 	return path.substr(pos + 1);
 }
 
-std::string		substr_before_rdel(const std::string& path, std::string del)
+std::string		utils::substr_before_rdel(const std::string& path, std::string del)
 {
 	if (del.empty())
 	{
@@ -199,13 +199,13 @@ std::string		substr_before_rdel(const std::string& path, std::string del)
 	return path.substr(0, pos);
 }
 
-bool		is_path_exists(const std::string& path)
+bool		utils::is_path_exists(const std::string& path)
 {
 	std::ifstream file(path.c_str());
 	return file.is_open();
 }
 
-std::string generate_path(const std::string& base_path, const std::string& status_code)
+std::string		utils::generate_path(const std::string& base_path, const std::string& status_code)
 {
 	std::string p = base_path;
 	size_t pos = p.find('x');
@@ -218,22 +218,22 @@ std::string generate_path(const std::string& base_path, const std::string& statu
 }
 
 
-bool		is_status_code(int code)
+bool		utils::is_status_code(int code)
 {
 	return (!get_reason_phrase(code).empty());
 }
 
-bool ends_with(const std::string& str, const std::string& suffix)
+bool	utils::ends_with(const std::string& str, const std::string& suffix)
 {
 	return (str.size() >= suffix.size() && str.substr(str.size() - suffix.size()) == suffix);
 }
 
-bool starts_with(const std::string& str, const std::string& prefix)
+bool	utils::starts_with(const std::string& str, const std::string& prefix)
 {
 	return (str.size() >= prefix.size() && str.substr(0, prefix.size()) == prefix);
 }
 
-bool	is_str_in_vector(std::string s, const std::vector<std::string>& content)
+bool	utils::is_str_in_vector(std::string s, const std::vector<std::string>& content)
 {
 	std::vector<std::string>::const_iterator it = std::find(content.begin(), content.end(), s);
 	if (it != content.end())
@@ -243,7 +243,7 @@ bool	is_str_in_vector(std::string s, const std::vector<std::string>& content)
 	return false;
 }
 
-bool		is_matching_ext(const std::string& s, const std::vector<std::string>& exts)
+bool		utils::is_matching_ext(const std::string& s, const std::vector<std::string>& exts)
 {
 	if (exts.size() == 0)
 	{
@@ -261,7 +261,7 @@ bool		is_matching_ext(const std::string& s, const std::vector<std::string>& exts
 	return false;
 }
 
-int		get_dir_entries(const std::string& dirp, std::vector<std::string>& content)
+int		utils::get_dir_entries(const std::string& dirp, std::vector<std::string>& content)
 {
 	// unsigned char	isFile =0x8; unsigned char isFolder =0x4;
 	DIR				*dir;
@@ -286,7 +286,7 @@ int		get_dir_entries(const std::string& dirp, std::vector<std::string>& content)
 	return 0;
 }
 
-std::string		str_tolower(std::string s)
+std::string		utils::str_tolower(std::string s)
 {
 	for (size_t i = 0; i < s.size(); i++)
 	{
@@ -295,7 +295,7 @@ std::string		str_tolower(std::string s)
 	return s;
 }
 
-std::string		str_toupper(std::string s)
+std::string		utils::str_toupper(std::string s)
 {
 	for (size_t i = 0; i < s.size(); i++)
 	{
@@ -304,41 +304,32 @@ std::string		str_toupper(std::string s)
 	return s;
 }
 
-bool	is_redirection(size_t code)
+bool	utils::is_redirection(size_t code)
 {
 	return (code >= 300 && code < 400);
 }
 
-bool	is_successful(size_t code)
+bool	utils::is_successful(size_t code)
 {
 	return (code >= 200 && code < 300);
 }
 
-bool	is_informational(size_t code)
+bool	utils::is_informational(size_t code)
 {
 	return (code >= 100 && code < 200);
 }
 
-bool	is_client_error(size_t code)
+bool	utils::is_client_error(size_t code)
 {
 	return (code >= 400 && code < 500);
 }
 
-bool	is_server_error(size_t code)
+bool	utils::is_server_error(size_t code)
 {
 	return (code >= 500 && code < 600);
 } 
 
-void extractPath(std::string const &request, std::string& method, std::string& path)
-{
-	// if (!request.size())
-	// 	return "";
-	std::stringstream ss(request);
-	ss >> method >> path;
-
-}
-
-bool	has_write_permission(const std::string& path)
+bool	utils::has_write_permission(const std::string& path)
 {
 	struct stat path_stat;
 
@@ -349,9 +340,9 @@ bool	has_write_permission(const std::string& path)
 	return false;
 }
 
-std::string 	get_interpreter(const std::string& s)
+std::string 	utils::get_interpreter(const std::string& s)
 {
-	std::string ext = substr_after_rdel(s, ".");
+	std::string ext = utils::substr_after_rdel(s, ".");
 
 	if (ext.empty())
 		return std::string();
@@ -369,7 +360,7 @@ std::string 	get_interpreter(const std::string& s)
 	return std::string();
 }
 
-std::string		get_reason_phrase(int code)
+std::string		utils::get_reason_phrase(int code)
 {
 	switch(code)
 	{
@@ -428,7 +419,7 @@ std::string		get_reason_phrase(int code)
 	}
 }
 
-std::string		get_status_message(int code)
+std::string		utils::get_status_message(int code)
 {
 	switch(code)
 	{
@@ -489,12 +480,12 @@ std::string		get_status_message(int code)
 	}
 }
 
-bool	is_html_genereted_page(const std::string& path)
+bool	utils::is_html_genereted_page(const std::string& path)
 {
 	return (std::strncmp(path.c_str(), "<!DOCTYPE html>", 15) == 0);
 }
 
-std::string		get_MIME_type(std::string path)
+std::string		utils::get_MIME_type(std::string path)
 {
 	size_t pos = path.rfind(".");
 
@@ -551,4 +542,97 @@ std::string		get_MIME_type(std::string path)
 	if(std::strcmp(res.c_str(), ".svgz") == 0)
 		return "image/svg+xml";
 	return "application/text";
+}
+
+std::string		utils::generate_html_directory_listing(const std::string& dir_path)
+{
+	std::stringstream html;
+
+	html << "<!DOCTYPE html>\n"
+			"<html lang=\"en\">\n"
+			"<head>\n"
+			"    <meta charset=\"UTF-8\">\n"
+			"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+			"    <title>Directory Listing</title>\n"
+			"</head>\n"
+			"<body>\n"
+			"    <ul>\n";
+
+	std::vector<std::string> dir_content;
+
+	if (utils::get_dir_entries(dir_path, dir_content) == 0)
+	{
+		for (size_t i = 0; i < dir_content.size(); i++)
+		{
+			std::string	d_name = dir_content[i];
+			if (d_name != "." && d_name != "..")
+			{
+				html << "        <li><a href=\"" << d_name << "\">" << d_name << "</a></li>\n";
+			}
+		}
+	}
+	else
+	{
+		html << "       <p>Error: Could not open directory.</p>\n";
+	}
+
+	html << "    </ul>\n"
+			"</body\n>"
+			"</html>";
+
+	return html.str();
+}
+
+std::string		utils::generate_html_error_page(int status_code)
+{
+	std::stringstream	html;
+
+	html << "<!DOCTYPE html>\n"
+			"<html lang=\"en\">\n"
+			"<head>\n"
+			"    <meta charset=\"UTF-8\">\n"
+			"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+			"    <title>"
+			<< status_code
+			<< " "
+			<< utils::get_reason_phrase(status_code)
+			<< "</title>\n"
+			"    <style>\n"
+			"        body {\n"
+			"            display: flex;\n"
+			"            justify-content: center;\n"
+			"            align-items: center;\n"
+			"            height: 100vh;\n"
+			"            margin: 0;\n"
+			"            font-family: Arial, sans-serif;\n"
+			"        }\n"
+			"        .error-container {\n"
+			"            text-align: center;\n"
+			"            background: #fff;\n"
+			"            padding: 20px;\n"
+			"        }\n"
+			"        .error-container h1 {\n"
+			"            font-size: 3em;\n"
+			"            margin: 0 0 10px;\n"
+			"        }\n"
+			"        .error-container p {\n"
+			"            font-size: 1.2em;\n"
+			"            margin: 0 0 15px;\n"
+			"        }\n"
+			"    </style>"
+			"</head>\n"
+			"<body>\n"
+			"    <div class=\"error-container\">"
+			"        <h1>"
+			<< status_code
+			<< " "
+			<< utils::get_reason_phrase(status_code)
+			<<"</h1>\n"
+			"        <p>"
+			<< utils::get_status_message(status_code)
+			<< "</p>\n"
+			"</body>\n"
+			"</html>";
+
+	return html.str();
 }
