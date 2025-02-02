@@ -438,7 +438,8 @@ void	Server::handleAndSetRedirectResponse(Response& response, const Location& lo
 	{
 		std::map<int, std::string>::const_iterator it = loc.getRedirect().begin();
 		response.status_code = it->first;
-		response.path = it->second; // what with root???
+		response.location = "http://localhost:8080" + it->second;
+		// response.path = it->second; // what with root???
 		// searchingPrefixMatchLocation(it->second, path, location, location_found);
 	}
 	// searchingPrefixMatchLocation(response.path, response.path, loc, response.location_found);

@@ -519,7 +519,7 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 	{
 		if (strToUlong(vals[size - 1]) == -1)
 			path = vals[size - 1];
-		if (i == size - 1 && strToUlong(vals[size - 1]) == -1) // to break if last element is a file
+		if (i == size - 1 && strToUlong(vals[size - 1]) == -1)
 			break;
 		errorCode = strToUlong(vals[i]);
 		if (errorCode <= 0 || !is_status_code(errorCode))
