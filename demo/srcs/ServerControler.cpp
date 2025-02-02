@@ -473,7 +473,7 @@ std::string	ServerControler::processRequest(std::string & data)
 
 	int res = parseRequest(data, request);
 	if (res != 0)
-		return ("Error: invalid request");
+		return ("Error: invalid request. code " + itos(res));
 
 	// Server & server = chooseServBlock(request.host);
 

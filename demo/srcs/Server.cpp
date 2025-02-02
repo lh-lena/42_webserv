@@ -117,7 +117,7 @@ void	Server::initResponse(Response& response, const Request& request)
 
 void	Server::handleStaticRequest(const Request& request, Response& response, const Location& loc)
 {
-	std::cout << "request.method " << request.method << std::endl;
+	// std::cout << "request.method " << request.method << std::endl;
 	if (std::strcmp(str_tolower(request.method).c_str(), "get") == 0 || \
 		std::strcmp(str_tolower(request.method).c_str(), "head") == 0)
 	{
@@ -209,8 +209,7 @@ void		Server::handleDELETE(Response& response, const Location& loc)
 void		Server::handlePOST(const Request& request, Response& response, const Location& loc)
 {
 	response.uploadDir = searchingUploadDir(response.reqURI, &loc);
-	std::cout << "response.uploadDir " << response.uploadDir << std::endl;
-	std::cout << "response.uploadFile " << response.uploadFile << std::endl;
+	response.path = determineFilePath(response.reqURI, &loc);
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
@@ -224,7 +223,7 @@ void		Server::handlePOST(const Request& request, Response& response, const Locat
 	}
 	else
 	{
-		/** if the path not a dir ??*/
+		// std::cout << "response1 " << response << std::endl;
 		if (substr_after_rdel(response.path, ".").empty())
 		{
 			response.error_path = getCustomErrorPage(FORBIDDEN, loc);
@@ -232,6 +231,7 @@ void		Server::handlePOST(const Request& request, Response& response, const Locat
 			return;
 		}
 		response.uploadFile = substr_after_rdel(response.path, "/");
+		std::cout << "response.uploadFile1 " << response.uploadFile << std::endl;
 		std::ofstream file((response.uploadDir + response.uploadFile).c_str()); // "/" ??
 		if (!file.is_open())
 		{
@@ -281,8 +281,8 @@ void		Server::handleRequestedURI(Response& response, const Location& loc)
 		handleAndSetRedirectResponse(response, loc);
 		return;
 	}
-	std::cout << "determineFilePath " << response.path << std::endl;
 	response.path = determineFilePath(response.reqURI, &loc);
+	// std::cout << "determineFilePath " << response.path << std::endl;
 	if (is_regular_file(response.path))
 	{
 		setGetResponse(response, OK);
@@ -734,21 +734,27 @@ std::string			Server::determineFilePath(std::string requested_path, const Locati
 /** if specified uplaod_dir directive will appendet to root, otherwise */
 std::string		Server::searchingUploadDir(std::string requested_path, const Location* loc)
 {
-	std::string p = "";
+	std::string p = std::string();
 	std::string root = std::string();
+	std::string full_path = std::string();
+	Location	tmp_loc;
+
 	if (loc && !loc->getUploadDir().empty())
 	{
-		p =  loc->getUploadDir(); /** what if there another root as well? */
-		std::cout <<  "upload dir-> " << p << std::endl;
+		p =  loc->getUploadDir();
+		bool location_found = findRequestedLocation(p, tmp_loc);
+		if (location_found)
+		{
+			full_path = determineFilePath(p, &tmp_loc);
+		}
+		full_path = determineFilePath(p, loc);
 	}
 	else
 	{
 		p = substr_before_rdel(requested_path, "/");
+		full_path = determineFilePath(p, loc);
 	}
-	root = determineFilePath(p, loc);
-	root = root + p;
-	std::cout <<  " path upload dir-> " << root << std::endl;
-	return root;
+	return full_path;
 }
 
 
