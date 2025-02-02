@@ -12,6 +12,7 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 
+/** only template, not sure about arguments */
 class CGIHandler
 {
 public:
@@ -23,7 +24,8 @@ public:
 	void	createChildProcess(Response& response, const Request& request);
 	void	executeCGI(Response& response);
 
-	std::map<std::string, std::string> env;
+	std::map<std::string, std::string>	env;
+	char**								envp;
 private:
 };
 

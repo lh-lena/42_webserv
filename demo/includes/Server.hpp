@@ -59,12 +59,11 @@ class Server
 		std::string							getCustomErrorPage(int status_code, const Location& src);
 		void								handleStaticRequest(const Request& request, Response& response, const Location& loc);
 		bool								findRequestedLocation(const std::string& path, Location& loc);
-		// int									handleRequestedURI(std::string requested_path, std::string& path, Location& loc, bool& location_found);
 		void								handleRequestedURI(Response& response, const Location& loc);
 		bool								searchingPrefixMatchLocation(std::string requested_path, Location& location);
 		bool								searchingExtensionMatchLocation(std::string requested_path, Location& location);
-		int									searchingUploadDir(std::string requested_path, std::string& path, const Location& location, bool& location_found);
-		std::string							determineFilePath(std::string requested_path, const Location& loc);	
+		std::string							searchingUploadDir(std::string requested_path, const Location* loc);
+		std::string							determineFilePath(std::string requested_path, const Location* loc);	
 		bool								appendIndexFile(std::string& path, const Location& loc);
 		void								handleGET(Response& response, const Location& loc);
 		void								handlePOST(const Request& request, Response& response, const Location& loc);
@@ -76,12 +75,11 @@ class Server
 		void								handleMethodNotAllowed(Response& response, const Location& location);
 		void								handleAndSetRedirectResponse(Response& response, const Location& loc);
 		void								handleGetDirectoryResponse(Response& response, const Location& loc);
-		static void								createResponse(const Response& response, std::string& result);
+		static void							createResponse(const Response& response, std::string& result);
 		void								initResponse(Response& response, const Request& request);
 		size_t								handleDeleteDirectoryResponse(Response& response);
 		size_t								remove_file(const std::string& path);
 		size_t								remove_directory(const std::string& path);
-		static std::string							formatDate(time_t timestamp);
 		int									handleCGI(Response& response, Location& loc);
 		void								setCGIResponse(Response& response, size_t status_code);
 

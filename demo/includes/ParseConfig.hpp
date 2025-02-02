@@ -28,7 +28,6 @@ class ParseConfig
 		void							handleHttpBlock(const std::pair<std::string, int>& value, Server* instance);
 		void							handleServerBlock(const std::pair<std::string, int>& value, Server* instance);
 		void							handleLocationBlock(const std::pair<std::string, int>& value, Location* instance);
-		// void							handleClientBodySize(const std::pair<std::string, int>& value, Server* instance);
 		void							handleListen(const std::pair<std::string, int>& value, Server* instance);
 		void							handleWorkCont(const std::pair<std::string, int>& value, Server* instance);
 		void							handleServerName(const std::pair<std::string, int>& value, Server* instance);

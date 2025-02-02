@@ -515,8 +515,6 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 		throw ParseException("[emerg] : invalid number of arguments in \"error_page\" directive in " + _conf_file_path + ":" + itos(value.second));
 	}
 
-	std::cout << "size: " << size << std::endl;
-
 	for (int i = 0; i < size; i++)
 	{
 		if (strToUlong(vals[size - 1]) == -1)
@@ -533,22 +531,22 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 			instance->addErrorPage(errorCode, std::string());
 			break;
 		}
-		std::cout << "i: " << i << std::endl;
 		size_t pos = path.find('*');
-		std::cout << "path: " << path << std::endl;
-		std::cout << "errorCode: " << errorCode << std::endl;
 		if (pos != std::string::npos)
 		{
-			int divisor = 100;
+			int divisor = 1;
 			while (pos != std::string::npos && divisor > 0)
 			{
+				size_t pos_2 = path.rfind('.');
+				for (size_t i = 0; i < pos_2 - pos - 1; ++i)
+				{
+					divisor *= 10;
+				}
 				int digit = (errorCode / divisor) % 10;
-				std::cout << "digit: " << digit << std::endl;
 				path.replace(pos, 1, itos(digit));
 				pos = path.find('*', pos + 1);
 				divisor /= 10;
 			}
-			std::cout << "path2 : " << path << std::endl;
     	}
 		instance->addErrorPage(errorCode, path);
 	}

@@ -2,6 +2,7 @@
 # define UTILS_HPP
 
 # include <list>
+# include <ctime>
 # include <string>
 # include <vector>
 # include <sstream>

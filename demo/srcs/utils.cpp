@@ -366,6 +366,7 @@ std::string 	get_interpreter(const std::string& s)
 		return "/usr/bin/php";
 	if(std::strcmp(ext.c_str(), "pl") == 0)
 		return "/usr/bin/perl";
+	return std::string();
 }
 
 std::string		get_reason_phrase(int code)

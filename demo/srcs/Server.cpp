@@ -165,7 +165,7 @@ void		Server::handleDELETE(Response& response, const Location& loc)
 		handleAndSetRedirectResponse(response, loc);
 		return;
 	}
-	response.path = determineFilePath(response.reqURI, loc);
+	response.path = determineFilePath(response.reqURI, &loc);
 
 	/** 404 Not Found */
 	if (!response.location_found)
@@ -208,8 +208,9 @@ void		Server::handleDELETE(Response& response, const Location& loc)
 
 void		Server::handlePOST(const Request& request, Response& response, const Location& loc)
 {
-	searchingUploadDir(response.reqURI, response.uploadDir, loc, response.location_found);
-	std::cout << "response.uploadDir " << response.uploadFile << std::endl;
+	response.uploadDir = searchingUploadDir(response.reqURI, &loc);
+	std::cout << "response.uploadDir " << response.uploadDir << std::endl;
+	std::cout << "response.uploadFile " << response.uploadFile << std::endl;
 	/** 404 Not Found */
 	if (!response.location_found)
 	{
@@ -281,7 +282,7 @@ void		Server::handleRequestedURI(Response& response, const Location& loc)
 		return;
 	}
 	std::cout << "determineFilePath " << response.path << std::endl;
-	response.path = determineFilePath(response.reqURI, loc);
+	response.path = determineFilePath(response.reqURI, &loc);
 	if (is_regular_file(response.path))
 	{
 		setGetResponse(response, OK);
@@ -299,7 +300,7 @@ void	Server::setCGIResponse(Response& response, size_t status_code)
 }
 
 
-/** NOTES:
+/** NOTES: to rm
  * - parse cgi request
  * - path also a cgi path to the executable file without query
  * - 
@@ -311,9 +312,8 @@ int		Server::handleCGI(Response& response, Location& loc)
 
 	response.uploadDir = substr_before_rdel(response.path, "/");
 	std::cout << "response.uploadDir1 " << response.uploadDir << std::endl;
-	int rc = Server::searchingUploadDir(response.reqURI, response.uploadDir, loc, response.location_found);
+	response.uploadDir = Server::searchingUploadDir(response.reqURI, &loc);
 
-	std::cout << "searchingUploadDir_rc1 " << rc << std::endl;
 	std::cout << "response.uploadDir2 " << response.uploadDir << std::endl;
 
 	std::cout << "response.path1 " << response.path << std::endl;
@@ -598,7 +598,7 @@ std::string		Server::getCustomErrorPage(int status_code, const Location& src)
 	{
 		if ((location_found = findRequestedLocation(er_pages[status_code], loc)) == true)
 		{
-			path = determineFilePath(er_pages[status_code], loc);
+			path = determineFilePath(er_pages[status_code], &loc);
 		}
 		// std::cout << "std::string	Server::getCustomErrorPage(int status_code, const Location& src)" << std::endl;
 	}
@@ -704,57 +704,51 @@ bool		Server::searchingPrefixMatchLocation(std::string requested_path, Location&
 }
 
 /** Formates the relative requested URI based on root and alias directive from server and location block */
-std::string			Server::determineFilePath(std::string requested_path, const Location& loc)
+std::string			Server::determineFilePath(std::string requested_path, const Location* loc)
 {
-	std::string path = std::string();
+	std::string path = requested_path;
 	std::string	root = std::string();
-	if (!loc.getRoot().empty())
+	// std::cout << "location: " << *loc << std::endl;
+	if (loc && !loc->getRoot().empty())
 	{
-		root = loc.getRoot();
+		root = loc->getRoot();
 	}
 	else if (!this->getRoot().empty())
 	{
 		root = this->getRoot();
 	}
 
-	if (!loc.getAlias().empty())
+	if (loc && !loc->getAlias().empty())
 	{
-		std::string	loc_path = loc.getPath();
-		root = loc.getAlias();
-		requested_path = requested_path.substr(loc_path.length());
+		std::string	loc_path = loc->getPath();
+		if (path.find(loc_path) == 0)
+		{
+			root = loc->getAlias();
+			path.erase(0, loc_path.length());
+		}
 	}
-	path = root + requested_path;
-	return path;
+	std::string full_path = root + path;
+	return full_path;
 }
 
-int		Server::searchingUploadDir(std::string requested_path, std::string& path, const Location& location, bool& location_found)
+/** if specified uplaod_dir directive will appendet to root, otherwise */
+std::string		Server::searchingUploadDir(std::string requested_path, const Location* loc)
 {
-	if (!location_found)
-	{
-		return -1;
-	}
-
 	std::string p = "";
 	std::string root = std::string();
-	root = this->getRoot().empty() == false ? this->getRoot() : std::string();
-
-	if (!location.getUploadDir().empty())
+	if (loc && !loc->getUploadDir().empty())
 	{
-		p = location.getUploadDir(); /** what if there another root as well? */
+		p =  loc->getUploadDir(); /** what if there another root as well? */
 		std::cout <<  "upload dir-> " << p << std::endl;
 	}
 	else
 	{
 		p = substr_before_rdel(requested_path, "/");
 	}
-	if (!location.getRoot().empty())
-	{
-		root = location.getRoot();
-		std::cout <<  " root upload dir-> " << root << std::endl;
-	}
-	path = root + p;
-	std::cout <<  " path upload dir-> " << path << std::endl;
-	return 0;
+	root = determineFilePath(p, loc);
+	root = root + p;
+	std::cout <<  " path upload dir-> " << root << std::endl;
+	return root;
 }
 
 

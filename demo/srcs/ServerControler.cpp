@@ -439,6 +439,10 @@ static int parseRequest(const std::string & data, Request & req)
 		{
 			req.contentLength = strToUlong(value);
 		}
+		else if (name.compare("Content-Type:") == 0)
+		{
+			// Content-Type: multipart/form-data;boundary="delimiter12345"
+		}
 	}
 
 /* 	std::cout << "method = " << req.method << std::endl
@@ -465,7 +469,7 @@ std::string	ServerControler::processRequest(std::string & data)
 	Request		request;
 	Response	response_struct;
 	Location	location;
-	std::string response;
+	std::string	response;
 
 	int res = parseRequest(data, request);
 	if (res != 0)
