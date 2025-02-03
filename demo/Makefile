@@ -14,6 +14,7 @@ SRC_FILES	+= Response.cpp
 SRC_FILES	+= ParseConfig.cpp
 SRC_FILES	+= Server.cpp
 SRC_FILES	+= ServerControler.cpp
+SRC_FILES	+= CGI.cpp
 SRC_FILES	+= utils.cpp
 
 OBJ_DIR		:= obj/
@@ -77,6 +78,7 @@ TEST_INCLUDES	:= -I/opt/homebrew/Cellar/googletest/1.15.2/include
 
 # TEST_FILES		+= test_main.cpp
 # TEST_FILES		+= UtilsTest.cpp
+# TEST_FILES		+= CGIHandlerTest.cpp
 
 TEST_OBJ		:= $(patsubst %.cpp, $(OBJ_DIR)%.o, $(TEST_FILES))
 

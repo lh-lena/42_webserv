@@ -13,19 +13,20 @@
 # include <sys/wait.h>
 
 /** only template, not sure about arguments */
-class CGIHandler
+class CGI
 {
 public:
-	CGIHandler(const Server& server, const Location& loc, const Request& request, Response& response);
-	~CGIHandler();
+	CGI(const Request& request) : _request(request) {};
+	~CGI() {};
 
-	void	setupVariables(const Request& request);
 	void	setEnvironment(const Request& request);
+	void	printEnvironment();
 	void	createChildProcess(Response& response, const Request& request);
 	void	executeCGI(Response& response);
 
 	std::map<std::string, std::string>	env;
 	char**								envp;
+	Request 							_request;
 private:
 };
 
