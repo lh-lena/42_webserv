@@ -13,6 +13,8 @@ struct Request
 	std::string	reqURI; /** the path must be extracted from the request */
 	std::string	protocol;
 	std::string	query;
+	std::string	charset;
+	std::string	contentType;
 	long long	contentLength;
 	char**		envVars;
 
@@ -24,6 +26,8 @@ struct Request
 		reqURI = std::string();
 		protocol = std::string();
 		query = std::string();
+		charset = std::string();
+		contentType = std::string();
 		contentLength = 0;
 	};
 };

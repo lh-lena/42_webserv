@@ -317,11 +317,7 @@ int		Server::handleCGI(Response& response, Location& loc)
 	std::cout << "response.uploadDir2 " << response.uploadDir << std::endl;
 
 	std::cout << "response.path1 " << response.path << std::endl;
-	if (response.path.find("?") != std::string::npos) /* check queries */
-	{
-		response.query = utils::substr_after_rdel(response.path, "?");
-		response.path = utils::substr_before_rdel(response.path, "?");
-	}
+	
 	std::cout << "is_regular_file(response.path) " << utils::is_regular_file(response.path) << std::endl;
 	if (utils::is_regular_file(response.path))
 	{

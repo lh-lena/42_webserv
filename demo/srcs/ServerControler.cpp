@@ -419,7 +419,12 @@ static int parseRequest(const std::string & data, Request & req)
 
 	std::istringstream tmp(line);
 
-	tmp >> req.method >> req.reqURI >> req.protocol;
+	tmp >> req.method >> req.reqURI >> req.protocol; /* parse first line */
+	if (req.reqURI.find("?") != std::string::npos) /* check queries */
+	{
+		req.query = utils::substr_after_rdel(req.reqURI, "?");
+		req.reqURI = utils::substr_before_rdel(req.reqURI, "?");
+	}
 	if (tmp.fail())
 	{
 		return 2;
@@ -441,6 +446,7 @@ static int parseRequest(const std::string & data, Request & req)
 		}
 		else if (name.compare("Content-Type:") == 0)
 		{
+			req.contentType = value;
 			// Content-Type: multipart/form-data;boundary="delimiter12345"
 		}
 	}
