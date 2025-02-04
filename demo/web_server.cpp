@@ -124,7 +124,7 @@ int create_tcp_server_socket()
 	}
 
 	/*This helps in manipulating options for the socket referred by the file descriptor sockfd. Optional*/
-	int res = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &reuse, sizeof(reuse)); 
+	int res = setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &reuse, sizeof(reuse));
 
 	if (res == -1)
 	{
@@ -167,7 +167,7 @@ int create_tcp_server_socket()
 
 void remove_fd(int fd)
 {
-	struct epoll_event epoll_event; 
+	struct epoll_event epoll_event;
 
 	epoll_ctl(fd, EPOLL_CTL_DEL, fd, &epoll_event);
 }
@@ -211,7 +211,7 @@ int forward_message(int fd, std::string partPath)
 		path = error_404;
 	}
 	std::ifstream in(path.c_str());
-	std::string contents((std::istreambuf_iterator<char>(in)), 
+	std::string contents((std::istreambuf_iterator<char>(in)),
 	std::istreambuf_iterator<char>());
 	std::cout <<"[LOG] : Transmission Data Size "<< contents.length()<<" Bytes." << std::endl;
 
@@ -219,7 +219,7 @@ int forward_message(int fd, std::string partPath)
 
 	std::string response = "HTTP/1.1 200 OK\r\n"
 					"Content-Type: " + getContentType(partPath) + "\r\n"
-					"Content-Length: " + itosing(contents.size()) + "\r\n\r\n" 
+					"Content-Length: " + itosing(contents.size()) + "\r\n\r\n"
 					+ contents;
 	int sent_bytes = send(fd, response.c_str(), response.size(), 0);
 
@@ -332,7 +332,7 @@ int create_epoll(int server_fd)
 			// Handle the event now, by reading in data and printing it.
 			uint32_t events = epoll_event.events;
 			int fd = epoll_event.data.fd;
-			
+
 			if (fd == server_fd)
 			{
 				/* New connection request received */
@@ -342,7 +342,7 @@ int create_epoll(int server_fd)
 				while (1)
 				{
 					/* Accept new connections */
-					int conn_sock = accept(server_fd, (struct sockaddr*)&new_addr, 
+					int conn_sock = accept(server_fd, (struct sockaddr*)&new_addr,
 									(socklen_t*)&addrlen);
 					if (conn_sock == -1)
 					{
@@ -354,7 +354,7 @@ int create_epoll(int server_fd)
 						}
 						else
 						{
-							std::cout << "[ERROR] : Accepting client connection: " 
+							std::cout << "[ERROR] : Accepting client connection: "
 							<< strerror(errno) << std::endl;
 							break;
 						}
@@ -377,8 +377,8 @@ int create_epoll(int server_fd)
 					}
 				}
 			}
-			else if ((events & EPOLLERR) || 
-				(events & EPOLLHUP) || 
+			else if ((events & EPOLLERR) ||
+				(events & EPOLLHUP) ||
 				(!(events & EPOLLIN)))
 			{
 				std::cout << "[ERROR] : Closing connection due to EPOLLERR or EPOLLHUP." << std::endl;
@@ -407,10 +407,10 @@ int main(int argc, char *argv[], char* envp[])
     int server_fd = create_tcp_server_socket();
 	if (!server_fd)
 		return (server_fd);
-	
+
 	if (!set_to_nonblocking(server_fd))
 		return -8;
-	
+
 	if (create_epoll(server_fd) < 0)
 		return -1;
 
@@ -422,7 +422,7 @@ epoll: https://daankolthof.com/2019/08/01/asynchronous-file-i-o-on-linux-the-epo
 
 remove file descriptor:
 // For the sake of compatibility with older versions of Linux, this struct must exist (pointer to struct cannot be nullptr).
-struct epoll_event epoll_event; 
+struct epoll_event epoll_event;
 
 epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, &epoll_event);
  */

@@ -7,10 +7,10 @@ struct Connection
 	bool active;
 	time_t start;
 	std::string request;
-	bool req_complite;
+	bool req_complete;
 	size_t next_req_chunk;
 	std::string response;
-	bool resp_complite;
+	bool resp_complete;
 
 };
 

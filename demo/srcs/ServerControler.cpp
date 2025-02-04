@@ -18,7 +18,6 @@
 #include <csignal>
 
 #define _XOPEN_SOURCE_EXTENDED 1
-#define MAX_CONN_NUM 200
 
 volatile bool g_serv_end = false;
 
@@ -26,7 +25,7 @@ volatile bool g_serv_end = false;
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-ServerControler::ServerControler(): servEnd(false)
+ServerControler::ServerControler()
 {
 }
 
@@ -169,7 +168,7 @@ static int	isInPollfds(int fd, const std::vector<int> & sds)
 	return 0;
 }
 
-static int	getConnPos(int fd, std::vector<Connection> &conns)
+static int	getConnIdx(int fd, std::vector<Connection> &conns)
 {
 	int size = conns.size();
 
@@ -183,7 +182,6 @@ static int	getConnPos(int fd, std::vector<Connection> &conns)
 
 void	ServerControler::startServing()
 {
-	signal(SIGINT, ServerControler::sig_handler);
 	int timeout, size, res, temp;
 	std::string str;
 	std::string request;
@@ -193,6 +191,8 @@ void	ServerControler::startServing()
 	char buf[1500];
 	//bool conn_active = false;
 	std::vector<Connection> conns;
+
+	signal(SIGINT, ServerControler::sig_handler);
 
 	try
 	{
@@ -239,7 +239,7 @@ void	ServerControler::startServing()
 		{
 			if (pfds[i].revents == 0)
 			{
-				res = getConnPos(pfds[i].fd, conns);
+				res = getConnIdx(pfds[i].fd, conns);
 				if (res != static_cast<int>(conns.size()))
 				{
 					time_t t = time(NULL);
@@ -255,7 +255,7 @@ void	ServerControler::startServing()
 			}
 			else if ((pfds[i].revents & POLLHUP) || (pfds[i].revents & POLLERR))
 			{
-				res = getConnPos(pfds[i].fd, conns);
+				res = getConnIdx(pfds[i].fd, conns);
 				if (res != static_cast<int>(conns.size()))
 					conns.erase(conns.begin() + res);
 				close(pfds[i].fd);
@@ -290,7 +290,7 @@ void	ServerControler::startServing()
 				else
 				{
 					//conn_active = true;
-					temp = getConnPos(pfds[i].fd, conns);
+					temp = getConnIdx(pfds[i].fd, conns);
 
 					request = "";
 					str = "";
@@ -435,7 +435,7 @@ static int parseRequest(const std::string & data, Request & req)
 		std::istringstream tmp(line);
 		// std::cout << "LINE " << line << std::endl;
 		tmp >> name >> value;
-		
+
 		if (name.compare("Host:") == 0)
 		{
 			req.host = value;
@@ -481,12 +481,12 @@ std::string	ServerControler::processRequest(std::string & data)
 	if (res != 0)
 		return ("Error: invalid request. code " + utils::itos(res));
 
-	// Server & server = chooseServBlock(request.host);
+	Server serv = chooseServBlock(request.host);
 
 	//std::string response = "Hello\n";
 	//std::cout << data << std::endl;
 
-	Server serv = getServers()[0];
+	//Server serv = getServers()[0];
 
 	serv.initResponse(response_struct, request);
 	response_struct.location_found = serv.findRequestedLocation(request.reqURI, location);
@@ -507,15 +507,14 @@ std::string	ServerControler::processRequest(std::string & data)
 	return response;
 }
 
+/*
+** --------------------------------- ACCESSOR ---------------------------------
+*/
+
 size_t		ServerControler::getServBlockNbr( void )
 {
 	return _servBlocks.size();
 }
-
-
-/*
-** --------------------------------- ACCESSOR ---------------------------------
-*/
 
 void	ServerControler::setServer(const Server& instance)
 {
@@ -525,6 +524,47 @@ void	ServerControler::setServer(const Server& instance)
 const std::vector<Server>&	ServerControler::getServers( void ) const
 {
 	return (_servBlocks);
+}
+
+
+Connection	&	ServerControler::getConnection(int fd)
+{
+	int size = _conns.size();
+	for (int i = 0; i < size; i++)
+	{
+		if (_conns[i].fd = fd)
+			return _conns[i];
+	}
+	throw std::invalid_argument("No connection for this fd");
+}
+
+void	ServerControler::addConnection(int fd)
+{
+	struct pollfd &pf = _pfds[_nfds - 1];
+	pf.fd = fd;
+	pf.events = POLLIN;
+	_nfds++;
+
+	Connection c;
+	c.fd = fd;
+	c.active = true;
+	c.start = time(NULL);
+	_conns.push_back(c);
+
+}
+
+void	ServerControler::removeConnection(int fd)
+{
+	int	size = _conns.size();
+	if (!size)
+		return ;
+	for (int i = 0; i < size; i++)
+	{
+		if (_conns[i].fd = fd)
+			_conns.erase(_conns.begin() + i);
+	}
+	size = _nfds - 1;
+	
 }
 
 /* ************************************************************************** */

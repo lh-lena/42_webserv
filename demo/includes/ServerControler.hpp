@@ -2,9 +2,12 @@
 # define SERVERCONTROLER_HPP
 
 # include "Server.hpp"
+# include "Connection.hpp"
 # include <string>
 # include <vector>
 # include <iostream>
+
+# define MAX_CONN_NUM 1024
 
 extern volatile bool g_serv_end;
 
@@ -17,18 +20,29 @@ class ServerControler
 		ServerControler( ServerControler const & src );
 		~ServerControler();
 
-		ServerControler&					operator=( ServerControler const & rhs );
-		void								setServer( const Server& instance );
-		const std::vector<Server>&			getServers( void ) const;
-		size_t								getServBlockNbr( void );
-		static void							sig_handler(int sig_num);
+		ServerControler&				operator=( ServerControler const & rhs );
+		void							setServer( const Server& instance );
+		const std::vector<Server>	&	getServers( void ) const;
+		size_t							getServBlockNbr( void );
+		Connection					&	getConnection(int fd);
+		void							addConnection(int fd);
+		void							removeConnection(int fd);
+		int								getNfds(void);
+		void							incrementNfds(void);
+		void							decrementNfds(void);
+
+		static void						sig_handler(int sig_num);
 
 		void							startServing();
-		bool	servEnd;
+		//bool	servEnd;
 
 	private:
-		std::vector<Server>					_servBlocks;
+
+		std::vector<Server>	_servBlocks;
 		std::vector<int>	_socketFds; // array of listening sockets identifiers (server_fds)
+		std::vector<Connection>	_conns;
+		struct pollfd _pfds[MAX_CONN_NUM];
+		int	_nfds;
 
 		void	createListeningSockets(); // fill _socketFds
 		std::string	processRequest(std::string & request); // parse request and pass it to the rigth server block to get response
