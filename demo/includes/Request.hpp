@@ -1,12 +1,19 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
-#include <string>
-#include <vector>
-#include <map>
+# include <iostream>
+# include <string>
+# include <vector>
+# include <map>
 
-struct Request
+class Request
 {
+public:
+	Request();
+	~Request();
+
+	bool		isCGIRequest(const Location& loc) const;
+
 	std::string	method;
 	std::string	host;
 	std::string	reqBody;
@@ -15,32 +22,12 @@ struct Request
 	std::string	query;
 	std::string	charset;
 	std::string	contentType;
+	std::string	fileUpload;
+	std::string	dirUpload;
+	std::string	cgiInterpreter;
 	long long	contentLength;
-	char**		envVars;
-
-	Request() 
-	{
-		method = std::string();
-		host = std::string();
-		reqBody = std::string();
-		reqURI = std::string();
-		protocol = std::string();
-		query = std::string();
-		charset = std::string();
-		contentType = std::string();
-		contentLength = 0;
-	};
 };
 
 std::ostream &			operator<<( std::ostream & o, Request const & i );
-// {
-// 	o	<< "method = " << i.method << std::endl
-// 		<< "host = " << i.host << std::endl
-// 		<< "reqURI = " << i.reqURI << std::endl
-// 		<< "protocol = " << i.protocol << std::endl
-// 		<< "contentLength = " << i.contentLength << std::endl;
-
-// 	return o;
-// }
 
 #endif

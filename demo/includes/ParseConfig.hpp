@@ -38,7 +38,8 @@ class ParseConfig
 		void							handleAlias(const std::pair<std::string, int>& value, Location* instance);
 		void							handlePath(const std::pair<std::string, int>& value, Location* instance);
 		void							handleRedirect(const std::pair<std::string, int>& value, Location* instance);
-		void							handleCgiExtension(const std::pair<std::string, int>& value, Location* instance);
+		void							handleCGIExtension(const std::pair<std::string, int>& value, Location* instance);
+		void							handleCGIInterpreter(const std::pair<std::string, int>& value, Location* instance);
 		void							setGlobalDirective(const std::string &directive, DirectiveServerHandler handler);
 		void							setHttpDirective(const std::string &directive, DirectiveServerHandler handler);
 		void							setServerDirective(const std::string &directive, DirectiveServerHandler handler);

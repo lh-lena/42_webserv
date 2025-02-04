@@ -38,6 +38,7 @@ long long		utils::strToUlong(std::string s)
 	long long	val;
 	std::stringstream ss(s);
 	ss >> val;
+
 	if(ss.fail() || val < 0)
 	{
 		return -1;

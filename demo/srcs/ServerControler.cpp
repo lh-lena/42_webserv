@@ -479,14 +479,13 @@ std::string	ServerControler::processRequest(std::string & data)
 
 	int res = parseRequest(data, request);
 	if (res != 0)
-		return ("Error: invalid request. code " + utils::itos(res));
+		return ("Error: invalid request. Code " + utils::itos(res));
 
 	Server serv = chooseServBlock(request.host);
-
-	//std::string response = "Hello\n";
-	//std::cout << data << std::endl;
-
-	//Server serv = getServers()[0];
+	/** TODO:
+	 * - check if that cgi -> extantion & cgi_interpreter
+	 * - 
+	 */
 
 	serv.initResponse(response_struct, request);
 	response_struct.location_found = serv.findRequestedLocation(request.reqURI, location);

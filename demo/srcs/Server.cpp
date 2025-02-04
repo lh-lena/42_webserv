@@ -308,21 +308,11 @@ void	Server::setCGIResponse(Response& response, size_t status_code)
 
 int		Server::handleCGI(Response& response, Location& loc)
 {
-	std::cout << "response.status_code " << response.status_code << std::endl;
-
 	response.uploadDir = utils::substr_before_rdel(response.path, "/");
-	std::cout << "response.uploadDir1 " << response.uploadDir << std::endl;
 	response.uploadDir = Server::searchingUploadDir(response.reqURI, &loc);
-
-	std::cout << "response.uploadDir2 " << response.uploadDir << std::endl;
-
-	std::cout << "response.path1 " << response.path << std::endl;
-	
-	std::cout << "is_regular_file(response.path) " << utils::is_regular_file(response.path) << std::endl;
 	if (utils::is_regular_file(response.path))
 	{
-		std::cout << "is_matching_ext(response.path, loc->getCgiExtension()) " << utils::is_matching_ext(response.path, loc.getCgiExtension()) << std::endl;
-		if (!response.location_found || !utils::is_matching_ext(response.path, loc.getCgiExtension()))
+		if (!response.location_found || !utils::is_matching_ext(response.path, loc.getCGIExtension()))
 		{
 			return 1;
 		}
@@ -338,15 +328,13 @@ int		Server::handleCGI(Response& response, Location& loc)
 		{
 			// response.uploadDir = substr_before_rdel(response.path, "/");
 			response.uploadFile = utils::substr_after_rdel(response.path, "/");
-			std::cout << "response.uploadFile2 " << response.uploadFile << std::endl;
 			if (utils::is_regular_file(response.path))
 			{
-				if (!utils::is_matching_ext(response.path, loc.getCgiExtension()))
+				if (!utils::is_matching_ext(response.path, loc.getCGIExtension()))
 				{
 					return 1;
 				}
 				response.uploadFile = utils::substr_after_rdel(response.path, "/");
-				std::cout << "response.uploadFile3 " << response.uploadFile << std::endl;
 				// setCGIResponse(response, OK);
 				setGetResponse(response, OK);
 				return 0;

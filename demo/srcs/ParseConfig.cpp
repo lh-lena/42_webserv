@@ -30,7 +30,8 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 	allowed_methods["POST"] = true;
 	allowed_methods["DELETE"] = true;
 	map_template_dir["error_page"] = true;
-	map_template_dir["redirect"] = true;
+	map_template_dir["return"] = true;
+	map_template_dir["cgi_interpreter"] = true;
 	this->setGlobalDirective("worker_connections", &ParseConfig::handleWorkCont);
 	this->setGlobalDirective("http", &ParseConfig::handleHttpBlock);
 	this->setHttpDirective("server", &ParseConfig::handleServerBlock);
@@ -48,12 +49,13 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 	this->setLocationDirective("path", &ParseConfig::handlePath);
 	this->setLocationDirective("index", &ParseConfig::handleIndex);
 	this->setLocationDirective("alias", &ParseConfig::handleAlias);
-	this->setLocationDirective("redirect", &ParseConfig::handleRedirect);
+	this->setLocationDirective("return", &ParseConfig::handleRedirect);
 	this->setLocationDirective("autoindex", &ParseConfig::handleAutoindex);
 	this->setLocationDirective("error_page", &ParseConfig::handleErrorPage);
 	this->setLocationDirective("allowed_methods", &ParseConfig::handleAllowedMethods);
 	this->setLocationDirective("upload_directory", &ParseConfig::handleUploadDir);
-	this->setLocationDirective("cgi_extension", &ParseConfig::handleCgiExtension);
+	this->setLocationDirective("cgi_extension", &ParseConfig::handleCGIExtension);
+	this->setLocationDirective("cgi_interpreter", &ParseConfig::handleCGIInterpreter);
 	this->setLocationDirective("client_max_body_size", &ParseConfig::handleClientBodySize);
 }
 
@@ -484,13 +486,13 @@ void	ParseConfig::handleRedirect(const std::pair<std::string, int>& value, Locat
 
 	if (vals.empty())
 	{
-		throw ParseException("[emerg] : invalid number of arguments in \"redirect\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw ParseException("[emerg] : invalid number of arguments in \"return\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 
 	code = utils::strToUlong(vals[0]);
 	if (code <= 0 || !utils::is_status_code(code))
 	{
-		throw ParseException("[emerg] : an invalid status code in \"redirect\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw ParseException("[emerg] : an invalid status code in \"return\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 	if (vals.size() == 2)
 		path = vals[1];
@@ -557,9 +559,22 @@ void		ParseConfig::handleUploadDir(const std::pair<std::string, int>& value, Loc
 	instance->setUploadDir(value.first);
 }
 
-void		ParseConfig::handleCgiExtension(const std::pair<std::string, int>& value, Location* instance)
+void		ParseConfig::handleCGIExtension(const std::pair<std::string, int>& value, Location* instance)
 {
-	instance->setCgiExtension(value.first);
+	instance->setCGIExtension(value.first);
+}
+
+void		ParseConfig::handleCGIInterpreter(const std::pair<std::string, int>& value, Location* instance)
+{
+	std::string 				s = value.first;
+	std::vector<std::string>	vals = utils::ft_split(s, " ");
+
+	if (vals.empty() || vals.size() != 2)
+	{
+		throw ParseException("[emerg] : invalid number of arguments in \"cgi_interpreter\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
+	}
+
+	instance->setCGIInterpreter(vals[0], vals[1]);
 }
 
 /**

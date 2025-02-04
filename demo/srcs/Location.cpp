@@ -35,12 +35,12 @@ Location &				Location::operator=( Location const & rhs )
 		this->_root = rhs.getRoot();
 		this->_path = rhs.getPath();
 		this->_alias = rhs.getAlias();
-		this->_redirect = rhs.getRedirect();
+		this->_return = rhs.getRedirect();
 		this->_indexes = rhs.getIndexes();
 		this->_autoindex = rhs.getAutoindex();
 		this->_upload_dir = rhs.getUploadDir();
 		this->_error_pages = rhs.getErrorPages();
-		this->_cgi_extension = rhs.getCgiExtension();
+		this->_cgi_extension = rhs.getCGIExtension();
 		this->_allowed_methods = rhs.getAllowedMethods();
 	}
 	return *this;
@@ -64,7 +64,7 @@ std::ostream&			operator<<( std::ostream & o, Location const& i )
 	}
 
 	o << "\nCGI extention: \n\t";
-	for (it_s = i.getCgiExtension().begin(); it_s != i.getCgiExtension().end(); ++it_s)
+	for (it_s = i.getCGIExtension().begin(); it_s != i.getCGIExtension().end(); ++it_s)
 	{
 		o << *it_s << " ";
 	}
@@ -142,14 +142,18 @@ void	Location::addErrorPage(int	key, const std::string &val)
 
 void	Location::setRedirect( int key, const std::string &val ) 
 {
-	_redirect[key] = val;
+	_return[key] = val;
 }
 
-void	Location::setCgiExtension( const std::string &arg )
+void	Location::setCGIInterpreter( std::string key, const std::string &val ) 
+{
+	_cgi_interpreter[key] = val;
+}
+
+void	Location::setCGIExtension( const std::string &arg )
 {
 	_cgi_extension.push_back(arg);
 }
-
 
 void		Location::setClientMaxBody(int value)
 {
@@ -204,12 +208,17 @@ const std::map<int, std::string>&	Location::getErrorPages( void ) const
 
 const std::map<int, std::string>&	Location::getRedirect( void ) const
 {
-	return (_redirect);
+	return (_return);
 }
 
-const std::vector<std::string>&		Location::getCgiExtension( void ) const
+const std::vector<std::string>&		Location::getCGIExtension( void ) const
 {
 	return (_cgi_extension);
+}
+
+const std::map<std::string, std::string>&	Location::getCGIInterpreter( void ) const
+{
+	return (_cgi_interpreter);
 }
 
 /* ************************************************************************** */
