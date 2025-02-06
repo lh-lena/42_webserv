@@ -404,62 +404,62 @@ void	ServerControler::createListeningSockets()
 /**
  * Transfer-Encoding: chunked
  */
-static int parseRequest(const std::string & data, Request & req)
-{
-	//read data and fill request fields
-	// check for valid request, return error number
+// static int parseRequest(const std::string & data, Request & req)
+// {
+// 	//read data and fill request fields
+// 	// check for valid request, return error number
 
-	std::istringstream	iss(data);
-	std::string			line, name, value;
+// 	std::istringstream	iss(data);
+// 	std::string			line, name, value;
 
-	std::getline(iss, line);
-	if (line.empty())
-	{
-		return 1;
-	}
+// 	std::getline(iss, line);
+// 	if (line.empty())
+// 	{
+// 		return 1;
+// 	}
 
-	std::istringstream tmp(line);
+// 	std::istringstream tmp(line);
 
-	tmp >> req.method >> req.reqURI >> req.protocol; /* parse first line */
-	if (req.reqURI.find("?") != std::string::npos) /* check queries */
-	{
-		req.query = utils::substr_after_rdel(req.reqURI, "?");
-		req.reqURI = utils::substr_before_rdel(req.reqURI, "?");
-	}
-	if (tmp.fail())
-	{
-		return 2;
-	}
+// 	tmp >> req.method >> req.reqURI >> req.protocol; /* parse first line */
+// 	if (req.reqURI.find("?") != std::string::npos) /* check queries */
+// 	{
+// 		req.query = utils::substr_after_rdel(req.reqURI, "?");
+// 		req.reqURI = utils::substr_before_rdel(req.reqURI, "?");
+// 	}
+// 	if (tmp.fail())
+// 	{
+// 		return 2;
+// 	}
 
-	while (std::getline(iss, line))
-	{
-		std::istringstream tmp(line);
-		// std::cout << "LINE " << line << std::endl;
-		tmp >> name >> value;
+// 	while (std::getline(iss, line))
+// 	{
+// 		std::istringstream tmp(line);
+// 		// std::cout << "LINE " << line << std::endl;
+// 		tmp >> name >> value;
 
-		if (name.compare("Host:") == 0)
-		{
-			req.host = value;
-		}
-		else if (name.compare("Content-Length:") == 0)
-		{
-			req.contentLength = utils::strToUlong(value);
-		}
-		else if (name.compare("Content-Type:") == 0)
-		{
-			req.contentType = value;
-			// Content-Type: multipart/form-data;boundary="delimiter12345"
-		}
-	}
+// 		if (name.compare("Host:") == 0)
+// 		{
+// 			req.host = value;
+// 		}
+// 		else if (name.compare("Content-Length:") == 0)
+// 		{
+// 			req.contentLength = utils::strToUlong(value);
+// 		}
+// 		else if (name.compare("Content-Type:") == 0)
+// 		{
+// 			req.contentType = value;
+// 			// Content-Type: multipart/form-data;boundary="delimiter12345"
+// 		}
+// 	}
 
-/* 	std::cout << "method = " << req.method << std::endl
-		<< "host = " << req.host << std::endl
-		<< "reqURI = " << req.reqURI << std::endl
-		<< "protocol = " << req.protocol << std::endl
-		<< "contentLength = " << req.contentLength << std::endl; */
+// /* 	std::cout << "method = " << req.method << std::endl
+// 		<< "host = " << req.host << std::endl
+// 		<< "reqURI = " << req.reqURI << std::endl
+// 		<< "protocol = " << req.protocol << std::endl
+// 		<< "contentLength = " << req.contentLength << std::endl; */
 
-	return 0;
-}
+// 	return 0;
+// }
 
 Server & ServerControler::chooseServBlock(std::string & host)
 {
@@ -491,18 +491,19 @@ std::string	ServerControler::processRequest(std::string & data)
 	Request		request;
 	Response	response_struct;
 	Location	location;
+	Server		serv;
 	std::string	response;
 
-	int res = parseRequest(data, request);
-	if (res != 0)
-		return ("Error: invalid request. Code " + utils::itos(res));
+	// int res = parseRequest(data, request);
+	bool res = request.parse(data);
+	if (!res) // || !request.isValid()
+	{
+		serv.setErrorResponse(response_struct, BAD_REQUEST);
+		serv.createResponse(response_struct, response);
+		return response;
+	}
 
-	Server serv = chooseServBlock(request.host);
-	/** TODO:
-	 * - check if that cgi -> extantion & cgi_interpreter
-	 * - 
-	 */
-
+	serv = chooseServBlock(request.host);
 	serv.initResponse(response_struct, request);
 	response_struct.location_found = serv.findRequestedLocation(request.reqURI, location);
 

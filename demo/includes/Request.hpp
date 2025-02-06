@@ -6,13 +6,20 @@
 # include <vector>
 # include <map>
 
+/** TODO: 
+ * setter + getter
+ * 
+ */
 class Request
 {
 public:
 	Request();
 	~Request();
 
-	bool		isCGIRequest(const Location& loc) const;
+	bool	parse(const std::string& data);
+	void	parseStartLine(const std::string& str);
+
+	bool	isValid(); /* to validate header request */
 
 	std::string	method;
 	std::string	host;
