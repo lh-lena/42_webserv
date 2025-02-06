@@ -1,14 +1,14 @@
 #ifndef REQUEST_HPP
-#define REQUEST_HPP
+# define REQUEST_HPP
 
 # include <iostream>
 # include <string>
 # include <vector>
 # include <map>
 
-/** TODO: 
+/** TODO:
  * setter + getter
- * 
+ *
  */
 class Request
 {

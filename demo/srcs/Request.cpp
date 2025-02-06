@@ -5,20 +5,23 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-Request::Request() :
-	method(std::string()),
-	host(std::string()),
-	reqBody(std::string()),
-	reqURI(std::string()),
-	protocol(std::string()),
-	query(std::string()),
-	charset(std::string()),
-	contentType(std::string()),
-	fileUpload(std::string()),
-	dirUpload(std::string()),
-	cgiInterpreter(std::string()),
-	contentLength(0)
+Request::Request(): contentLength(0)
 {}
+
+// Request::Request():
+// 	method(std::string()),
+// 	host(std::string()),
+// 	reqBody(std::string()),
+// 	reqURI(std::string()),
+// 	protocol(std::string()),
+// 	query(std::string()),
+// 	charset(std::string()),
+// 	contentType(std::string()),
+// 	fileUpload(std::string()),
+// 	dirUpload(std::string()),
+// 	cgiInterpreter(std::string()),
+// 	contentLength(0)
+// {}
 
 /*
 ** -------------------------------- DESTRUCTOR --------------------------------

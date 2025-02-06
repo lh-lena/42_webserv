@@ -1,21 +1,17 @@
 #include "../includes/ServerControler.hpp"
 #include "../includes/Request.hpp"
-#include "../includes/Connection.hpp"
 #include "../includes/CGI.hpp"
 #include "../includes/utils.hpp"
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-#include <sys/poll.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <cstdlib>
 #include <fcntl.h>
 #include <cstring>
-#include <vector>
-#include <stdexcept>
 #include <csignal>
 
 #define _XOPEN_SOURCE_EXTENDED 1
@@ -28,6 +24,12 @@ volatile bool g_serv_end = false;
 
 ServerControler::ServerControler()
 {
+	struct rlimit lim;
+	if (getrlimit(RLIMIT_NOFILE, &lim) == -1)
+		throw std::runtime_error("Error: getrlimit() failed");
+	pfds_limit = lim.rlim_cur - 1;
+	std::cout << "Current process limit for the number of opened file descriptors: "
+				<< pfds_limit << std::endl;
 }
 
 ServerControler::ServerControler( const ServerControler& src )
@@ -531,7 +533,7 @@ std::string	ServerControler::processRequest(std::string & data)
 }
 
 /*
-** --------------------------------- ACCESSOR ---------------------------------
+** --------------------------------- Accessors ----------------------------------
 */
 
 size_t		ServerControler::getServBlockNbr( void )
@@ -555,7 +557,7 @@ Connection	&	ServerControler::getConnection(int fd)
 	int size = _conns.size();
 	for (int i = 0; i < size; i++)
 	{
-		if (_conns[i].fd = fd)
+		if (_conns[i].fd == fd)
 			return _conns[i];
 	}
 	throw std::invalid_argument("No connection for this fd");
@@ -563,17 +565,16 @@ Connection	&	ServerControler::getConnection(int fd)
 
 void	ServerControler::addConnection(int fd)
 {
-	struct pollfd &pf = _pfds[_nfds - 1];
-	pf.fd = fd;
-	pf.events = POLLIN;
-	_nfds++;
+	if (_conns.size() < MAX_CONN_NUM)
+	{
+		Connection c;
+		c.fd = fd;
+		c.active = true;
+		c.start = time(NULL);
+		_conns.push_back(c);
 
-	Connection c;
-	c.fd = fd;
-	c.active = true;
-	c.start = time(NULL);
-	_conns.push_back(c);
-
+		addPfd(fd);
+	}
 }
 
 void	ServerControler::removeConnection(int fd)
@@ -583,11 +584,61 @@ void	ServerControler::removeConnection(int fd)
 		return ;
 	for (int i = 0; i < size; i++)
 	{
-		if (_conns[i].fd = fd)
+		if (_conns[i].fd == fd)
 			_conns.erase(_conns.begin() + i);
 	}
-	size = _nfds - 1;
-	
+	removePfd(fd);
 }
 
-/* ************************************************************************** */
+void	ServerControler::addPfd(int fd)
+{
+	unsigned int i = _nfds;
+	if (i < pfds_limit)
+	{
+		_pfds[i].fd = fd;
+		_pfds[i].events = POLLIN;
+		_nfds++;
+	}
+}
+
+void	ServerControler::removePfd(int fd)
+{
+	int i = 0;
+
+	while (_pfds[i].fd != fd && i < _nfds)
+		i++;
+	if (i == _nfds)
+		return;
+
+	if (close(_pfds[i].fd) == -1)
+		throw std::runtime_error("Error: close() failed");
+
+	for (int j = i; j < _nfds - 1; j++)
+	{
+		_pfds[j].fd = _pfds[j + 1].fd;
+		_pfds[j].events = _pfds[j + 1].events;
+		_pfds[j].revents = _pfds[j + 1].revents;
+	}
+	_nfds--;
+}
+
+int		ServerControler::getNfds(void)
+{
+	return _nfds;
+}
+
+int	ServerControler::incrementNfds(void)
+{
+	if (_nfds < static_cast<int>(pfds_limit))
+		_nfds++;
+	else
+		std::cerr << "Error: maximum limit of pollfd set size reached";
+	return _nfds;
+}
+
+int	ServerControler::decrementNfds(void)
+{
+	if (_nfds > 0)
+		_nfds--;
+	return _nfds;
+}

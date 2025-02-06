@@ -1,17 +1,19 @@
 
 #include "../includes/CGI.hpp"
 #include "../includes/Server.hpp"
+//#include "../includes/Request.hpp"
 
-// CGI::CGI(const Server& server, const Location& loc) : 
+// CGI::CGI(const Server& server, const Location& loc) :
 // {}
 
-CGI::CGI() {}
-CGI::~CGI() {}
+CGI::CGI(void){}
 
-/** handle request includes 
- * parsing path, 
- * handleing redirect, 
- * setting variable, 
+CGI::~CGI(void){}
+
+/** handle request includes
+ * parsing path,
+ * handleing redirect,
+ * setting variable,
  * calling execute function */
 
 void	CGI::handleRequest(const Request& request)

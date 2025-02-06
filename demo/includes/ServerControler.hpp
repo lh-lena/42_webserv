@@ -3,9 +3,13 @@
 
 # include "Server.hpp"
 # include "Connection.hpp"
+# include "Request.hpp"
 # include <string>
 # include <vector>
 # include <iostream>
+# include <sys/poll.h>
+# include <stdexcept>
+# include <sys/resource.h>
 
 # define MAX_CONN_NUM 1024
 
@@ -27,14 +31,18 @@ class ServerControler
 		Connection					&	getConnection(int fd);
 		void							addConnection(int fd);
 		void							removeConnection(int fd);
+		void							addPfd(int fd);
+		void							removePfd(int fd);
 		int								getNfds(void);
-		void							incrementNfds(void);
-		void							decrementNfds(void);
+		int								incrementNfds(void);
+		int								decrementNfds(void);
 
 		static void						sig_handler(int sig_num);
 
 		void							startServing();
 		//bool	servEnd;
+
+		unsigned int				pfds_limit;
 
 	private:
 

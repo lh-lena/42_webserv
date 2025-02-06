@@ -1,4 +1,5 @@
-#ifndef CGIHANDLER_HPP
+#ifndef CGI_HPP
+# define CGI_HPP
 
 # include "Request.hpp"
 # include "Response.hpp"
@@ -17,8 +18,8 @@ class CGI
 {
 public:
 	// CGI(const Request& request) : _request(request) {};
-	CGI() {};
-	~CGI() {};
+	CGI();
+	~CGI();
 
 	void	setEnvironment(const Request& request);
 	void	printEnvironment();

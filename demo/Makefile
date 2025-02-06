@@ -11,6 +11,7 @@ SRC_DIR		:= srcs/
 SRC_FILES	+= main.cpp
 SRC_FILES	+= Location.cpp
 SRC_FILES	+= Response.cpp
+SRC_FILES	+= Request.cpp
 SRC_FILES	+= ParseConfig.cpp
 SRC_FILES	+= Server.cpp
 SRC_FILES	+= ServerControler.cpp

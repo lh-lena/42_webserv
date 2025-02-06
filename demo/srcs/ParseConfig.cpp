@@ -549,7 +549,7 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 				pos = path.find('*', pos + 1);
 				divisor /= 10;
 			}
-    	}
+		}
 		instance->addErrorPage(errorCode, path);
 	}
 }
