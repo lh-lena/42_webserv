@@ -5,6 +5,19 @@
 // CGI::CGI(const Server& server, const Location& loc) : 
 // {}
 
+CGI::CGI() {}
+CGI::~CGI() {}
+
+/** handle request includes 
+ * parsing path, 
+ * handleing redirect, 
+ * setting variable, 
+ * calling execute function */
+
+void	CGI::handleRequest(const Request& request)
+{
+	setEnvironment(request);
+}
 
 void CGI::setEnvironment(const Request& request)
 {

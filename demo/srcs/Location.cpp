@@ -145,7 +145,7 @@ void	Location::setRedirect( int key, const std::string &val )
 	_return[key] = val;
 }
 
-void	Location::setCGIInterpreter( std::string key, const std::string &val ) 
+void	Location::getCgiInterpreters( std::string key, const std::string &val ) 
 {
 	_cgi_interpreter[key] = val;
 }
@@ -216,7 +216,7 @@ const std::vector<std::string>&		Location::getCGIExtension( void ) const
 	return (_cgi_extension);
 }
 
-const std::map<std::string, std::string>&	Location::getCGIInterpreter( void ) const
+const std::map<std::string, std::string>&	Location::getCgiInterpreters( void ) const
 {
 	return (_cgi_interpreter);
 }

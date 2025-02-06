@@ -1,6 +1,7 @@
 #include "../includes/ServerControler.hpp"
 #include "../includes/Request.hpp"
 #include "../includes/Connection.hpp"
+#include "../includes/CGI.hpp"
 #include "../includes/utils.hpp"
 
 #include <sys/types.h>
@@ -470,6 +471,21 @@ Server & ServerControler::chooseServBlock(std::string & host)
 	return _servBlocks[0];
 }
 
+/** Where to place this function?? */
+bool isCGIRequest(const Request& request, const Location& location)
+{
+	std::string ext = utils::get_file_extension(request.reqURI);
+
+	if (!utils::is_str_in_vector(ext, location.getCGIExtension()))
+	{
+		return false;
+	}
+
+	const std::map<std::string, std::string>& cgiInterpreters = location.getCgiInterpreters();
+
+	return cgiInterpreters.find(ext) != cgiInterpreters.end();
+}
+
 std::string	ServerControler::processRequest(std::string & data)
 {
 	Request		request;
@@ -498,9 +514,16 @@ std::string	ServerControler::processRequest(std::string & data)
 		return response;
 	}
 
-	// if (isCGIRequest())
+	if (isCGIRequest(request, location))
+	{
+		CGI cgi;
 
-	serv.handleStaticRequest(request, response_struct, location);
+		cgi.handleRequest(request);
+	}
+	else
+	{
+		serv.handleStaticRequest(request, response_struct, location);
+	}
 	serv.createResponse(response_struct, response);
 
 	return response;

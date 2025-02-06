@@ -574,7 +574,7 @@ void		ParseConfig::handleCGIInterpreter(const std::pair<std::string, int>& value
 		throw ParseException("[emerg] : invalid number of arguments in \"cgi_interpreter\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 
-	instance->setCGIInterpreter(vals[0], vals[1]);
+	instance->getCgiInterpreters(vals[0], vals[1]);
 }
 
 /**

@@ -33,7 +33,7 @@ std::vector<std::string>	utils::ft_split(std::string& s, std::string delimeter)
 	return parts;
 }
 
-long long		utils::strToUlong(std::string s)
+long long		utils::strToUlong(const std::string& s)
 {
 	long long	val;
 	std::stringstream ss(s);
@@ -161,7 +161,7 @@ std::string		utils::get_env_value(char **envp, const std::string &variable)
 /** returns substring after delimetr in a path.
  * If failed empty string
  */
-std::string		utils::substr_after_rdel(const std::string& path, std::string del)
+std::string		utils::substr_after_rdel(const std::string& path, const std::string& del)
 {
 	if (del.empty())
 	{
@@ -183,7 +183,7 @@ std::string		utils::substr_after_rdel(const std::string& path, std::string del)
 	return path.substr(pos + 1);
 }
 
-std::string		utils::substr_before_rdel(const std::string& path, std::string del)
+std::string		utils::substr_before_rdel(const std::string& path, const std::string& del)
 {
 	if (del.empty())
 	{
@@ -234,7 +234,7 @@ bool	utils::starts_with(const std::string& str, const std::string& prefix)
 	return (str.size() >= prefix.size() && str.substr(0, prefix.size()) == prefix);
 }
 
-bool	utils::is_str_in_vector(std::string s, const std::vector<std::string>& content)
+bool	utils::is_str_in_vector(const std::string& s, const std::vector<std::string>& content)
 {
 	std::vector<std::string>::const_iterator it = std::find(content.begin(), content.end(), s);
 	if (it != content.end())
@@ -287,22 +287,26 @@ int		utils::get_dir_entries(const std::string& dirp, std::vector<std::string>& c
 	return 0;
 }
 
-std::string		utils::str_tolower(std::string s)
+std::string		utils::str_tolower(const std::string& s)
 {
+	std::string new_str(s);
+
 	for (size_t i = 0; i < s.size(); i++)
 	{
-		s[i] = std::tolower(s[i]);
+		new_str[i] = std::tolower(s[i]);
 	}
-	return s;
+	return new_str;
 }
 
-std::string		utils::str_toupper(std::string s)
+std::string		utils::str_toupper(const std::string& s)
 {
+	std::string new_str(s);
+
 	for (size_t i = 0; i < s.size(); i++)
 	{
-		s[i] = std::toupper(s[i]);
+		new_str[i] = std::toupper(s[i]);
 	}
-	return s;
+	return new_str;
 }
 
 bool	utils::is_redirection(size_t code)
@@ -339,6 +343,17 @@ bool	utils::has_write_permission(const std::string& path)
 		return (path_stat.st_mode & S_IWUSR) != 0; 
 	}
 	return false;
+}
+
+std::string			utils::get_file_extension(const std::string& path)
+{
+	size_t dotPos = path.find_last_of('.');
+	if (dotPos == std::string::npos)
+	{
+		return std::string();
+	}
+
+	return path.substr(dotPos);
 }
 
 std::string 	utils::get_interpreter(const std::string& s)

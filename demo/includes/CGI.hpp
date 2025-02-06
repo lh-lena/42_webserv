@@ -16,11 +16,13 @@
 class CGI
 {
 public:
-	CGI(const Request& request) : _request(request) {};
+	// CGI(const Request& request) : _request(request) {};
+	CGI() {};
 	~CGI() {};
 
 	void	setEnvironment(const Request& request);
 	void	printEnvironment();
+	void	handleRequest(const Request& request);
 	void	createChildProcess(Response& response, const Request& request);
 	void	executeCGI(Response& response);
 
