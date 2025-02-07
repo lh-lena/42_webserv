@@ -61,11 +61,60 @@ void CGI::setEnvironment(const Request& request)
 
 void	CGI::printEnvironment()
 {
-    std::cout << "CGI::printEnvironment()" << std::endl;
+	std::cout << "CGI::printEnvironment()" << std::endl;
 
 	std::vector<char*>::iterator it = envp.begin();
 	for(; it != envp.end(); ++it)
 	{
 		std::cout << *it << std::endl;
 	}
+}
+
+void	CGI::createChildProcess(Request& request)
+{
+	int in_fds[2]; //should add them to ServerController::_pfds
+	int out_fds[2];
+	pipe(in_fds);
+	pipe(out_fds);
+
+	pid_t pid = fork();
+
+	if (pid == 0)
+	{
+		dup2(in_fds[0], STDIN_FILENO);
+		close(in_fds[0]);
+		close(in_fds[1]);
+		dup2(out_fds[1], STDOUT_FILENO);
+		close(out_fds[0]);
+		close(out_fds[1]);
+		std::string str = request.cgiInterpreter;
+		char *argv[] = {(char *)str.c_str(), NULL};
+		if (execve(argv[0], argv, envp.data()) < 0)
+		{
+			std::cerr << "Error: execve() failed";
+			exit(0);
+		}
+	}
+	close(in_fds[0]);
+	close(out_fds[1]);
+	char *str = (char *)request.reqBody.c_str();
+	if (str[0] != '\0')
+		write(in_fds[1], str, sizeof(str));
+	close(in_fds[1]);
+
+	std::string respn; //result message returned from execve()
+	char buf[1500];
+	int res = 0;
+	do
+	{
+		memset(buf, 0, sizeof(buf));
+		res = read(out_fds[0], &buf, 1500);
+		if (res > 0)
+			respn.append(buf);
+
+	} while (res == 1500);
+
+	close(out_fds[0]);
+
+	waitpid(pid, NULL, 0); // kill child process in case of timeout;
 }

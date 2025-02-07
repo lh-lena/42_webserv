@@ -303,7 +303,7 @@ void	Server::setCGIResponse(Response& response, size_t status_code)
 /** NOTES: to rm
  * - parse cgi request
  * - path also a cgi path to the executable file without query
- * - 
+ * -
  */
 
 int		Server::handleCGI(Response& response, Location& loc)
@@ -377,7 +377,7 @@ void	Server::setErrorResponse(Response& response, size_t status_code)
 	response.status_code = status_code;
 	response.reason_phrase = utils::get_reason_phrase(status_code);
 	if (!response.error_path.empty())
-		response.content = utils::get_file_content(response.error_path);
+		response.content = utils::load_file_content(response.error_path);
 	else
 		response.content = utils::generate_html_error_page(status_code);
 	response.content_lenght = response.content.length();
@@ -386,7 +386,7 @@ void	Server::setErrorResponse(Response& response, size_t status_code)
 
 void	Server::setGetResponse(Response& response, size_t status_code)
 {
-	response.content = utils::get_file_content(response.path);
+	response.content = utils::load_file_content(response.path);
 	response.content_lenght = response.content.length();
 	// std::cout << "response.content_lenght " << response.content_lenght << std::endl;
 	if (response.content_lenght <= 0)
@@ -422,7 +422,7 @@ void	Server::handleAndSetRedirectResponse(Response& response, const Location& lo
 	{
 		std::map<int, std::string>::const_iterator it = loc.getRedirect().begin();
 		response.status_code = it->first;
-		response.location = it->second; // "http://localhost:8080" + 
+		response.location = it->second; // "http://localhost:8080" +
 		// response.path = it->second; // what with root???
 		// searchingPrefixMatchLocation(it->second, path, location, location_found);
 	}
@@ -716,10 +716,10 @@ std::string			Server::canonicalizePath(const std::string& path)
 	if (path.empty())
 		return "/";
 	std::string new_path = path;
-	
+
 	if (new_path[0] != '/')
 		new_path = "/" + new_path;
-	
+
 	new_path = decodeURI(new_path);
 	return new_path;
 }

@@ -69,7 +69,7 @@ std::string		utils::vector_tostr(const std::vector<std::string>& vec)
 			s.append(", ");
 	}
 
-	return s;	
+	return s;
 }
 
 bool		utils::is_digits(const std::string& str)
@@ -83,7 +83,7 @@ bool		utils::is_digits(const std::string& str)
 	return true;
 }
 
-std::string		utils::get_file_content(const std::string& path)
+std::string		utils::load_file_content(const std::string& path)
 {
 	if (is_html_genereted_page(path))
 	{
@@ -91,7 +91,7 @@ std::string		utils::get_file_content(const std::string& path)
 	}
 
 	std::ifstream in(path.c_str());
-	std::string content((std::istreambuf_iterator<char>(in)), 
+	std::string content((std::istreambuf_iterator<char>(in)),
 	std::istreambuf_iterator<char>());
 
 	return content;
@@ -332,7 +332,7 @@ bool	utils::is_client_error(size_t code)
 bool	utils::is_server_error(size_t code)
 {
 	return (code >= 500 && code < 600);
-} 
+}
 
 bool	utils::has_write_permission(const std::string& path)
 {
@@ -340,7 +340,7 @@ bool	utils::has_write_permission(const std::string& path)
 
 	if (stat(path.c_str(), &path_stat) == 0)
 	{
-		return (path_stat.st_mode & S_IWUSR) != 0; 
+		return (path_stat.st_mode & S_IWUSR) != 0;
 	}
 	return false;
 }

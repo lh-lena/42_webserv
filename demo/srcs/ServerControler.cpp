@@ -27,9 +27,14 @@ ServerControler::ServerControler()
 	struct rlimit lim;
 	if (getrlimit(RLIMIT_NOFILE, &lim) == -1)
 		throw std::runtime_error("Error: getrlimit() failed");
+	lim.rlim_cur = lim.rlim_max;
+	if (setrlimit(RLIMIT_NOFILE, &lim) == -1)
+		throw std::runtime_error("Error: setrlimit() failed");
+	if (getrlimit(RLIMIT_NOFILE, &lim) == -1)
+		throw std::runtime_error("Error: getrlimit() failed");
 	pfds_limit = lim.rlim_cur - 1;
-	std::cout << "Current process limit for the number of opened file descriptors: "
-				<< pfds_limit << std::endl;
+	std::cout << "Limit for the number of opened file descriptors: soft = "
+				<< pfds_limit << " hard = " << lim.rlim_max << std::endl;
 }
 
 ServerControler::ServerControler( const ServerControler& src )
@@ -498,7 +503,7 @@ std::string	ServerControler::processRequest(std::string & data)
 	bool res = request.parse(data);
 	if (!res) // || !request.isValid()
 	{
-		serv.setErrorResponse(response, NULL, BAD_REQUEST);
+		serv.setErrorResponse(response, BAD_REQUEST);
 		return response.getResponse();
 	}
 
@@ -506,16 +511,19 @@ std::string	ServerControler::processRequest(std::string & data)
 
 	if (!serv.findRequestedLocation(request.reqURI, location))
 	{
-		serv.setErrorResponse(response, NULL, NOT_FOUND);
+		serv.setErrorResponse(response, NOT_FOUND);
 
 		return response.getResponse();
 	}
+	response.setStatusCode(200);
+	response.setBody("DONE");
+	return response.getResponse();
 
-	if (location.isRedirection())
+	/* if (location.isRedirection())
 	{
 		serv.setRedirectResponse(response, location);
 		return response.getResponse();
-	}
+	} */
 
 	if (isCGIRequest(request, location))
 	{

@@ -37,7 +37,7 @@ namespace utils
 	bool						has_write_permission(const std::string& path);
 	std::string					get_file_extension(const std::string& path);
 	std::string 				get_interpreter(const std::string& s);
-	std::string					get_file_content(const std::string& path);
+	std::string					load_file_content(const std::string& path);
 	std::string					itos(int i);
 	std::string					get_reason_phrase(int code);
 	std::string					str_tolower(const std::string& s);
