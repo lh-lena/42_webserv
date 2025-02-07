@@ -491,45 +491,44 @@ bool isCGIRequest(const Request& request, const Location& location)
 std::string	ServerControler::processRequest(std::string & data)
 {
 	Request		request;
-	Response	response_struct;
+	Response	response;
 	Location	location;
 	Server		serv;
-	std::string	response;
 
-	// int res = parseRequest(data, request);
 	bool res = request.parse(data);
 	if (!res) // || !request.isValid()
 	{
-		serv.setErrorResponse(response_struct, BAD_REQUEST);
-		serv.createResponse(response_struct, response);
-		return response;
+		serv.setErrorResponse(response, NULL, BAD_REQUEST);
+		return response.getResponse();
 	}
 
 	serv = chooseServBlock(request.host);
-	serv.initResponse(response_struct, request);
-	response_struct.location_found = serv.findRequestedLocation(request.reqURI, location);
 
-	if (!response_struct.location_found)
+	if (!serv.findRequestedLocation(request.reqURI, location))
 	{
-		serv.setErrorResponse(response_struct, NOT_FOUND);
-		serv.createResponse(response_struct, response);
+		serv.setErrorResponse(response, NULL, NOT_FOUND);
 
-		return response;
+		return response.getResponse();
+	}
+
+	if (location.isRedirection())
+	{
+		serv.setRedirectResponse(response, location);
+		return response.getResponse();
 	}
 
 	if (isCGIRequest(request, location))
 	{
 		CGI cgi;
 
-		cgi.handleRequest(request);
+		cgi.handleRequest(request); /** TODO: to add response */
 	}
 	else
 	{
-		serv.handleStaticRequest(request, response_struct, location);
+		serv.handleStaticRequest(request, response, location);
 	}
-	serv.createResponse(response_struct, response);
 
-	return response;
+	return response.getResponse();
 }
 
 /*
