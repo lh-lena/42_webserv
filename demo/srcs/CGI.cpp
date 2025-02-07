@@ -8,7 +8,11 @@
 
 CGI::CGI(void){}
 
-CGI::~CGI(void){}
+CGI::~CGI(void)
+{
+	for (size_t i = 0; i < envp.size(); i++)
+        delete[] envp[i];
+}
 
 /** handle request includes
  * parsing path,
@@ -44,27 +48,24 @@ void CGI::setEnvironment(const Request& request)
 	env["SERVER_ROOT"] = std::string();
 
 	std::map<std::string, std::string>::iterator it = env.begin();
-	envp = new char *[env.size() + 1];
-	size_t i = 0;
-	for (; it != env.end(); it++, i++)
+	for (; it != env.end(); it++)
 	{
-		envp[i] = new char[it->first.size() + it->second.size() + 2];
-		std::strcpy(envp[i], it->first.c_str());
-		std::strcat(envp[i], "=");
-		std::strcat(envp[i], it->second.c_str());
+		std::string el =  it->first + "=" + it->second;
+		char *cStr = new char[el.length() + 1];
+		std::strcpy(cStr, el.c_str());
+		envp.push_back(cStr);
 	}
 
-	envp[i] = NULL;
+	envp.push_back(NULL);
 }
 
 void	CGI::printEnvironment()
 {
-    std::cout << "CGI::printEnvironment()" << envp << std::endl;
+    std::cout << "CGI::printEnvironment()" << std::endl;
 
-	size_t j = 0;
-	while (envp[j] != NULL)
+	std::vector<char*>::iterator it = envp.begin();
+	for(; it != envp.end(); ++it)
 	{
-		printf("%s\n", envp[j]);
-		j++;
+		std::cout << *it << std::endl;
 	}
 }

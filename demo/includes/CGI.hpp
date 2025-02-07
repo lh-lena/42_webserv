@@ -28,7 +28,8 @@ public:
 	void	executeCGI(Response& response);
 
 	std::map<std::string, std::string>	env;
-	char**								envp;
+	std::vector<char*>					envp;
+	// char**								envp;
 	Request 							_request;
 private:
 };
