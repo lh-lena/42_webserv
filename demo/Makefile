@@ -15,6 +15,7 @@ SRC_FILES	+= Request.cpp
 SRC_FILES	+= ParseConfig.cpp
 SRC_FILES	+= Server.cpp
 SRC_FILES	+= ServerControler.cpp
+SRC_FILES	+= RequestHandler.cpp
 SRC_FILES	+= CGI.cpp
 SRC_FILES	+= utils.cpp
 

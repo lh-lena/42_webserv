@@ -51,9 +51,17 @@ std::string		utils::itos(int i)
 	std::stringstream ss;
 
 	ss << i;
-	std::string str = ss.str();
 
-	return str;
+	return ss.str();
+}
+
+std::string		utils::ulltos(unsigned long long i)
+{
+	std::stringstream ss;
+
+	ss << i;
+
+	return ss.str();
 }
 
 std::string		utils::vector_tostr(const std::vector<std::string>& vec)

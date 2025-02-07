@@ -1,5 +1,6 @@
 #include "../includes/ServerControler.hpp"
 #include "../includes/Request.hpp"
+#include "../includes/RequestHandler.hpp"
 #include "../includes/CGI.hpp"
 #include "../includes/utils.hpp"
 
@@ -408,65 +409,6 @@ void	ServerControler::createListeningSockets()
 	}
 
 }
-/**
- * Transfer-Encoding: chunked
- */
-// static int parseRequest(const std::string & data, Request & req)
-// {
-// 	//read data and fill request fields
-// 	// check for valid request, return error number
-
-// 	std::istringstream	iss(data);
-// 	std::string			line, name, value;
-
-// 	std::getline(iss, line);
-// 	if (line.empty())
-// 	{
-// 		return 1;
-// 	}
-
-// 	std::istringstream tmp(line);
-
-// 	tmp >> req.method >> req.reqURI >> req.protocol; /* parse first line */
-// 	if (req.reqURI.find("?") != std::string::npos) /* check queries */
-// 	{
-// 		req.query = utils::substr_after_rdel(req.reqURI, "?");
-// 		req.reqURI = utils::substr_before_rdel(req.reqURI, "?");
-// 	}
-// 	if (tmp.fail())
-// 	{
-// 		return 2;
-// 	}
-
-// 	while (std::getline(iss, line))
-// 	{
-// 		std::istringstream tmp(line);
-// 		// std::cout << "LINE " << line << std::endl;
-// 		tmp >> name >> value;
-
-// 		if (name.compare("Host:") == 0)
-// 		{
-// 			req.host = value;
-// 		}
-// 		else if (name.compare("Content-Length:") == 0)
-// 		{
-// 			req.contentLength = utils::strToUlong(value);
-// 		}
-// 		else if (name.compare("Content-Type:") == 0)
-// 		{
-// 			req.contentType = value;
-// 			// Content-Type: multipart/form-data;boundary="delimiter12345"
-// 		}
-// 	}
-
-// /* 	std::cout << "method = " << req.method << std::endl
-// 		<< "host = " << req.host << std::endl
-// 		<< "reqURI = " << req.reqURI << std::endl
-// 		<< "protocol = " << req.protocol << std::endl
-// 		<< "contentLength = " << req.contentLength << std::endl; */
-
-// 	return 0;
-// }
 
 Server & ServerControler::chooseServBlock(std::string & host)
 {
@@ -478,63 +420,23 @@ Server & ServerControler::chooseServBlock(std::string & host)
 	return _servBlocks[0];
 }
 
-/** Where to place this function?? */
-bool isCGIRequest(const Request& request, const Location& location)
-{
-	std::string ext = utils::get_file_extension(request.reqURI);
-
-	if (!utils::is_str_in_vector(ext, location.getCGIExtension()))
-	{
-		return false;
-	}
-
-	const std::map<std::string, std::string>& cgiInterpreters = location.getCgiInterpreters();
-
-	return cgiInterpreters.find(ext) != cgiInterpreters.end();
-}
-
 std::string	ServerControler::processRequest(std::string & data)
 {
 	Request		request;
 	Response	response;
-	Location	location;
 	Server		serv;
 
 	bool res = request.parse(data);
 	if (!res) // || !request.isValid()
 	{
-		serv.setErrorResponse(response, BAD_REQUEST);
+		// serv.setErrorResponse(response, BAD_REQUEST);
 		return response.getResponse();
 	}
 
 	serv = chooseServBlock(request.host);
+	RequestHandler reqHandler(serv, request, response);
 
-	if (!serv.findRequestedLocation(request.reqURI, location))
-	{
-		serv.setErrorResponse(response, NOT_FOUND);
-
-		return response.getResponse();
-	}
-	response.setStatusCode(200);
-	response.setBody("DONE");
-	return response.getResponse();
-
-	/* if (location.isRedirection())
-	{
-		serv.setRedirectResponse(response, location);
-		return response.getResponse();
-	} */
-
-	if (isCGIRequest(request, location))
-	{
-		CGI cgi;
-
-		cgi.handleRequest(request); /** TODO: to add response */
-	}
-	else
-	{
-		serv.handleStaticRequest(request, response, location);
-	}
+	reqHandler.processRequest();
 
 	return response.getResponse();
 }

@@ -22,6 +22,7 @@ public:
 	bool	isValid(); /* to validate header request */
 
 	std::string	method;
+	std::string	path; /** the path wil be resolved based on root */
 	std::string	host;
 	std::string	reqBody;
 	std::string	reqURI; /** the path must be extracted from the request */

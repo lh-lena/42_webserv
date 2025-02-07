@@ -13,13 +13,14 @@
 # include "Request.hpp"
 # include "Response.hpp"
 
-/**HttpStatusCode */
+/** HttpStatusCode */
 # define OK 200
 # define CREATED 201
 # define NO_CONTENT 204
 # define MOVED_PERMANENTLY 301
 # define BAD_REQUEST 400
 # define FORBIDDEN 403
+# define FORBIDDEN_DIR 403
 # define NOT_FOUND 404
 # define CONFLICT 409
 # define METHOD_NOT_ALLOWED 405
@@ -33,6 +34,7 @@ class Server
 		Server( Server const & src );
 		Server &		operator=( Server const & rhs );
 		~Server();
+
 		void								defaultServer( void );
 		void								addLocationNbr(int value);
 		void								setClientMaxBody(int value);
@@ -45,6 +47,7 @@ class Server
 		void								setIndex(const std::string &arg);
 		void								setServerName(const std::string &arg);
 		void								setLocation(const Location &src);
+		void								setImplementedMethods(const std::string& str);
 		int									getLocationNbr( void ) const;
 		int									getClientMaxBody( void ) const;
 		int									getWorkCont( void ) const;
@@ -56,34 +59,11 @@ class Server
 		const std::vector<std::string>&		getIndexes( void ) const;
 		const std::vector<std::string>&		getServerNames( void ) const;
 		const std::map<int, std::string>&	getErrorPages( void ) const;
-		std::string							getCustomErrorPage(int status_code, const Location& src);
-		void								handleStaticRequest(const Request& request, Response& response, const Location& loc);
-		bool								findRequestedLocation(const std::string& path, Location& loc);
-		void								handleRequestedURI(Response& response, const Location& loc);
-		bool								searchingPrefixMatchLocation(std::string requested_path, Location& location);
-		bool								searchingExtensionMatchLocation(std::string requested_path, Location& location);
-		std::string							searchingUploadDir(std::string requested_path, const Location* loc);
-		std::string							determineFilePath(std::string requested_path, const Location* loc);	
-		std::string							canonicalizePath(const std::string& path);
-		std::string							decodeURI(const std::string& path);
-		bool								appendIndexFile(std::string& path, const Location& loc);
-		void								handleGET(Response& response, const Location& loc);
-		void								handlePOST(const Request& request, Response& response, const Location& loc);
-		void								handleDELETE(Response& response, const Location& loc);
-		void								setGetResponse(Response& response, size_t status_code);
-		void								setErrorResponse(Response& response, size_t status_code);
-		void								setPostResponse(Response& response, size_t status_code);
-		void								setDeleteResponse(Response& response, size_t status_code);
-		void								handleMethodNotAllowed(Response& response, const Location& location);
-		void								handleAndSetRedirectResponse(Response& response, const Location& loc);
-		void								handleGetDirectoryResponse(Response& response, const Location& loc);
-		static void							createResponse(const Response& response, std::string& result);
-		void								initResponse(Response& response, const Request& request);
-		size_t								handleDeleteDirectoryResponse(Response& response);
-		size_t								remove_file(const std::string& path);
-		size_t								remove_directory(const std::string& path);
+		const std::vector<std::string>&		getImplementedMethods( void ) const;
+
 		int									handleCGI(Response& response, Location& loc);
-		void								setCGIResponse(Response& response, size_t status_code);
+
+		std::string							server_name;
 
 	private:
 		int									_location_nbr;
@@ -95,6 +75,7 @@ class Server
 		std::string							_error_log;
 		std::vector<Location>				_locations;
 		std::vector<std::string>			_indexes;
+		std::vector<std::string>			_implemented_methods;
 		std::vector<std::string>			_server_names;
 		std::map<int, std::string>			_error_pages;
 };

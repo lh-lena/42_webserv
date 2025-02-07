@@ -1,5 +1,6 @@
 #include "../includes/Request.hpp"
 #include "../includes/Location.hpp"
+#include "../includes/RequestHandler.hpp"
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
@@ -79,6 +80,7 @@ void	Request::parseStartLine(const std::string& str)
 	std::istringstream iss(str);
 
 	iss >> method >> reqURI >> protocol;
+	reqURI = RequestHandler::canonicalizePath(reqURI);
 }
 
 /*
