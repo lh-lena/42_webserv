@@ -35,6 +35,7 @@ namespace utils
 	bool						starts_with(const std::string& str, const std::string& prefix);
 	bool						is_str_in_vector(const std::string& s, const std::vector<std::string>& content);
 	bool						has_write_permission(const std::string& path);
+	bool						parse_query(const std::string& uri, std::string& new_uri, std::string& query);
 	std::string					get_file_extension(const std::string& path);
 	std::string 				get_interpreter(const std::string& s);
 	std::string					load_file_content(const std::string& path);

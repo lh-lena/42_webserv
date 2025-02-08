@@ -54,7 +54,7 @@ class ServerControler
 
 		void	createListeningSockets(); // fill _socketFds
 		std::string	processRequest(std::string & request); // parse request and pass it to the rigth server block to get response
-		Server & chooseServBlock(std::string & host);
+		Server & chooseServBlock(const std::string & host);
 };
 
 std::ostream &			operator<<( std::ostream & o, ServerControler const & i );

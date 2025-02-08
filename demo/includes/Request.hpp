@@ -6,34 +6,36 @@
 # include <vector>
 # include <map>
 
-/** TODO:
- * setter + getter
- *
- */
 class Request
 {
 public:
 	Request();
 	~Request();
 
-	bool	parse(const std::string& data);
-	void	parseStartLine(const std::string& str);
+	bool								parse(const std::string& data);
 
-	bool	isValid(); /* to validate header request */
+	std::string							getMethod() const;
+	std::string							getURI() const;
+	std::string							getQueryString() const;
+	std::string							getProtocol() const;
+	std::string							getHeader(const std::string& key) const;
+	std::string							getBody() const;
 
-	std::string	method;
-	std::string	path; /** the path wil be resolved based on root */
+	bool								isValid(); /* to validate header request ??*/
+
 	std::string	host;
-	std::string	reqBody;
-	std::string	reqURI; /** the path must be extracted from the request */
-	std::string	protocol;
-	std::string	query;
-	std::string	charset;
-	std::string	contentType;
-	std::string	fileUpload;
-	std::string	dirUpload;
-	std::string	cgiInterpreter;
-	long long	contentLength;
+
+	private:
+	std::string							_method;
+	std::string							_reqURI;
+	std::string							_protocol;
+	std::string							_query;
+	std::string							_body;
+	std::map<std::string, std::string>	_headers;
+
+	void								parseStartLine(const std::string& str);
+	void								parseHeader(const std::string& header_lines);
+	void								parseBody(const std::string& body);
 };
 
 std::ostream &			operator<<( std::ostream & o, Request const & i );

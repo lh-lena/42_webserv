@@ -6,44 +6,37 @@
 // CGI::CGI(const Server& server, const Location& loc) :
 // {}
 
-CGI::CGI(void){}
+CGI::CGI(void) :
+	interpreter(std::string()),
+	upload_dir(std::string()),
+	executable(std::string())
+{}
 
 CGI::~CGI(void)
 {
 	for (size_t i = 0; i < envp.size(); i++)
-        delete[] envp[i];
-}
-
-/** handle request includes
- * parsing path,
- * handleing redirect,
- * setting variable,
- * calling execute function */
-
-void	CGI::handleRequest(const Request& request)
-{
-	setEnvironment(request);
+		delete[] envp[i];
 }
 
 void CGI::setEnvironment(const Request& request)
 {
 	env["AUTH_TYPE"] = std::string();
-	// env["CONTENT_TYPE"] = request.contentType;
-	env["CONTENT_LENGTH"] = utils::itos(request.contentLength);
+	env["CONTENT_TYPE"] = request.getHeader("Content-Type");
+	env["CONTENT_LENGTH"] = request.getHeader("Content-Length");
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	// env["HTTP_ACCEPT_CHARSET"] = request.charset;
-	// env["PATH_INFO"] = request.pathInfo; // the portion of the URI path following the script name but preceding any query data.
+	// env["HTTP_ACCEPT_CHARSET"] = request.getHeader("Charset");
+	env["PATH_INFO"] = "/"; // the portion of the URI path following the script name but preceding any query data.
 	env["PATH_TRANSLATED"] = std::string();
-	env["QUERY_STRING"] = request.query;
+	env["QUERY_STRING"] = request.getQueryString();
 	env["REMOTE_ADDR"] = std::string(); // Returns the IP address of the client that sent the request
 	env["REMOTE_HOST"] = std::string(); // the fully-qualified name of the client that sent the request, or the IP address of the clien
 	env["REMOTE_IDENT"] = std::string();
 	env["REMOTE_USER"] = std::string();
-	env["REQUEST_METHOD"] = request.method;
+	env["REQUEST_METHOD"] = request.getMethod();
 	env["SCRIPT_NAME"] = std::string();
 	env["SERVER_NAME"] = std::string();
 	env["SERVER_PORT"] = std::string();
-	env["SERVER_PROTOCOL"] = request.protocol;
+	env["SERVER_PROTOCOL"] = request.getProtocol();
 	env["SERVER_SOFTWARE"] = std::string();
 	env["SERVER_ROOT"] = std::string();
 
@@ -64,13 +57,13 @@ void	CGI::printEnvironment()
 	std::cout << "CGI::printEnvironment()" << std::endl;
 
 	std::vector<char*>::iterator it = envp.begin();
-	for(; it != envp.end(); ++it)
+	for(; it != envp.end(); it++)
 	{
 		std::cout << *it << std::endl;
 	}
 }
 
-void	CGI::createChildProcess(Request& request)
+std::string		CGI::executeCGI(Request& request)
 {
 	int in_fds[2]; //should add them to ServerController::_pfds
 	int out_fds[2];
@@ -87,19 +80,20 @@ void	CGI::createChildProcess(Request& request)
 		dup2(out_fds[1], STDOUT_FILENO);
 		close(out_fds[0]);
 		close(out_fds[1]);
-		std::string str = request.cgiInterpreter;
-		char *argv[] = {(char *)str.c_str(), NULL};
+		std::cerr << "interpreter " << interpreter << ", executable " << executable << std::endl;
+		char *argv[] = {(char *)interpreter.c_str(), (char *)executable.c_str(), NULL};
 		if (execve(argv[0], argv, envp.data()) < 0)
 		{
-			std::cerr << "Error: execve() failed";
+			std::cerr << "Error: execve() failed\n";
 			exit(0);
 		}
 	}
 	close(in_fds[0]);
 	close(out_fds[1]);
-	char *str = (char *)request.reqBody.c_str();
+	std::string b = request.getBody();
+	char *str = (char *)b.c_str();
 	if (str[0] != '\0')
-		write(in_fds[1], str, sizeof(str));
+		write(in_fds[1], str, b.length());
 	close(in_fds[1]);
 
 	std::string respn; //result message returned from execve()
@@ -117,4 +111,21 @@ void	CGI::createChildProcess(Request& request)
 	close(out_fds[0]);
 
 	waitpid(pid, NULL, 0); // kill child process in case of timeout;
+	std::cerr << "RESPONSE CGI :" << respn << std::endl;
+	return respn;
+}
+
+void		CGI::setInterpreter(const std::string& str)
+{
+	interpreter = str;
+}
+
+void		CGI::setExecutable(const std::string& str)
+{
+	executable = str;
+}
+
+void		CGI::setUploadDir(const std::string& str)
+{
+	upload_dir = str;
 }

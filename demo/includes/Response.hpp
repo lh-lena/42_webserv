@@ -19,31 +19,9 @@ public:
 	std::string		getResponse( void ) const;
 
 
-    std::string							_body;
+	std::string							_body;
 	int									_status_code;
-    std::map<std::string, std::string>	_headers;
-
-/** TODO: rm */
-	int			status_code;
-	long long	content_lenght;
-	bool		location_found;
-	std::string	reqURI;
-	std::string	path;
-	std::string	error_path;
-	std::string	uploadDir;
-	std::string	uploadFile;
-	std::string	method;
-	std::string	protocol;
-	std::string	query;
-	std::string	reason_phrase;
-	std::string	date;
-	std::string	last_mod;
-	std::string	content;
-	std::string	server;
-	std::string	allow;
-	std::string	host;
-	std::string	content_type;
-	std::string	location;
+	std::map<std::string, std::string>	_headers;
 };
 
 std::ostream &			operator<<( std::ostream & o, Response const & i );

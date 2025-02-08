@@ -353,15 +353,27 @@ bool	utils::has_write_permission(const std::string& path)
 	return false;
 }
 
+bool	utils::parse_query(const std::string& uri, std::string& new_uri, std::string& query)
+{
+	if (uri.rfind('?') != std::string::npos)
+	{
+		new_uri = utils::substr_before_rdel(uri, "?");
+		query = utils::substr_before_rdel(uri, "?");
+		return true;
+	}
+
+	return false;
+}
+
 std::string			utils::get_file_extension(const std::string& path)
 {
-	size_t dotPos = path.find_last_of('.');
-	if (dotPos == std::string::npos)
+	size_t pos = path.find_last_of('.');
+	if (pos == std::string::npos)
 	{
 		return std::string();
 	}
 
-	return path.substr(dotPos);
+	return path.substr(pos);
 }
 
 std::string 	utils::get_interpreter(const std::string& s)

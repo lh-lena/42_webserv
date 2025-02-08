@@ -410,7 +410,7 @@ void	ServerControler::createListeningSockets()
 
 }
 
-Server & ServerControler::chooseServBlock(std::string & host)
+Server & ServerControler::chooseServBlock(const std::string & host)
 {
 	for (size_t i = 0; i < _servBlocks.size(); i++)
 	{
@@ -426,14 +426,17 @@ std::string	ServerControler::processRequest(std::string & data)
 	Response	response;
 	Server		serv;
 
+	std::cerr << "data " << data << std::endl;
 	bool res = request.parse(data);
-	if (!res) // || !request.isValid()
+	if (!res)
 	{
-		// serv.setErrorResponse(response, BAD_REQUEST);
+		response.setErrorPage(BAD_REQUEST, std::string());
 		return response.getResponse();
 	}
 
-	serv = chooseServBlock(request.host);
+	std::cout << request << std::endl; // rm
+
+	serv = chooseServBlock(request.getHeader("Host"));
 	RequestHandler reqHandler(serv, request, response);
 
 	reqHandler.processRequest();

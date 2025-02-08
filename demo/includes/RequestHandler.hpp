@@ -9,24 +9,24 @@
 class RequestHandler
 {
 public:
-	RequestHandler(const Server& server, const Request& request, Response& response);
+	RequestHandler(const Server& server, Request& request, Response& response);
 	~RequestHandler();
 	void processRequest();
 
 	static std::string		canonicalizePath(const std::string& path);
 	static std::string		decodeURI(const std::string& path);
 
-	std::string		_path;
+	std::string				_path;
 
-private:
-	const Server&	_server;
-	const Request&	_request;
-	Response&		_response;
-	Location		_location;
+	const Server&			_server;
+	Request&				_request;
+	Response&				_response;
+	Location				_location;
 
 	bool					isRedirection( void ) const;
 	void					setRedirectResponse( void );
 	bool					isCGIRequest( void ) const;
+	void					handleCgiRequest( void );
 	bool					isMethodAllowed( void ) const;
 	bool					isImplementedMethod( void ) const;
 	bool					findRequestedLocation(const std::string& path);
@@ -47,6 +47,7 @@ private:
 	int						remove_file(const std::string& path);
 	int						remove_directory(const std::string& path);
 	int						handleDeleteDirectoryResponse( void );
+private:
 };
 
 #endif /** REQUESTHANDLER_HPP */

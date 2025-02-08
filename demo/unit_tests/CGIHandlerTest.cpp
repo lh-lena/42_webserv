@@ -9,6 +9,29 @@
 
 Server server;
 
+
+std::string request =   "POST /cgi-bin/contact_handler.php HTTP/1.1
+                    Host: localhost:8080
+                    Connection: keep-alive
+                    Content-Length: 73
+                    sec-ch-ua-platform: \"macOS\"
+                    User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36
+                    Content-Type: application/json
+                    sec-ch-ua-mobile: ?0
+                    Accept: */*
+                    Origin: [http://localhost:8080](http://localhost:8080/)
+                    Sec-Fetch-Site: same-origin
+                    Sec-Fetch-Mode: cors
+                    Sec-Fetch-Dest: empty
+                    Referer: http://localhost:8080/contact_us/index.html
+                    Accept-Encoding: gzip, deflate, br, zstd
+                    Accept-Language: uk-UA,uk;q=0.9,en-US;q=0.8,en;q=0.7,ru;q=0.6
+
+                    \"Hello\"
+
+
+"
+
 void  initializeServer(char **envp)
 {
   try
@@ -30,19 +53,12 @@ void  initializeServer(char **envp)
 
 }
 
-void init_req(Request& req)
-{
-    req.contentLength = 12;
-    req.method = "GET";
-    req.protocol = "HTTP/1.1";
-    req.query = "&a=1&b=2";
-}
-
 TEST(CGITest, setEnvironment)
 {
     Request req;
-    init_req(req);
-    CGI cgi(req);
+    req.parse(request);
+    
+    CGI cgi();
 
     cgi.setEnvironment(req);
     cgi.printEnvironment();

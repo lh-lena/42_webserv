@@ -9,7 +9,7 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-RequestHandler::RequestHandler(const Server& server, const Request& request, Response& response) : 
+RequestHandler::RequestHandler(const Server& server, Request& request, Response& response) : 
 	_server(server), 
 	_request(request), 
 	_response(response)
@@ -27,13 +27,16 @@ RequestHandler::~RequestHandler() {}
 
 void		RequestHandler::processRequest()
 {
-	if (!findRequestedLocation(_request.reqURI))
+	if (!findRequestedLocation(_request.getURI()))
 	{
 		setErrorResponse(NOT_FOUND);
 		return;
 	}
 
-	_path = determineFilePath(_request.reqURI);
+	_path = determineFilePath(_request.getURI());
+	std::cout << "location: " << _location << std::endl;
+
+	std::cerr << "_path " << _path << std::endl;
 
 	if (!isImplementedMethod())
 	{
@@ -57,9 +60,7 @@ void		RequestHandler::processRequest()
 
 	if (isCGIRequest())
 	{
-		CGI cgi;
-
-		cgi.handleRequest(_request); /** TODO: to add a response */
+		handleCgiRequest();
 	}
 	else
 	{
@@ -121,7 +122,7 @@ std::string			RequestHandler::determineFilePath(const std::string& requested_pat
 {
 	std::string path = requested_path;
 	std::string	root = std::string();
-	// std::cout << "location: " << *loc << std::endl;
+
 	if (!_location.getRoot().empty())
 	{
 		root = _location.getRoot();
@@ -146,12 +147,12 @@ std::string			RequestHandler::determineFilePath(const std::string& requested_pat
 
 bool		RequestHandler::isMethodAllowed( void ) const
 {
-	return utils::is_str_in_vector(_request.method, _location.getAllowedMethods());
+	return utils::is_str_in_vector(_request.getMethod(), _location.getAllowedMethods());
 }
 
 bool		RequestHandler::isImplementedMethod( void ) const
 {
-	return utils::is_str_in_vector(utils::str_toupper(_request.method), _server.getImplementedMethods());
+	return utils::is_str_in_vector(utils::str_toupper(_request.getMethod()), _server.getImplementedMethods());
 }
 
 bool		RequestHandler::isRedirection( void ) const
@@ -171,31 +172,46 @@ void	RequestHandler::setRedirectResponse( void )
 
 bool	RequestHandler::isCGIRequest( void ) const
 {
-	std::string ext = utils::get_file_extension(_request.reqURI);
+	std::string ext = utils::get_file_extension(_request.getURI());
 
 	if (!utils::is_str_in_vector(ext, _location.getCGIExtension()))
 	{
 		return false;
 	}
 
-	const std::map<std::string, std::string>& cgiInterpreters = _location.getCgiInterpreters();
+	// const std::map<std::string, std::string>& cgiInterpreters = _location.getCgiInterpreters();
+	// cgiInterpreters.find(ext) != cgiInterpreters.end()
 
-	return cgiInterpreters.find(ext) != cgiInterpreters.end();
+	return true;
+}
+
+void	RequestHandler::handleCgiRequest( void )
+{
+	CGI cgi;
+
+	std::cerr << "_request.getURI() " << _request.getURI() << std::endl;
+	cgi.setEnvironment(_request);
+	cgi.setInterpreter(_location.getCgiInterpreter(utils::get_file_extension(_request.getURI())));
+	cgi.setUploadDir(searchingUploadDir());
+	cgi.setExecutable(determineFilePath(_request.getURI()));
+	std::string body = cgi.executeCGI(_request);
+	_response.setBody(body);
+	_response.setStatusCode(200);
 }
 
 void		RequestHandler::handleStaticRequest( void )
 {
 	// std::cout << "request.method " << request.method << std::endl;
-	if (std::strcmp(_request.method.c_str(), "GET") == 0 || \
-		std::strcmp(_request.method.c_str(), "HEAD") == 0)
+	if (std::strcmp(_request.getMethod().c_str(), "GET") == 0 || \
+		std::strcmp(_request.getMethod().c_str(), "HEAD") == 0)
 	{
 		handleGET();
 	}
-	else if (std::strcmp(_request.method.c_str(), "POST") == 0)
+	else if (std::strcmp(_request.getMethod().c_str(), "POST") == 0)
 	{
 		handlePOST();
 	}
-	else if (std::strcmp(_request.method.c_str(), "DELETE") == 0)
+	else if (std::strcmp(_request.getMethod().c_str(), "DELETE") == 0)
 	{
 		handleDELETE();
 	}
@@ -241,7 +257,7 @@ void	RequestHandler::handleGetDirectoryResponse( void )
 	}
 	else if (!utils::ends_with(_path, "/"))
 	{
-		_response.setHeader("Location", _request.reqURI + "/");
+		_response.setHeader("Location", _request.getURI() + "/");
 		setErrorResponse(MOVED_PERMANENTLY);
 	}
 	else if (appendIndexFile())
@@ -334,7 +350,7 @@ void		RequestHandler::handlePOST( void )
 		return;
 	}
 
-	file << _request.reqBody;
+	file << _request.getBody();
 	if (file.fail())
 	{
 		std::cerr << "Error writing to file: " << uploadDir + uploadFile << std::endl;
@@ -510,7 +526,7 @@ bool		RequestHandler::searchingPrefixMatchLocation(const std::string& requested_
 			if (std::strcmp(searched_path.c_str(), loc_path.c_str()) == 0)
 			{
 				_location = *it;
-				location_found =  true;
+				location_found = true;
 				break;
 			}
 		}

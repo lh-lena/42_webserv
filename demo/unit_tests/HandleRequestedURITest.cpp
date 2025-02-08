@@ -12,6 +12,7 @@
 #include "../includes/Location.hpp"
 #include "../includes/ParseConfig.hpp"
 #include "../includes/ServerControler.hpp"
+#include "../includes/RequestHandler.hpp"
 #include "../includes/utils.hpp"
 
 Server server;
@@ -34,8 +35,6 @@ void  initializeServer(char **envp)
   {
     std::cerr << e.what() << '\n';
   }
-  
-  
 }
 
 TEST(ServerTest, HandleRequestedURI)

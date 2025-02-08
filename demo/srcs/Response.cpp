@@ -20,18 +20,28 @@ void	Response::setStatusCode(int code)
 	_status_code = code;
 }
 
-// void	Response::setErrorPage(int code, std::string path)
-// {
-// 	setStatusCode(code);
-// 	// if (path.empty()) /** TODO: to implement in a function*/
-// 	// {
-// 	// 	path = utils::generate_html_error_page(code);
-// 	// 	setBody(path);
-// 	// 	return;
-// 	// }
+void	Response::setErrorPage(int code, std::string path)
+{
+	setStatusCode(code);
+	std::string body;
+	std::string date = utils::formatDate(utils::get_timestamp(""));
 
-// 	setBody(utils::load_file_content(path));
-// }
+	if (path.empty())
+	{
+		body = utils::generate_html_error_page(code);
+		setHeader("Content-Type", utils::get_MIME_type(body));
+	}
+	else
+	{
+		body = utils::load_file_content(path);
+		date = utils::formatDate(utils::get_timestamp(path));
+		setHeader("Content-Type", utils::get_MIME_type(path));
+	}
+
+	setBody(path);
+	setHeader("Date", date);
+	setHeader("Content-Length", utils::itos(body.length()));
+}
 
 std::string		Response::getResponse( void ) const
 {

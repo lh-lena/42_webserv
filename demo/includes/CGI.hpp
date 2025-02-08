@@ -21,17 +21,19 @@ public:
 	CGI();
 	~CGI();
 
-	void	setEnvironment(const Request& request);
-	void	printEnvironment();
-	void	handleRequest(const Request& request);
-	void	createChildProcess(Request& request);
-	void	executeCGI(Response& response);
+	void			setEnvironment(const Request& request);
+	void			printEnvironment();
+	std::string		executeCGI(Request& request);
+	void			setInterpreter(const std::string& str);
+	void			setExecutable(const std::string& str);
+	void			setUploadDir(const std::string& str);
 
-	std::map<std::string, std::string>	env;
-	std::vector<char*>					envp; // envp.data()
-	// char**								envp;
-	Request 							_request;
 private:
+	std::map<std::string, std::string>	env;
+	std::vector<char*>					envp;
+	std::string							interpreter;
+	std::string							upload_dir;
+	std::string							executable;
 };
 
 #endif /* CGIHANDLER_HPP */

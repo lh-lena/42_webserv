@@ -42,6 +42,7 @@ Location &				Location::operator=( Location const & rhs )
 		this->_error_pages = rhs.getErrorPages();
 		this->_cgi_extension = rhs.getCGIExtension();
 		this->_allowed_methods = rhs.getAllowedMethods();
+		this->_cgi_interpreter = rhs.getCgiInterpreters();
 	}
 	return *this;
 }
@@ -85,6 +86,13 @@ std::ostream&			operator<<( std::ostream & o, Location const& i )
 	for (it = i.getRedirect().begin(); it != i.getRedirect().end(); ++it)
 	{
 		std::cout  << "\t" << utils::itos(it->first) << ": " << it->second << std::endl;
+	}
+	o	<< "CGI interpreters: \n";
+
+	std::map<std::string, std::string>::const_iterator it2;
+	for (it2 = i.getCgiInterpreters().begin(); it2 != i.getCgiInterpreters().end(); ++it2)
+	{
+		std::cout  << "\t" << it2->first << ": " << it2->second << std::endl;
 	}
 	o << std::endl;
 	return o;
@@ -143,7 +151,7 @@ void	Location::setRedirect( int key, const std::string &val )
 	_return[key] = val;
 }
 
-void	Location::getCgiInterpreters( std::string key, const std::string &val ) 
+void	Location::setCgiInterpreters(const std::string& key, const std::string &val ) 
 {
 	_cgi_interpreter[key] = val;
 }
@@ -217,6 +225,18 @@ const std::vector<std::string>&		Location::getCGIExtension( void ) const
 const std::map<std::string, std::string>&	Location::getCgiInterpreters( void ) const
 {
 	return (_cgi_interpreter);
+}
+
+std::string				Location::getCgiInterpreter( const std::string& ext ) const
+{
+	std::map<std::string, std::string>::const_iterator it = getCgiInterpreters().find(ext);
+
+	if (it == getCgiInterpreters().end())
+	{
+		return std::string();
+	}
+
+	return it->second;
 }
 
 /* ************************************************************************** */
