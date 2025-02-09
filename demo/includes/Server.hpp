@@ -13,20 +13,6 @@
 # include "Request.hpp"
 # include "Response.hpp"
 
-/** HttpStatusCode */
-# define OK 200
-# define CREATED 201
-# define NO_CONTENT 204
-# define MOVED_PERMANENTLY 301
-# define BAD_REQUEST 400
-# define FORBIDDEN 403
-# define FORBIDDEN_DIR 403
-# define NOT_FOUND 404
-# define CONFLICT 409
-# define METHOD_NOT_ALLOWED 405
-# define NOT_IMPLEMENTED 501
-# define INTERNAL_SERVER_ERROR 500
-
 class Server
 {
 	public:

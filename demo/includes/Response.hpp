@@ -16,9 +16,11 @@ public:
 	void			setHeader(const std::string& key, const std::string& value);
 	void			setBody(const std::string& body);
 	void			setStatusCode(int code);
-	void			setErrorPage(int code, std::string path);
+	void			setErrorResponse(int code, std::string path);
 	std::string		getResponse( void ) const;
 
+private:
+	std::string							_server_name;
 	std::string							_body;
 	int									_status_code;
 	std::map<std::string, std::string>	_header_fields;

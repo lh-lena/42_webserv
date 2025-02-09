@@ -592,6 +592,9 @@ std::string		utils::generate_html_directory_listing(const std::string& dir_path)
 			"    <title>Directory Listing</title>\n"
 			"</head>\n"
 			"<body>\n"
+			"<h1>Index of "
+			<< dir_path
+			<< "</h1>"
 			"    <ul>\n";
 
 	std::vector<std::string> dir_content;

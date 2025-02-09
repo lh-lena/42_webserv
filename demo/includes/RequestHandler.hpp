@@ -6,6 +6,21 @@
 # include "Server.hpp"
 # include "Location.hpp"
 
+/** HttpStatusCode */
+# define OK 200
+# define CREATED 201
+# define NO_CONTENT 204
+# define MOVED_PERMANENTLY 301
+# define MOVED_TEMPORARY 302
+# define BAD_REQUEST 400
+# define FORBIDDEN 403
+# define FORBIDDEN_DIR 403
+# define NOT_FOUND 404
+# define CONFLICT 409
+# define METHOD_NOT_ALLOWED 405
+# define NOT_IMPLEMENTED 501
+# define INTERNAL_SERVER_ERROR 500
+
 class RequestHandler
 {
 public:
@@ -32,15 +47,16 @@ public:
 	bool					findRequestedLocation(const std::string& path);
 	bool					searchingExtensionMatchLocation(const std::string& requested_path);
 	bool					searchingPrefixMatchLocation(const std::string& requested_path);
-	void					setErrorResponse(int status_code);
-	std::string				getCustomErrorPage(int status_code);
+	bool					isExternalRedirect(const std::string& path);
+	void					setCustomErrorResponse(int status_code, const std::string& custom_error_path);
+	std::string				getCustomErrorPath(int status_code);
 	std::string				determineFilePath(const std::string& requested_path);
 	void					handleStaticRequest( void );
 	void					handleGET( void );
 	void					setGetResponse(int status_code);
 	void					setDirectoryListingResponse(int status_code);
 	void					handleGetDirectoryResponse( void );
-	bool					appendIndexFile( void );
+	bool					appendIndexFile(  std::string& path );
 	void					handlePOST( void );
 	std::string				searchingUploadDir( void );
 	void					handleDELETE( void );

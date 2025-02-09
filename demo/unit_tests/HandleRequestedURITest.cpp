@@ -117,17 +117,17 @@ TEST(ServerTest, HandleRequestedURI)
 
 }
 
-TEST(ServerTest, getCustomErrorPage)
+TEST(ServerTest, getCustomErrorPath)
 {
   std::vector<Location> locations = server.getLocations();
 
   int st_code1 = 405;
-  std::string path1 = server.getCustomErrorPage(st_code1, locations[0]);
+  std::string path1 = server.getCustomErrorPath(st_code1, locations[0]);
   std::string expected_path1 = "var/www/error_pages/405.html";
   EXPECT_EQ(path1, expected_path1);
   
   int st_code2 = 404;
-  std::string path2 = server.getCustomErrorPage(st_code2, locations[0]);
+  std::string path2 = server.getCustomErrorPath(st_code2, locations[0]);
   std::string expected_path2 = generate_html_error_page(st_code2);
   EXPECT_EQ(path2, expected_path2);
   

@@ -1,7 +1,7 @@
 # include "../includes/Response.hpp"
 # include "../includes/utils.hpp"
 
-Response::Response() {}
+Response::Response() :_server_name("42-Webserver") {}
 
 Response::~Response() {}
 
@@ -20,15 +20,17 @@ void	Response::setStatusCode(int code)
 	_status_code = code;
 }
 
-void	Response::setErrorPage(int code, std::string path)
+void	Response::setErrorResponse(int code, std::string path)
 {
 	setStatusCode(code);
 	std::string body;
 	std::string date = utils::formatDate(utils::get_timestamp(""));
+	std::string last_modified = utils::formatDate(utils::get_timestamp(""));
 
 	if (path.empty())
 	{
 		body = utils::generate_html_error_page(code);
+		last_modified = utils::formatDate(utils::get_timestamp(path));
 		setHeader("Content-Type", utils::get_MIME_type(body));
 	}
 	else
@@ -40,6 +42,8 @@ void	Response::setErrorPage(int code, std::string path)
 
 	setBody(path);
 	setHeader("Date", date);
+	setHeader("Server", _server_name);
+	setHeader("Last-Modified", last_modified);
 	setHeader("Content-Length", utils::itos(body.length()));
 }
 

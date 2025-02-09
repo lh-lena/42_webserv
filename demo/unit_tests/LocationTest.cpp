@@ -67,12 +67,31 @@ TEST(LocationTest, searchingPrefixMatchLocation)
     std::cout << reqHandle._location << std::endl;
 }
 
-// TEST(LocationTest, determineFilePath)
-// {
-//     Response response;
-//     Request req;
+TEST(LocationTest, determineFilePath)
+{
+    Response response;
+    Request req;
 
-//     req.parse(request);
-//     RequestHandler reqHandle(server, req, response);
+    std::ostringstream request1;
+        request1 << "GET /upload/test.py HTTP/1.1"
+                    << "Host: localhost:8080"
+                    << "Connection: keep-alive"
+                    << "Content-Length: 73"
+                    << "Hello";
 
-// }
+    req.parse(request1.str());
+    RequestHandler reqHandle(server, req, response);
+
+    std::string test1 = "/srcs/index.html";
+    std::string res1 = reqHandle.determineFilePath(test1);
+    std::string expected1 = "var/www/html/wordle" + test1;
+
+    EXPECT_EQ(res1, expected1);
+
+    std::string test2 = "/test/index.html";
+    std::string res2 = reqHandle.determineFilePath(test2);
+    std::string expected2 = "var/www/html/wordle/index.html";
+
+    EXPECT_EQ(res2, expected2);
+}
+

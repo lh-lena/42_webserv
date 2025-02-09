@@ -21,7 +21,7 @@ public:
 	std::string							getHeader(const std::string& key) const;
 	std::string							getBody() const;
 
-	bool								isValid(); /* to validate header request ??*/
+	bool								isValid();
 	bool								isBodyExpected();
 
 	private:

@@ -429,11 +429,11 @@ std::string	ServerControler::processRequest(std::string & data)
 	// std::cerr << "data " << data << std::endl;
 	if (!request.parse(data))
 	{
-		response.setErrorPage(BAD_REQUEST, std::string());
+		response.setErrorResponse(BAD_REQUEST, std::string());
 		return response.getResponse();
 	}
 
-	std::cout << request << std::endl; // rm
+	// std::cout << request << std::endl; // rm
 
 	serv = chooseServBlock(request.getHeader("Host"));
 	RequestHandler reqHandler(serv, request, response);

@@ -75,7 +75,7 @@ valgrind : all
 TEST_DIR		= unit_tests/
 TEST_NAME		:= test_runner
 GTEST_LIBS		:= -L/opt/homebrew/Cellar/googletest/1.15.2/lib -lgtest -lgtest_main -pthread
-STD_20			:= -std=c++20
+STD_20			:= -std=c++20 -fPIE
 TEST_INCLUDES	:= -I/opt/homebrew/Cellar/googletest/1.15.2/include
 
 # TEST_FILES		+= test_main.cpp
