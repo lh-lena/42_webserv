@@ -7,7 +7,7 @@ Response::~Response() {}
 
 void	Response::setHeader(const std::string& key, const std::string& value)
 {
-	_headers[key] = value;
+	_header_fields[key] = value;
 }
 
 void	Response::setBody(const std::string& body)
@@ -46,11 +46,14 @@ void	Response::setErrorPage(int code, std::string path)
 std::string		Response::getResponse( void ) const
 {
 	std::ostringstream response;
-	std::string			CRLF = "\r\n";
 
-	response << "HTTP/1.1 " << _status_code << " " << utils::get_reason_phrase(_status_code) << CRLF;
+	response	<< "HTTP/1.1 " 
+				<< _status_code
+				<< " " 
+				<< utils::get_reason_phrase(_status_code)
+				<< CRLF;
 
-	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
+	for (std::map<std::string, std::string>::const_iterator it = _header_fields.begin(); it != _header_fields.end(); ++it)
 	{
 		response << it->first << ": " << it->second << CRLF;
 	}

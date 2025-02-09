@@ -57,36 +57,43 @@ std::ostream&			operator<<( std::ostream & o, Location const& i )
 		<< "clien max body: " << i.getClientMaxBody() << std::endl
 		<< "upload dir: " << i.getUploadDir() << std::endl;
 
-	o	<< "indexes: \n\t";
+	o	<< "indexes: ";
 	std::vector<std::string>::const_iterator it_s;
 	for (it_s = i.getIndexes().begin(); it_s != i.getIndexes().end(); ++it_s)
 	{
 		o << *it_s << " ";
 	}
+	o << "\n";
 
-	o << "\nCGI extention: \n\t";
+	o << "CGI extention: ";
 	for (it_s = i.getCGIExtension().begin(); it_s != i.getCGIExtension().end(); ++it_s)
 	{
 		o << *it_s << " ";
 	}
+	o << "\n";
 
-	o	<< "\nallowed methods: \n\t";
+	o	<< "allowed methods: ";
 	for (it_s = i.getAllowedMethods().begin(); it_s != i.getAllowedMethods().end(); ++it_s)
 	{
 		o << *it_s << " ";
 	}
-	o	<< "\nerror pages: \n";
+	o << "\n";
+
+	o	<< "error pages: ";
 
 	std::map<int, std::string>::const_iterator it;
 	for (it = i.getErrorPages().begin(); it != i.getErrorPages().end(); ++it)
 	{
 		std::cout  << "\t" << utils::itos(it->first) << ": " << it->second << std::endl;
 	}
-	o	<< "\nredirection: \n";
+	o << "\n";
+	o	<< "redirection: ";
 	for (it = i.getRedirect().begin(); it != i.getRedirect().end(); ++it)
 	{
 		std::cout  << "\t" << utils::itos(it->first) << ": " << it->second << std::endl;
 	}
+	o << "\n";
+
 	o	<< "CGI interpreters: \n";
 
 	std::map<std::string, std::string>::const_iterator it2;
@@ -94,7 +101,6 @@ std::ostream&			operator<<( std::ostream & o, Location const& i )
 	{
 		std::cout  << "\t" << it2->first << ": " << it2->second << std::endl;
 	}
-	o << std::endl;
 	return o;
 }
 

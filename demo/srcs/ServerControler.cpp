@@ -426,9 +426,8 @@ std::string	ServerControler::processRequest(std::string & data)
 	Response	response;
 	Server		serv;
 
-	std::cerr << "data " << data << std::endl;
-	bool res = request.parse(data);
-	if (!res)
+	// std::cerr << "data " << data << std::endl;
+	if (!request.parse(data))
 	{
 		response.setErrorPage(BAD_REQUEST, std::string());
 		return response.getResponse();

@@ -357,8 +357,8 @@ bool	utils::parse_query(const std::string& uri, std::string& new_uri, std::strin
 {
 	if (uri.rfind('?') != std::string::npos)
 	{
+		query = utils::substr_after_rdel(uri, "?");
 		new_uri = utils::substr_before_rdel(uri, "?");
-		query = utils::substr_before_rdel(uri, "?");
 		return true;
 	}
 

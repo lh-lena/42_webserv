@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <map>
+# define CRLF "\r\n"
 
 class	Response
 {
@@ -18,12 +19,9 @@ public:
 	void			setErrorPage(int code, std::string path);
 	std::string		getResponse( void ) const;
 
-
 	std::string							_body;
 	int									_status_code;
-	std::map<std::string, std::string>	_headers;
+	std::map<std::string, std::string>	_header_fields;
 };
-
-std::ostream &			operator<<( std::ostream & o, Response const & i );
 
 #endif /* RESPONSE_HPP */

@@ -22,16 +22,16 @@ public:
 	std::string							getBody() const;
 
 	bool								isValid(); /* to validate header request ??*/
-
-	std::string	host;
+	bool								isBodyExpected();
 
 	private:
+	bool								_is_valid;
 	std::string							_method;
 	std::string							_reqURI;
 	std::string							_protocol;
 	std::string							_query;
 	std::string							_body;
-	std::map<std::string, std::string>	_headers;
+	std::map<std::string, std::string>	_header_fields;
 
 	void								parseStartLine(const std::string& str);
 	void								parseHeader(const std::string& header_lines);
