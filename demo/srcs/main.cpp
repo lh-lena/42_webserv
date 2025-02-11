@@ -14,9 +14,10 @@ int	main(int ac, char **av, char **envp)
 	if (ac == 2)
 		configFilePath = av[1];
 	else
-		configFilePath = "serv.conf";
+		configFilePath = "conf/serv.conf";
 
 	ParseConfig config(configFilePath, envp);
+
 	try
 	{
 		config.readFileContent();

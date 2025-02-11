@@ -33,10 +33,11 @@ void		RequestHandler::processRequest()
 		return;
 	}
 
-	// std::cout << "location: " << _location << std::endl;
+	std::cout << "_request.getURI(): " << _request.getURI() << std::endl;
+	std::cout << "location: " << _location << std::endl;
 	_path = determineFilePath(_request.getURI());
 
-	// std::cerr << "_path " << _path << std::endl;
+	std::cerr << "determineFilePath _path " << _path << std::endl;
 
 	if (!isImplementedMethod())
 	{
@@ -133,11 +134,11 @@ std::string		RequestHandler::getCustomErrorPath(int status_code)
 
 	if (er_pages.size() > 0 && er_pages.find(status_code) != er_pages.end())
 	{
-		path = er_pages[status_code];
-		/* if (findRequestedLocation(er_pages[status_code]))
+		// path = er_pages[status_code];
+		if (findRequestedLocation(er_pages[status_code]))
 		{
 			path = determineFilePath(er_pages[status_code]);
-		} */
+		}
 	}
 	return path;
 }
@@ -146,7 +147,7 @@ std::string		RequestHandler::getCustomErrorPath(int status_code)
 std::string			RequestHandler::determineFilePath(const std::string& requested_path)
 {
 	std::string path = requested_path;
-	std::string	root = std::string();
+	std::string	root = "";
 
 	if (!_location.getRoot().empty())
 	{
@@ -230,7 +231,14 @@ void		RequestHandler::handleStaticRequest( void )
 	if (std::strcmp(_request.getMethod().c_str(), "GET") == 0 || \
 		std::strcmp(_request.getMethod().c_str(), "HEAD") == 0)
 	{
-		handleGET();
+		if (utils::is_regular_file(_path))
+		{
+			setGetResponse(OK);
+		}
+		else
+		{
+			handleGetDirectoryResponse();
+		}
 	}
 	else if (std::strcmp(_request.getMethod().c_str(), "POST") == 0)
 	{
@@ -528,7 +536,7 @@ bool		RequestHandler::searchingExtensionMatchLocation(const std::string& request
 
 
 /**
- * Normalize a URI by resolving its root and determining the relevant prefix-based location blocks.
+ * Normalize a URI by resolving its root and determining the longest prefix-based match from location blocks.
  *
  * @param requested_path - The requested URI path
  * @param location - The relevant Location object will be stored here.
@@ -536,53 +544,76 @@ bool		RequestHandler::searchingExtensionMatchLocation(const std::string& request
  */
 bool		RequestHandler::searchingPrefixMatchLocation(const std::string& requested_path)
 {
-	std::string	searched_path = requested_path;
-	std::string	rest = std::string();
+	std::string	best_match = std::string();
 	bool	location_found = false;
-	size_t	pos = 0;
 
-	while (!searched_path.empty())
+	std::vector<Location>::const_iterator it = _server.getLocations().begin();
+
+	for (; it < _server.getLocations().end(); ++it)
 	{
-		std::vector<Location>::const_iterator it = _server.getLocations().begin();
-
-		for (; it < _server.getLocations().end(); it++)
+		std::string loc_path = it->getPath();
+		if (requested_path.compare(0, loc_path.length(), loc_path) == 0)
 		{
-			std::string loc_path = it->getPath();
-			if (std::strcmp(searched_path.c_str(), loc_path.c_str()) == 0)
+			if (loc_path.length() > best_match.length())
 			{
+				best_match = loc_path;
 				_location = *it;
 				location_found = true;
-				break;
 			}
 		}
-		pos = searched_path.rfind("/");
-		if (pos != std::string::npos && utils::ends_with(searched_path, "/"))
-		{
-			rest = requested_path.substr(pos);
-			searched_path = searched_path.erase(pos);
-		}
-		else if (pos != std::string::npos && searched_path[pos + 1])
-		{
-			rest = requested_path.substr(pos + 1);
-			searched_path = searched_path.erase(pos + 1);
-		}
-		else
-		{
-			rest = requested_path;
-			searched_path = "";
-		}
-		if (location_found)
-			break;
 	}
 	return location_found;
 }
 
+
+// bool		RequestHandler::searchingPrefixMatchLocation(const std::string& requested_path)
+// {
+// 	std::string	searched_path = requested_path;
+// 	std::string	rest = std::string();
+// 	bool	location_found = false;
+// 	size_t	pos = 0;
+
+// 	while (!searched_path.empty())
+// 	{
+// 		std::vector<Location>::const_iterator it = _server.getLocations().begin();
+
+// 		for (; it < _server.getLocations().end(); it++)
+// 		{
+// 			std::string loc_path = it->getPath();
+// 			if (std::strcmp(searched_path.c_str(), loc_path.c_str()) == 0)
+// 			{
+// 				_location = *it;
+// 				location_found = true;
+// 				break;
+// 			}
+// 		}
+// 		pos = searched_path.rfind("/");
+// 		if (pos != std::string::npos && utils::ends_with(searched_path, "/"))
+// 		{
+// 			rest = requested_path.substr(pos);
+// 			searched_path = searched_path.erase(pos);
+// 		}
+// 		else if (pos != std::string::npos && searched_path[pos + 1])
+// 		{
+// 			rest = requested_path.substr(pos + 1);
+// 			searched_path = searched_path.erase(pos + 1);
+// 		}
+// 		else
+// 		{
+// 			rest = requested_path;
+// 			searched_path = "";
+// 		}
+// 		if (location_found)
+// 			break;
+// 	}
+// 	return location_found;
+// }
+
 bool		RequestHandler::isExternalRedirect(const std::string& path)
 {
 	return (utils::is_regular_file(path)
-			|| utils::starts_with(path, "http://") 
-			|| utils::starts_with(path, "https://") 
-			|| utils::starts_with(path, "/"));
+			|| utils::starts_with(path, "http://")
+			|| utils::starts_with(path, "https://"));
 }
 
 std::string			RequestHandler::decodeURI(const std::string& path)

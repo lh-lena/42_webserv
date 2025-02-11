@@ -201,7 +201,7 @@ void	ServerControler::startServing()
 	//bool conn_active = false;
 	std::vector<Connection> conns;
 
-	signal(SIGINT, ServerControler::sig_handler);
+	// signal(SIGINT, ServerControler::sig_handler);
 
 	try
 	{

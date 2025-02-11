@@ -250,6 +250,10 @@ void		ParseConfig::handleServerBlock(const std::pair<std::string, int>& value, S
 			Location location;
 			DirectiveLocationHandler loc_handler = _location_directives[directive];
 			(this->*loc_handler)(el, &location);
+			if (location.getAllowedMethods().empty())
+			{
+				location.setAllowedMethod("GET");
+			}
 			instance->setLocation(location);
 			continue;
 		}
