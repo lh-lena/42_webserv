@@ -17,6 +17,7 @@ public:
 	void			setBody(const std::string& body);
 	void			setStatusCode(int code);
 	void			setErrorResponse(int code, std::string path);
+	void			setStaticPageResponse(int code, const std::string& path);
 	std::string		getResponse( void ) const;
 
 private:

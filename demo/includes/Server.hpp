@@ -34,6 +34,7 @@ class Server
 		void								setServerName(const std::string &arg);
 		void								setLocation(const Location &src);
 		void								setImplementedMethods(const std::string& str);
+		void								setUploadDir(const std::string &str);
 		int									getLocationNbr( void ) const;
 		int									getClientMaxBody( void ) const;
 		int									getWorkCont( void ) const;
@@ -41,13 +42,12 @@ class Server
 		const std::string&					getHost( void ) const;
 		const std::string&					getRoot( void ) const;
 		const std::string&					getErrorLog( void ) const;
+		const std::string&					getUploadDir( void ) const;
 		const std::vector<Location>&		getLocations( void ) const;
 		const std::vector<std::string>&		getIndexes( void ) const;
 		const std::vector<std::string>&		getServerNames( void ) const;
 		const std::map<int, std::string>&	getErrorPages( void ) const;
 		const std::vector<std::string>&		getImplementedMethods( void ) const;
-
-		int									handleCGI(Response& response, Location& loc);
 
 		std::string							server_name;
 
@@ -58,6 +58,7 @@ class Server
 		int									_port;
 		std::string							_host;
 		std::string							_root;
+		std::string							_upload_dir;
 		std::string							_error_log;
 		std::vector<Location>				_locations;
 		std::vector<std::string>			_indexes;

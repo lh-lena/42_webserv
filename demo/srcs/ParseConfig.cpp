@@ -8,10 +8,12 @@ template void	ParseConfig::handleClientBodySize<Server>(const std::pair<std::str
 template void	ParseConfig::handleErrorPage<Server>(const std::pair<std::string, int>&, Server*);
 template void	ParseConfig::handleIndex<Server>(const std::pair<std::string, int>&, Server*);
 template void	ParseConfig::handleRoot<Server>(const std::pair<std::string, int>&, Server*);
+template void	ParseConfig::handleUploadDir<Server>(const std::pair<std::string, int>&, Server*);
 template void	ParseConfig::handleClientBodySize<Location>(const std::pair<std::string, int>&, Location*);
 template void	ParseConfig::handleErrorPage<Location>(const std::pair<std::string, int>&, Location*);
 template void	ParseConfig::handleIndex<Location>(const std::pair<std::string, int>&, Location*);
 template void	ParseConfig::handleRoot<Location>(const std::pair<std::string, int>&, Location*);
+template void	ParseConfig::handleUploadDir<Location>(const std::pair<std::string, int>&, Location*);
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
@@ -31,7 +33,6 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 	allowed_methods["DELETE"] = true;
 	map_template_dir["error_page"] = true;
 	map_template_dir["return"] = true;
-	map_template_dir["cgi_interpreter"] = true;
 	this->setGlobalDirective("worker_connections", &ParseConfig::handleWorkCont);
 	this->setGlobalDirective("http", &ParseConfig::handleHttpBlock);
 	this->setHttpDirective("server", &ParseConfig::handleServerBlock);
@@ -41,6 +42,7 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 	this->setServerDirective("index", &ParseConfig::handleIndex);
 	this->setServerDirective("listen", &ParseConfig::handleListen);
 	this->setServerDirective("error_page", &ParseConfig::handleErrorPage);
+	this->setServerDirective("upload", &ParseConfig::handleUploadDir);
 	this->setLocationDirective("location", &ParseConfig::handleLocationBlock);
 	this->setServerDirective("location", &ParseConfig::handleServerBlock);
 	this->setServerDirective("server_name", &ParseConfig::handleServerName);
@@ -53,9 +55,8 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 	this->setLocationDirective("autoindex", &ParseConfig::handleAutoindex);
 	this->setLocationDirective("error_page", &ParseConfig::handleErrorPage);
 	this->setLocationDirective("allowed_methods", &ParseConfig::handleAllowedMethods);
-	this->setLocationDirective("upload_directory", &ParseConfig::handleUploadDir);
+	this->setLocationDirective("upload", &ParseConfig::handleUploadDir);
 	this->setLocationDirective("cgi_extension", &ParseConfig::handleCGIExtension);
-	this->setLocationDirective("cgi_interpreter", &ParseConfig::handleCGIInterpreter);
 	this->setLocationDirective("client_max_body_size", &ParseConfig::handleClientBodySize);
 }
 
@@ -377,6 +378,11 @@ template<typename T> void	ParseConfig::handleRoot(const std::pair<std::string, i
 	instance->setRoot(value.first);
 }
 
+template<typename T>void	ParseConfig::handleUploadDir(const std::pair<std::string, int>& value, T* instance)
+{
+	instance->setUploadDir(value.first);
+}
+
 void		ParseConfig::handlePath(const std::pair<std::string, int>& value, Location* instance)
 {
 	instance->setPath(value.first);
@@ -558,27 +564,9 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 	}
 }
 
-void		ParseConfig::handleUploadDir(const std::pair<std::string, int>& value, Location* instance)
-{
-	instance->setUploadDir(value.first);
-}
-
 void		ParseConfig::handleCGIExtension(const std::pair<std::string, int>& value, Location* instance)
 {
 	instance->setCGIExtension(value.first);
-}
-
-void		ParseConfig::handleCGIInterpreter(const std::pair<std::string, int>& value, Location* instance)
-{
-	std::string 				s = value.first;
-	std::vector<std::string>	vals = utils::ft_split(s, " ");
-
-	if (vals.empty() || vals.size() != 2)
-	{
-		throw ParseException("[emerg] : invalid number of arguments in \"cgi_interpreter\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
-	}
-
-	instance->setCgiInterpreters(vals[0], vals[1]);
 }
 
 /**

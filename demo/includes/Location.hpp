@@ -29,7 +29,6 @@ public:
 	void										setAllowedMethod(const std::string &arg);
 	void										addErrorPage(int key, const std::string &val);
 	void										setRedirect( int key, const std::string &val );
-	void										setCgiInterpreters( const std::string& key, const std::string &val );
 	bool										getAutoindex( void ) const;
 	int											getClientMaxBody( void ) const;
 	const std::string&							getPath( void ) const;
@@ -41,8 +40,6 @@ public:
 	const std::vector<std::string>&				getAllowedMethods( void ) const;
 	const std::map<int, std::string>&			getErrorPages( void ) const;
 	const std::map<int, std::string>&			getRedirect( void ) const;
-	const std::map<std::string, std::string>&	getCgiInterpreters( void ) const;
-	std::string									getCgiInterpreter( const std::string& ext ) const;
 
 private:
 
@@ -57,7 +54,6 @@ private:
 	std::vector<std::string>					_allowed_methods;
 	std::map<int, std::string>					_error_pages;
 	std::map<int, std::string>					_return;
-	std::map<std::string, std::string>			_cgi_interpreter;
 };
 
 std::ostream &			operator<<( std::ostream & o, Location const & i );
