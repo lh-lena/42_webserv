@@ -39,6 +39,8 @@ void CGI::setEnvironment(const Request& request)
 	env["SERVER_PROTOCOL"] = request.getProtocol();
 	env["SERVER_SOFTWARE"] = "42-server/1.0";
 	env["SERVER_ROOT"] = std::string();
+	env["UPLOAD_DIR"] = upload_dir;
+	env["HTTP_COOKIE"] = request.getHeader("Cookie");
 
 	std::map<std::string, std::string>::iterator it = env.begin();
 	for (; it != env.end(); it++)
@@ -95,7 +97,7 @@ std::string		CGI::executeCGI(Request& request)
 		close(out_fds[1]);
 		char * const * nll = NULL;
 		char *arg = {(char *)executable.c_str()};
-		// std::cerr << "executable CGI: " << executable << std::endl;
+		std::cerr << "executable CGI: " << executable << std::endl;
 		if (execve(arg, nll, envp.data()) < 0)
 		{
 			std::cerr << RED << "Error: execve() failed\n" << RESET;

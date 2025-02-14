@@ -21,12 +21,12 @@ public:
 	CGI();
 	~CGI();
 
-	void			setEnvironment(const Request & request);
-	void			printEnvironment();
-	std::string		executeCGI(Request & request);
-	void			setInterpreter(const std::string& str);
-	void			setExecutable(const std::string& str);
-	void			setUploadDir(const std::string& str);
+	void		printEnvironment();
+	void		setEnvironment(const Request & request);
+	std::string	executeCGI(Request & request);
+	void		setInterpreter(const std::string& str);
+	void		setExecutable(const std::string& str);
+	void		setUploadDir(const std::string& str);
 
 	int	conn_fd;
 	int	fds[2];
@@ -37,6 +37,7 @@ private:
 	std::string							interpreter;
 	std::string							upload_dir;
 	std::string							executable;
+	void	cleanEnvironment();
 };
 
 #endif /* CGIHANDLER_HPP */
