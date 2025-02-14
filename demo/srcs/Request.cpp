@@ -91,14 +91,6 @@ void	Request::parseHeader(const std::string& header_lines)
 	_is_valid = true;
 }
 
-/*
-If a Transfer-Encoding header field
-is present in a request and the chunked transfer coding is not
-the final encoding, the message body length cannot be determined
-reliably; the server MUST respond with the 400 (Bad Request)
-status code and then close the connection.
-*/
-
 void	Request::parseBody(const std::string& body)
 {
 	_body = body;
@@ -108,46 +100,57 @@ void	Request::parseBody(const std::string& body)
 ** --------------------------------- ACCESSOR ---------------------------------
 */
 
-std::string		Request::getMethod() const
+void					Request::setFullPath(const std::string& path)
+{
+	_full_path = path;
+}
+
+const std::string&		Request::getMethod() const
 {
 	return _method;
 }
 
-std::string		Request::getURI() const
+const std::string&		Request::getURI() const
 {
 	return _reqURI;
 }
 
-std::string		Request::getQueryString() const
+const std::string&		Request::getQueryString() const
 {
 	return _query;
 }
 
-std::string		Request::getProtocol() const
+const std::string&		Request::getProtocol() const
 {
 	return _protocol;
 }
 
-std::string		Request::getHeader(const std::string& key) const
+const std::string		Request::getHeader(const std::string& key) const
 {
 	if (_header_fields.find(key) == _header_fields.end())
 	{
-		return std::string();
+		return "";
 	}
 
 	std::map<std::string, std::string>::const_iterator	it = _header_fields.find(key);
 	return it->second;
 }
 
-std::string		Request::getBody() const
+const std::string&		Request::getBody() const
 {
 	return _body;
+}
+
+const std::string&		Request::getFullPath() const
+{
+	return _full_path;
 }
 
 std::ostream &			operator<<( std::ostream & o, Request const & i )
 {
 	o	<< "method = " << i.getMethod() << std::endl
 		<< "reqURI = " << i.getURI() << std::endl
+		<< "fullPath = " << i.getFullPath() << std::endl
 		<< "protocol = " << i.getProtocol() << std::endl
 		<< "query = " << i.getQueryString() << std::endl
 		<< "body = " << i.getBody();

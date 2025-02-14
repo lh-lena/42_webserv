@@ -8,7 +8,7 @@
 
 Server::Server()
 	:
-		server_name("42_webserv"),
+		server_name("42_webserv/1.0"),
 		_location_nbr(0),
 		_client_max_body_size(1 * 1024 * 1024), //1M
 		_worker_connections(1024)
@@ -48,6 +48,7 @@ Server &				Server::operator=( Server const & rhs )
 		_host = rhs.getHost();
 		_port = rhs.getPort();
 		_root = rhs.getRoot();
+		_upload_dir = rhs.getUploadDir();
 		_error_log = rhs.getErrorLog();
 		_error_pages = rhs.getErrorPages();
 		_indexes = rhs.getIndexes();
@@ -224,6 +225,11 @@ void	Server::setLocation(const Location &src)
 	_location_nbr += 1;
 }
 
+void	Server::setUploadDir(const std::string &str)
+{
+	_upload_dir = str;
+}
+
 void	Server::setImplementedMethods(const std::string &str)
 {
 	_implemented_methods.push_back(str);
@@ -262,6 +268,11 @@ const std::string&	Server::getRoot( void ) const
 const std::string&	Server::getErrorLog( void ) const
 {
 	return (_error_log);
+}
+
+const std::string&	Server::getUploadDir( void ) const
+{
+	return (_upload_dir);
 }
 
 const std::map<int, std::string>&	Server::getErrorPages( void ) const

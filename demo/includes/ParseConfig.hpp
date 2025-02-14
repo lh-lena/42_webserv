@@ -34,12 +34,10 @@ class ParseConfig
 		void							handleErrorLog(const std::pair<std::string, int>& value, Server* instance);
 		void							handleAllowedMethods(const std::pair<std::string, int>& value, Location* instance);
 		void							handleAutoindex(const std::pair<std::string, int>& value, Location* instance);
-		void							handleUploadDir(const std::pair<std::string, int>& value, Location* instance);
 		void							handleAlias(const std::pair<std::string, int>& value, Location* instance);
 		void							handlePath(const std::pair<std::string, int>& value, Location* instance);
 		void							handleRedirect(const std::pair<std::string, int>& value, Location* instance);
 		void							handleCGIExtension(const std::pair<std::string, int>& value, Location* instance);
-		void							handleCGIInterpreter(const std::pair<std::string, int>& value, Location* instance);
 		void							setGlobalDirective(const std::string &directive, DirectiveServerHandler handler);
 		void							setHttpDirective(const std::string &directive, DirectiveServerHandler handler);
 		void							setServerDirective(const std::string &directive, DirectiveServerHandler handler);
@@ -80,6 +78,7 @@ class ParseConfig
 		template<typename T> void	handleRoot(const std::pair<std::string, int>& value, T* instance);
 		template<typename T> void	handleIndex(const std::pair<std::string, int>& value, T* instance);
 		template<typename T> void	handleErrorPage(const std::pair<std::string, int>& value, T* instance);
+		template<typename T> void	handleUploadDir(const std::pair<std::string, int>& value, T* instance);
 		template<typename T> void	handleClientBodySize(const std::pair<std::string, int>& value, T* instance);
 };
 

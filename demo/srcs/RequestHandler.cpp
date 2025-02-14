@@ -33,15 +33,14 @@ void		RequestHandler::processRequest()
 		return;
 	}
 
-	std::cout << "_request.getURI(): " << _request.getURI() << std::endl;
-	std::cout << "location: " << _location << std::endl;
-	_path = determineFilePath(_request.getURI());
-
-	std::cerr << "determineFilePath _path " << _path << std::endl;
+	_request.setFullPath(determineFilePath(_request.getURI()));
+	
+	// std::cout << "_request.getURI(): " << _request.getURI() << std::endl;
+	// std::cout << "location: " << _location << std::endl;
+	// std::cerr << "_request " << _request << std::endl;
 
 	if (!isImplementedMethod())
 	{
-		/** TODO: getCustomErrorPath can be internal or external redirection (302 status code)*/
 		setCustomErrorResponse(NOT_IMPLEMENTED, getCustomErrorPath(NOT_IMPLEMENTED));
 		_response.setHeader("Allow", utils::vector_tostr(_location.getAllowedMethods()));
 		return;
@@ -93,7 +92,7 @@ void	RequestHandler::setCustomErrorResponse(int status_code, const std::string& 
 		new_path = determineFilePath(custom_error_path);
 		if (utils::is_directory(new_path))
 		{
-			appendIndexFile(new_path);
+			new_path = appendIndexFile(new_path);
 		}
 		if (utils::is_regular_file(new_path))
 		{
@@ -205,10 +204,6 @@ bool	RequestHandler::isCGIRequest( void ) const
 	{
 		return false;
 	}
-
-	// const std::map<std::string, std::string>& cgiInterpreters = _location.getCgiInterpreters();
-	// cgiInterpreters.find(ext) != cgiInterpreters.end()
-
 	return true;
 }
 
@@ -216,14 +211,18 @@ void	RequestHandler::handleCgiRequest( void )
 {
 	CGI cgi;
 
-	// std::cerr << "_request.getURI() " << _request.getURI() << std::endl;
 	cgi.setEnvironment(_request);
-	cgi.setInterpreter(_location.getCgiInterpreter(utils::get_file_extension(_request.getURI())));
 	cgi.setUploadDir(searchingUploadDir());
-	cgi.setExecutable(determineFilePath(_request.getURI()));
+	cgi.setExecutable(_request.getFullPath());
 	std::string body = cgi.executeCGI(_request);
+
 	_response.setBody(body);
+	unsigned long long con_len = body.length();
 	_response.setStatusCode(200);
+	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
+	_response.setHeader("Server", _server.server_name);
+	_response.setHeader("Content-Type", utils::get_MIME_type(body));
+	_response.setHeader("Content-Length", utils::ulltos(con_len));
 }
 
 void		RequestHandler::handleStaticRequest( void )
@@ -231,9 +230,9 @@ void		RequestHandler::handleStaticRequest( void )
 	if (std::strcmp(_request.getMethod().c_str(), "GET") == 0 || \
 		std::strcmp(_request.getMethod().c_str(), "HEAD") == 0)
 	{
-		if (utils::is_regular_file(_path))
+		if (utils::is_regular_file(_request.getFullPath()))
 		{
-			setGetResponse(OK);
+			_response.setStaticPageResponse(OK, _request.getFullPath());
 		}
 		else
 		{
@@ -253,9 +252,9 @@ void		RequestHandler::handleStaticRequest( void )
 
 void		RequestHandler::handleGET( void )
 {
-	if (utils::is_regular_file(_path))
+	if (utils::is_regular_file(_request.getFullPath()))
 	{
-		setGetResponse(OK);
+		_response.setStaticPageResponse(OK, _request.getFullPath());
 	}
 	else
 	{
@@ -263,39 +262,24 @@ void		RequestHandler::handleGET( void )
 	}
 }
 
-void	RequestHandler::setGetResponse(int status_code)
-{
-	std::string	body = utils::load_file_content(_path);
-	unsigned long long con_len = body.length(); 
-
-	if (con_len <= 0)
-	{
-		status_code = NO_CONTENT;
-	}
-
-	_response.setStatusCode(status_code);
-	_response.setBody(body);
-	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
-	_response.setHeader("Server", _server.server_name);
-	_response.setHeader("Last-Modified", utils::formatDate(utils::get_timestamp(_path)));
-	_response.setHeader("Content-Type", utils::get_MIME_type(_path));
-	_response.setHeader("Content-Length", utils::ulltos(con_len));
-}
-
 void	RequestHandler::handleGetDirectoryResponse( void )
 {
-	if (!utils::is_directory(_path))
+	std::string	new_path;
+
+	if (!utils::is_directory(_request.getFullPath()))
 	{
 		setCustomErrorResponse(NOT_FOUND, getCustomErrorPath(NOT_FOUND));
 	}
-	else if (!utils::ends_with(_path, "/"))
+	else if (!utils::ends_with(_request.getFullPath(), "/"))
 	{
 		setCustomErrorResponse(MOVED_PERMANENTLY, "");
 		_response.setHeader("Location", _request.getURI() + "/");
 	}
-	else if (appendIndexFile(_path))
+
+	new_path = appendIndexFile(_request.getFullPath());
+	if (new_path.compare(_request.getFullPath().c_str()) != 0)
 	{
-		setGetResponse(OK);
+		_response.setStaticPageResponse(OK, new_path);
 	}
 	else if (!_location.getAutoindex())
 	{
@@ -309,13 +293,13 @@ void	RequestHandler::handleGetDirectoryResponse( void )
 
 void	RequestHandler::setDirectoryListingResponse(int status_code)
 {
-	std::string	body = utils::generate_html_directory_listing(_path);
+	std::string	body = utils::generate_html_directory_listing(_request.getFullPath());
 	unsigned long long con_len = body.length();
 
-	if (con_len <= 0)
+/* 	if (con_len <= 0)
 	{
 		status_code = NO_CONTENT;
-	}
+	} */
 
 	_response.setStatusCode(status_code);
 	_response.setBody(body);
@@ -325,49 +309,50 @@ void	RequestHandler::setDirectoryListingResponse(int status_code)
 	_response.setHeader("Content-Length", utils::ulltos(con_len));
 }
 
-bool	RequestHandler::appendIndexFile( std::string& path )
+std::string		RequestHandler::appendIndexFile( const std::string& path )
 {
 	std::vector<std::string> dir_content;
 	std::vector<std::string> idxs = _location.getIndexes();
+	std::string				new_path = path;
 
 	if (idxs.size() == 0)
 	{
 		idxs = _server.getIndexes();
 	}
 
-	if (utils::get_dir_entries(_path, dir_content) != 0)
+	if (utils::get_dir_entries(path, dir_content) != 0)
 	{
-		return false;
+		return path;
 	}
 
 	for (size_t i = 0; i < idxs.size(); i++)
 	{
 		if (utils::is_str_in_vector(idxs[i], dir_content))
 		{
-			path += idxs[i];
-			return true;
+			new_path += idxs[i];
+			return new_path;
 		}
 	}
 
-	return false;
+	return path;
 }
 
 /** ------------------------ Methods related POST request method ------------------------- */
-
+/**  TODO: if content_length more if max_body-size */ 
 void		RequestHandler::handlePOST( void )
 {
 	std::string uploadDir = searchingUploadDir();
 
-	if (utils::substr_after_rdel(_path, ".").empty())
+	if (utils::substr_after_rdel(_request.getFullPath(), ".").empty())
 	{
 		setCustomErrorResponse(FORBIDDEN, getCustomErrorPath(FORBIDDEN));
 		return;
 	}
-	std::string uploadFile = utils::substr_after_rdel(_path, "/");
+	std::string uploadFile = utils::substr_after_rdel(_request.getFullPath(), "/");
 	std::ofstream file((uploadDir + uploadFile).c_str()); // "/" ??
 	if (!file.is_open())
 	{
-		std::cerr	<< "Failed to open file: " << _path
+		std::cerr	<< "Failed to open file: " << _request.getFullPath()
 					<< " (" << strerror(errno) << ")" << std::endl;
 
 		if (errno == EACCES || errno == EROFS || errno == ENOENT)
@@ -394,16 +379,22 @@ void		RequestHandler::handlePOST( void )
 	_response.setStatusCode(CREATED);
 }
 
-/** FIX: if specified upload_dir directive will append to root, otherwise ?what? */
 std::string		RequestHandler::searchingUploadDir( void )
 {
-	if (_location.getUploadDir().empty())
+	std::string	uploadDir = "";
+	std::string fullPath = "";
+
+	if (_location.getUploadDir().empty() && !_server.getUploadDir().empty())
 	{
-		return std::string();
+		uploadDir = _location.getUploadDir();
+		fullPath = determineFilePath(uploadDir);
+	}
+	else if (!_location.getUploadDir().empty())
+	{
+		uploadDir = _location.getUploadDir();
+		fullPath = determineFilePath(uploadDir);
 	}
 
-	std::string	uploadDir = _location.getUploadDir();
-	std::string fullPath = determineFilePath(uploadDir);
 	return fullPath;
 }
 
@@ -411,15 +402,15 @@ std::string		RequestHandler::searchingUploadDir( void )
 
 void		RequestHandler::handleDELETE( void )
 {
-	if (!utils::has_write_permission(_path))
+	if (!utils::has_write_permission(_request.getFullPath()))
 	{
 		setCustomErrorResponse(FORBIDDEN, getCustomErrorPath(FORBIDDEN));
 	}
 	else
 	{
-		if (utils::is_regular_file(_path))
+		if (utils::is_regular_file(_request.getFullPath()))
 		{
-			int status_code = remove_file(_path);
+			int status_code = remove_file(_request.getFullPath());
 			if (utils::is_client_error(status_code) || utils::is_server_error(status_code))
 			{
 				setCustomErrorResponse(status_code, getCustomErrorPath(status_code));
@@ -430,7 +421,7 @@ void		RequestHandler::handleDELETE( void )
 				_response.setStatusCode(status_code);
 			}
 		}
-		else if (utils::is_directory(_path))
+		else if (utils::is_directory(_request.getFullPath()))
 		{
 			int status_code = handleDeleteDirectoryResponse();
 			if (utils::is_client_error(status_code) || utils::is_server_error(status_code))
@@ -453,24 +444,24 @@ void		RequestHandler::handleDELETE( void )
 /** @return status code */
 int			RequestHandler::handleDeleteDirectoryResponse( void )
 {
-	if (!utils::ends_with(_path, "/"))
+	if (!utils::ends_with(_request.getFullPath(), "/"))
 	{
 		return CONFLICT;
 	}
-	else if (!utils::has_write_permission(_path))
+	else if (!utils::has_write_permission(_request.getFullPath()))
 	{
 		return FORBIDDEN;
 	}
 	else
 	{
-		return remove_directory(_path);
+		return remove_directory(_request.getFullPath());
 	}
 }
 
 /** @return status code */
 int			RequestHandler::remove_file(const std::string& path)
 {
-	if (std::remove(path.c_str())  == 0)
+	if (std::remove(path.c_str()) == 0)
 	{
 		return NO_CONTENT;
 	}
@@ -507,8 +498,6 @@ bool		RequestHandler::findRequestedLocation(const std::string& path)
 		location_found = searchingPrefixMatchLocation(path);
 	}
 
-	// std::cout << "location:" << _location;
-
 	return location_found;
 }
 
@@ -523,10 +512,7 @@ bool		RequestHandler::searchingExtensionMatchLocation(const std::string& request
 		if ((pos = loc_path.find('*')) == std::string::npos)
 			continue;
 		std::string ext = loc_path.substr(pos + 1);
-		loc_path = loc_path.substr(0, pos);
 		if (!utils::ends_with(requested_path, ext))
-			continue;
-		if (!loc_path.empty() && std::strncmp(loc_path.c_str(), requested_path.c_str(), loc_path.length()) != 0)
 			continue;
 		_location = *it;
 		return true;
@@ -565,50 +551,6 @@ bool		RequestHandler::searchingPrefixMatchLocation(const std::string& requested_
 	return location_found;
 }
 
-
-// bool		RequestHandler::searchingPrefixMatchLocation(const std::string& requested_path)
-// {
-// 	std::string	searched_path = requested_path;
-// 	std::string	rest = std::string();
-// 	bool	location_found = false;
-// 	size_t	pos = 0;
-
-// 	while (!searched_path.empty())
-// 	{
-// 		std::vector<Location>::const_iterator it = _server.getLocations().begin();
-
-// 		for (; it < _server.getLocations().end(); it++)
-// 		{
-// 			std::string loc_path = it->getPath();
-// 			if (std::strcmp(searched_path.c_str(), loc_path.c_str()) == 0)
-// 			{
-// 				_location = *it;
-// 				location_found = true;
-// 				break;
-// 			}
-// 		}
-// 		pos = searched_path.rfind("/");
-// 		if (pos != std::string::npos && utils::ends_with(searched_path, "/"))
-// 		{
-// 			rest = requested_path.substr(pos);
-// 			searched_path = searched_path.erase(pos);
-// 		}
-// 		else if (pos != std::string::npos && searched_path[pos + 1])
-// 		{
-// 			rest = requested_path.substr(pos + 1);
-// 			searched_path = searched_path.erase(pos + 1);
-// 		}
-// 		else
-// 		{
-// 			rest = requested_path;
-// 			searched_path = "";
-// 		}
-// 		if (location_found)
-// 			break;
-// 	}
-// 	return location_found;
-// }
-
 bool		RequestHandler::isExternalRedirect(const std::string& path)
 {
 	return (utils::is_regular_file(path)
@@ -644,9 +586,6 @@ std::string			RequestHandler::canonicalizePath(const std::string& path)
 	if (path.empty())
 		return "/";
 	std::string new_path = path;
-
-	/* if (new_path[0] != '/')
-		new_path = "/" + new_path; */
 
 	new_path = decodeURI(new_path);
 	return new_path;

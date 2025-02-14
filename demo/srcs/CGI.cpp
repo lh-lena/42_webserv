@@ -24,7 +24,7 @@ void CGI::setEnvironment(const Request& request)
 	env["CONTENT_TYPE"] = request.getHeader("Content-Type");
 	env["CONTENT_LENGTH"] = request.getHeader("Content-Length");
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	// env["HTTP_ACCEPT_CHARSET"] = request.getHeader("Charset");
+	env["HTTP_ACCEPT_CHARSET"] = request.getHeader("Accept-Charset");
 	env["PATH_INFO"] = "/"; // the portion of the URI path following the script name but preceding any query data.
 	env["PATH_TRANSLATED"] = std::string();
 	env["QUERY_STRING"] = request.getQueryString();
@@ -34,7 +34,7 @@ void CGI::setEnvironment(const Request& request)
 	env["REMOTE_USER"] = std::string();
 	env["REQUEST_METHOD"] = request.getMethod();
 	env["SCRIPT_NAME"] = std::string();
-	env["SERVER_NAME"] = std::string();
+	env["SERVER_NAME"] = "42_webserv/1.0";
 	env["SERVER_PORT"] = std::string();
 	env["SERVER_PROTOCOL"] = request.getProtocol();
 	env["SERVER_SOFTWARE"] = std::string();
@@ -87,9 +87,9 @@ std::string		CGI::executeCGI(Request& request)
 		dup2(out_fds[1], STDOUT_FILENO);
 		close(out_fds[0]);
 		close(out_fds[1]);
-		std::cerr << "interpreter " << interpreter << ", executable " << executable << std::endl;
-		char *argv[] = {(char *)interpreter.c_str(), (char *)executable.c_str(), NULL};
-		if (execve(argv[0], argv, envp.data()) < 0)
+		std::string intr = "/usr/bin/python3";
+		char *argv[] = {(char *)intr.c_str(), (char *)executable.c_str(), NULL};
+		if (execve(intr.c_str(), argv, envp.data()) < 0)
 		{
 			std::cerr << "Error: execve() failed\n";
 			exit(0);
@@ -122,7 +122,7 @@ std::string		CGI::executeCGI(Request& request)
 	//request.connection->cgi_fds[0] = -1;
 
 	waitpid(pid, NULL, 0); // kill child process in case of timeout;
-	std::cerr << "RESPONSE CGI :" << respn << std::endl;
+	// std::cerr << "RESPONSE CGI :" << respn << std::endl;
 	return respn;
 }
 

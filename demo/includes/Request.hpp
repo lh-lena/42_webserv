@@ -16,19 +16,21 @@ public:
 	Connection *connection;
 
 	bool								parse(const std::string& data);
-
-	std::string							getMethod() const;
-	std::string							getURI() const;
-	std::string							getQueryString() const;
-	std::string							getProtocol() const;
-	std::string							getHeader(const std::string& key) const;
-	std::string							getBody() const;
+	void								setFullPath(const std::string& path);
+	const std::string&					getMethod() const;
+	const std::string&					getURI() const;
+	const std::string&					getQueryString() const;
+	const std::string&					getProtocol() const;
+	const std::string&					getBody() const;
+	const std::string&					getFullPath() const;
+	const std::string					getHeader(const std::string& key) const;
 
 	bool								isValid();
 	bool								isBodyExpected();
 
-	private:
+private:
 	bool								_is_valid;
+	std::string							_full_path;
 	std::string							_method;
 	std::string							_reqURI;
 	std::string							_protocol;

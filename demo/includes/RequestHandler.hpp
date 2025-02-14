@@ -31,7 +31,7 @@ public:
 	static std::string		canonicalizePath(const std::string& path);
 	static std::string		decodeURI(const std::string& path);
 
-	std::string				_path;
+	// std::string				_path;
 
 	const Server&			_server;
 	Request&				_request;
@@ -53,10 +53,9 @@ public:
 	std::string				determineFilePath(const std::string& requested_path);
 	void					handleStaticRequest( void );
 	void					handleGET( void );
-	void					setGetResponse(int status_code);
 	void					setDirectoryListingResponse(int status_code);
 	void					handleGetDirectoryResponse( void );
-	bool					appendIndexFile(  std::string& path );
+	std::string				appendIndexFile( const std::string& path );
 	void					handlePOST( void );
 	std::string				searchingUploadDir( void );
 	void					handleDELETE( void );

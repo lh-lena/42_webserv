@@ -1,7 +1,7 @@
 # include "../includes/Response.hpp"
 # include "../includes/utils.hpp"
 
-Response::Response() :_server_name("42-Webserver") {}
+Response::Response() :_server_name("42_webserv/1.0") {}
 
 Response::~Response() {}
 
@@ -18,6 +18,25 @@ void	Response::setBody(const std::string& body)
 void	Response::setStatusCode(int code)
 {
 	_status_code = code;
+}
+
+void	Response::setStaticPageResponse(int code, const std::string& path)
+{
+	std::string	body = utils::load_file_content(path);
+	unsigned long long con_len = body.length();
+
+	/* if (con_len <= 0)
+	{
+		status_code = NO_CONTENT;
+	} */
+
+	setStatusCode(code);
+	setBody(body);
+	setHeader("Date", utils::formatDate(utils::get_timestamp("")));
+	setHeader("Server", _server_name);
+	setHeader("Last-Modified", utils::formatDate(utils::get_timestamp(path)));
+	setHeader("Content-Type", utils::get_MIME_type(path));
+	setHeader("Content-Length", utils::ulltos(con_len));
 }
 
 void	Response::setErrorResponse(int code, std::string path)
