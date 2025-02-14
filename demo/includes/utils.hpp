@@ -43,6 +43,7 @@ namespace utils
 	bool						has_write_permission(const std::string& path);
 	bool						parse_query(const std::string& uri, std::string& new_uri, std::string& query);
 	void						parse_header_field(const std::string& header_line, std::map<std::string, std::string>&	headers);
+	std::string					get_map_value(const std::string& key, const std::map<std::string, std::string>& src);
 	std::string					get_file_extension(const std::string& path);
 	std::string 				get_interpreter(const std::string& s);
 	std::string					load_file_content(const std::string& path);

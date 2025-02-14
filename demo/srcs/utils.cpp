@@ -12,7 +12,16 @@ std::string		utils::formatDate(time_t timestamp)
 
 	return std::string(buf);
 }
+std::string		utils::get_map_value(const std::string& key, const std::map<std::string, std::string>& src)
+{
+	if (src.find(key) == src.end())
+	{
+		return "";
+	}
 
+	std::map<std::string, std::string>::const_iterator	it = src.find(key);
+	return it->second;
+}
 
 void	utils::parse_header_field(const std::string& header_line, std::map<std::string, std::string>&	headers)
 {
