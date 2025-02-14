@@ -13,31 +13,31 @@ CGI::CGI(void) :
 {}
 
 CGI::~CGI(void)
-{
-	for (size_t i = 0; i < envp.size(); i++)
-		delete[] envp[i];
-}
+{}
 
 void CGI::setEnvironment(const Request& request)
 {
-	env["AUTH_TYPE"] = std::string();
+	env["AUTH_TYPE"] = !request.getHeader("Auth-Scheme").empty() ? request.getHeader("Authorization") : std::string();
 	env["CONTENT_TYPE"] = request.getHeader("Content-Type");
 	env["CONTENT_LENGTH"] = request.getHeader("Content-Length");
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
+	env["REDIRECT_STATUS"] = "200";
 	env["HTTP_ACCEPT_CHARSET"] = request.getHeader("Accept-Charset");
 	env["PATH_INFO"] = "/"; // the portion of the URI path following the script name but preceding any query data.
 	env["PATH_TRANSLATED"] = std::string();
 	env["QUERY_STRING"] = request.getQueryString();
 	env["REMOTE_ADDR"] = std::string(); // Returns the IP address of the client that sent the request
 	env["REMOTE_HOST"] = std::string(); // the fully-qualified name of the client that sent the request, or the IP address of the clien
-	env["REMOTE_IDENT"] = std::string();
-	env["REMOTE_USER"] = std::string();
+	env["REMOTE_IDENT"] = request.getHeader("Authorization");
+	env["REMOTE_USER"] = request.getHeader("Authorization");
 	env["REQUEST_METHOD"] = request.getMethod();
-	env["SCRIPT_NAME"] = std::string();
-	env["SERVER_NAME"] = "42_webserv/1.0";
+	env["REQUEST_URI"] = request.getURI() + request.getQueryString();
+	env["SCRIPT_NAME"] = request.getFullPath();
+	env["SCRIPT_FILENAME"] = request.getFullPath();
+	env["SERVER_NAME"] = request.getHeader("Hostname");
 	env["SERVER_PORT"] = std::string();
 	env["SERVER_PROTOCOL"] = request.getProtocol();
-	env["SERVER_SOFTWARE"] = std::string();
+	env["SERVER_SOFTWARE"] = "42-server/1.0";
 	env["SERVER_ROOT"] = std::string();
 
 	std::map<std::string, std::string>::iterator it = env.begin();
@@ -50,6 +50,12 @@ void CGI::setEnvironment(const Request& request)
 	}
 
 	envp.push_back(NULL);
+}
+
+void	CGI::cleanEnvironment()
+{
+	for (size_t i = 0; i < envp.size(); i++)
+		delete[] envp[i];
 }
 
 void	CGI::printEnvironment()
@@ -125,6 +131,7 @@ std::string		CGI::executeCGI(Request& request)
 
 	waitpid(pid, NULL, 0); // kill child process in case of timeout;
 	// std::cerr << GREEN << "RESPONSE CGI :" << respn << RESET << std::endl;
+	cleanEnvironment();
 	return respn;
 }
 
