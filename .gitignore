@@ -1,2 +1,12 @@
+# executable
+webserv
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.o
+
+# VSCode
 *.vscode/
-.vscode/
+.vscode
