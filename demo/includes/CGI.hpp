@@ -21,12 +21,15 @@ public:
 	CGI();
 	~CGI();
 
-	void			setEnvironment(const Request& request);
+	void			setEnvironment(const Request & request);
 	void			printEnvironment();
-	std::string		executeCGI(Request& request);
+	std::string		executeCGI(Request & request);
 	void			setInterpreter(const std::string& str);
 	void			setExecutable(const std::string& str);
 	void			setUploadDir(const std::string& str);
+
+	int	conn_fd;
+	int	fds[2];
 
 private:
 	std::map<std::string, std::string>	env;

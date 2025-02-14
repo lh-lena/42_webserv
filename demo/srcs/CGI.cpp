@@ -1,7 +1,7 @@
 
 #include "../includes/CGI.hpp"
 #include "../includes/Server.hpp"
-//#include "../includes/Request.hpp"
+// #include "../includes/Request.hpp"
 
 // CGI::CGI(const Server& server, const Location& loc) :
 // {}
@@ -65,10 +65,17 @@ void	CGI::printEnvironment()
 
 std::string		CGI::executeCGI(Request& request)
 {
-	int in_fds[2]; //should add them to ServerController::_pfds
+	int in_fds[2];
 	int out_fds[2];
 	pipe(in_fds);
 	pipe(out_fds);
+
+	// add to ServerController::_pfds POLLIN
+	fds[0] = out_fds[0];
+	// add to ServerController::_pfds POLLOUT
+	fds[1] = in_fds[1];
+	//request.connection->cgi_fds[0] = out_fds[0];
+	//request.connection->cgi_fds[1] = in_fds[1];
 
 	pid_t pid = fork();
 
@@ -95,6 +102,9 @@ std::string		CGI::executeCGI(Request& request)
 	if (str[0] != '\0')
 		write(in_fds[1], str, b.length());
 	close(in_fds[1]);
+	//request.connection->cgi_fds[1] = -1;
+
+	// check for timeout before reading from the pipe
 
 	std::string respn; //result message returned from execve()
 	char buf[1500];
@@ -109,6 +119,7 @@ std::string		CGI::executeCGI(Request& request)
 	} while (res == 1500);
 
 	close(out_fds[0]);
+	//request.connection->cgi_fds[0] = -1;
 
 	waitpid(pid, NULL, 0); // kill child process in case of timeout;
 	std::cerr << "RESPONSE CGI :" << respn << std::endl;

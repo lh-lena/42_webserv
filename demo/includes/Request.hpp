@@ -5,12 +5,15 @@
 # include <string>
 # include <vector>
 # include <map>
+# include "Connection.hpp"
 
 class Request
 {
 public:
 	Request();
 	~Request();
+
+	Connection *connection;
 
 	bool								parse(const std::string& data);
 

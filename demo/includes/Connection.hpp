@@ -1,7 +1,55 @@
-#include <string>
-#include <ctime>
+#ifndef CONNECTION_HPP
+# define CONNECTION_HPP
 
-struct Connection
+# include <string>
+# include <ctime>
+//# include "CGI.hpp"
+
+# define BUFF_SIZE 1500
+
+class Connection
+{
+	public:
+
+	Connection();
+	Connection(int fd);
+	~Connection();
+
+	//CGI _cgi;
+
+	int		getFd() const;
+	void	setFd(const int fd);
+	time_t	getStartTime() const;
+	void	setStartTime();
+	bool	isTimeout();
+	std::string	getRequest() const;
+	void	setRequest(const std::string & s);
+	void	appendRequest(const char * s);
+	void	resetRequest();
+	bool	isReqComplete() const;
+	void	setReqComplete();
+	size_t	getNextReqChunkSize() const;
+	void	setNextReqChunkSize(const size_t size);
+	std::string	getResponse() const;
+	void	setResponse(const std::string & s);
+
+	std::string unchunkRequest(char *buf);
+	void	checkHeaders(char *buf);
+
+	private:
+
+	int	_fd;
+	time_t _start;
+	std::string _request;
+	int	_req_body_len;
+	int	_req_head_len;
+	bool _req_complete;
+	size_t _next_req_chunk;
+	std::string _response;
+
+};
+
+struct Conn
 {
 	int	fd;
 	bool active;
@@ -14,3 +62,4 @@ struct Connection
 
 };
 
+#endif

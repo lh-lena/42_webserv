@@ -28,12 +28,18 @@ ServerControler::ServerControler()
 	struct rlimit lim;
 	if (getrlimit(RLIMIT_NOFILE, &lim) == -1)
 		throw std::runtime_error("Error: getrlimit() failed");
-	lim.rlim_cur = lim.rlim_max;
+	if (lim.rlim_max < 100000)
+		lim.rlim_cur = lim.rlim_max;
+	else
+		lim.rlim_cur = 100000;
 	if (setrlimit(RLIMIT_NOFILE, &lim) == -1)
 		throw std::runtime_error("Error: setrlimit() failed");
 	if (getrlimit(RLIMIT_NOFILE, &lim) == -1)
 		throw std::runtime_error("Error: getrlimit() failed");
-	pfds_limit = lim.rlim_cur - 1;
+	pfds_limit = lim.rlim_cur;
+
+	memset(_pfds, 0, sizeof(_pfds));
+
 	std::cout << "Limit for the number of opened file descriptors: soft = "
 				<< pfds_limit << " hard = " << lim.rlim_max << std::endl;
 }
@@ -177,7 +183,7 @@ static int	isInPollfds(int fd, const std::vector<int> & sds)
 	return 0;
 }
 
-static int	getConnIdx(int fd, std::vector<Connection> &conns)
+static int	getConnIdx(int fd, std::vector<Conn> &conns)
 {
 	int size = conns.size();
 
@@ -187,6 +193,73 @@ static int	getConnIdx(int fd, std::vector<Connection> &conns)
 			return i;
 	}
 	return size;
+}
+
+void	ServerControler::polling()
+{
+	int	res;
+	int	new_fd;
+	int timeout = 5 * 60000;
+	Connection *connection;
+
+	std::cout << "Waiting on poll" << std::endl;
+	while (!g_serv_end)
+	{
+		res = poll(_pfds, _nfds, timeout);
+		if (res < 0)
+		{
+			closeFds();
+			throw std::runtime_error(strerror(errno));
+		}
+		if (res == 0)
+		{
+			std::cout << "Timeout" << std::endl;
+			g_serv_end = true;
+			break;
+		}
+		for (int i = 0; i < _nfds; i++)
+		{
+			if (_pfds[i].revents == 0)
+			{
+				connection = getConnection(_pfds[i].fd);
+				if (connection && connection->isTimeout())
+				{
+					removeConnection(_pfds[i].fd);
+					std::cout << "Connection on fd " << _pfds[i].fd << " was closed because of timeout" << std::endl;
+				}
+			}
+			else if ((_pfds[i].revents & POLLHUP) || (_pfds[i].revents & POLLERR))
+			{
+				connection = getConnection(_pfds[i].fd);
+				if (connection)
+				{
+					removeConnection(_pfds[i].fd);
+					std::cout << "Connection on fd " << _pfds[i].fd << " was closed because of error or client disconnect" << std::endl;
+				}
+				else
+					removePfd(_pfds[i].fd);
+			}
+			else if (_pfds[i].revents & POLLIN)
+			{
+				if (isInPollfds(_pfds[i].fd, _socketFds))
+				{
+					new_fd = accept(res, NULL, NULL);
+					if (new_fd < 0 && errno != EWOULDBLOCK)
+						throw std::runtime_error("Error: accept() failed");
+					if (new_fd > 0)
+					{
+						addConnection(new_fd);
+						std::cout << "New connection on listening socket " << res << ", new_fd = " << new_fd << std::endl;
+					}
+				}
+				else
+					handleInEvent(_pfds[i].fd);
+			}
+			else if (_pfds[i].revents & POLLOUT)
+				handleOutEvent(_pfds[i].fd);
+		}
+	}
+	closeFds();
 }
 
 void	ServerControler::startServing()
@@ -199,7 +272,7 @@ void	ServerControler::startServing()
 	int new_fd = -1;
 	char buf[1500];
 	//bool conn_active = false;
-	std::vector<Connection> conns;
+	std::vector<Conn> conns;
 
 	// signal(SIGINT, ServerControler::sig_handler);
 
@@ -222,6 +295,8 @@ void	ServerControler::startServing()
 		pfds[i].events = POLLIN;
 		nfds++;
 	}
+
+	// polling();
 
 	timeout = 2 * 60000;
 
@@ -288,7 +363,7 @@ void	ServerControler::startServing()
 							pfds[nfds].fd = new_fd;
 							pfds[nfds].events = POLLIN;
 							nfds++;
-							Connection c;
+							Conn c;
 							c.fd = new_fd;
 							c.active = true;
 							c.start = time(NULL);
@@ -380,6 +455,18 @@ void	ServerControler::startServing()
 	return;
 }
 
+void	ServerControler::handleInEvent(int fd)
+{
+	if (fd < 0)
+		return;
+}
+
+void	ServerControler::handleOutEvent(int fd)
+{
+	if (fd < 0)
+		return;
+}
+
 void	ServerControler::sig_handler(int sig_num)
 {
 	(void)sig_num;
@@ -462,26 +549,26 @@ const std::vector<Server>&	ServerControler::getServers( void ) const
 	return (_servBlocks);
 }
 
-
-Connection	&	ServerControler::getConnection(int fd)
+Connection	*	ServerControler::getConnection(int fd)
 {
 	int size = _conns.size();
 	for (int i = 0; i < size; i++)
 	{
-		if (_conns[i].fd == fd)
-			return _conns[i];
+		if (_conns[i].getFd() == fd)
+			return &_conns[i];
+		// if (_conns[i].cgi_fds[0] == fd)
+		// 	return &_conns[i];
+		// if (_conns[i].cgi_fds[1] == fd)
+		// 	return &_conns[i];
 	}
-	throw std::invalid_argument("No connection for this fd");
+	return NULL;
 }
 
 void	ServerControler::addConnection(int fd)
 {
-	if (_conns.size() < MAX_CONN_NUM)
+	if (_conns.size() < (pfds_limit - _socketFds.size()))
 	{
-		Connection c;
-		c.fd = fd;
-		c.active = true;
-		c.start = time(NULL);
+		Connection c(fd);
 		_conns.push_back(c);
 
 		addPfd(fd);
@@ -495,10 +582,11 @@ void	ServerControler::removeConnection(int fd)
 		return ;
 	for (int i = 0; i < size; i++)
 	{
-		if (_conns[i].fd == fd)
+		if (_conns[i].getFd() == fd)
 			_conns.erase(_conns.begin() + i);
 	}
 	removePfd(fd);
+	close(fd);
 }
 
 void	ServerControler::addPfd(int fd)
@@ -533,7 +621,29 @@ void	ServerControler::removePfd(int fd)
 	_nfds--;
 }
 
-int		ServerControler::getNfds(void)
+void	ServerControler::setPfdEvent(int fd, char e)
+{
+	int i = 0;
+	while (_pfds[i].fd != fd && i < _nfds)
+		i++;
+	if (i == _nfds)
+		return ;
+	if (e == 'o')
+		_pfds[i].events = POLLOUT;
+	else
+		_pfds[i].events = POLLIN;
+}
+
+void	ServerControler::closeFds()
+{
+	for (int i = 0; i < _nfds; i++)
+	{
+		if (close(_pfds[i].fd) == -1)
+			continue;
+	}
+}
+
+int	ServerControler::getNfds(void)
 {
 	return _nfds;
 }
