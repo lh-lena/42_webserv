@@ -42,6 +42,7 @@ public:
 	void					setRedirectResponse( void );
 	bool					isCGIRequest( void ) const;
 	void					handleCgiRequest( void );
+	void					handleCgiResponse(const std::string& data);
 	bool					isMethodAllowed( void ) const;
 	bool					isImplementedMethod( void ) const;
 	bool					findRequestedLocation(const std::string& path);

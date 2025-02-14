@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 import os
-
+print ("Content-Type:text/html\n")
 print("<!DOCTYPE html>")
 print("<html lang=\"en\">")
 print("<head>")

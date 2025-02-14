@@ -36,8 +36,8 @@ void		RequestHandler::processRequest()
 	_request.setFullPath(determineFilePath(_request.getURI()));
 	
 	// std::cout << "_request.getURI(): " << _request.getURI() << std::endl;
-	// std::cout << "location: " << _location << std::endl;
-	// std::cerr << "_request " << _request << std::endl;
+	// std::cout << YELLOW << "location: " << _location << RESET <<  std::endl;
+	// std::cerr << YELLOW << "_request " << _request << RESET << std::endl;
 
 	if (!isImplementedMethod())
 	{
@@ -189,40 +189,11 @@ bool		RequestHandler::isRedirection( void ) const
 void	RequestHandler::setRedirectResponse( void )
 {
 	std::map<int, std::string>::const_iterator reds = _location.getRedirect().begin();
-
+	
 	_response.setStatusCode(MOVED_PERMANENTLY);
 	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
 	_response.setHeader("Location", reds->second);
 	_response.setHeader("Server", _server.server_name);
-}
-
-bool	RequestHandler::isCGIRequest( void ) const
-{
-	std::string ext = utils::get_file_extension(_request.getURI());
-
-	if (!utils::is_str_in_vector(ext, _location.getCGIExtension()))
-	{
-		return false;
-	}
-	return true;
-}
-
-void	RequestHandler::handleCgiRequest( void )
-{
-	CGI cgi;
-
-	cgi.setEnvironment(_request);
-	cgi.setUploadDir(searchingUploadDir());
-	cgi.setExecutable(_request.getFullPath());
-	std::string body = cgi.executeCGI(_request);
-
-	_response.setBody(body);
-	unsigned long long con_len = body.length();
-	_response.setStatusCode(200);
-	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
-	_response.setHeader("Server", _server.server_name);
-	_response.setHeader("Content-Type", utils::get_MIME_type(body));
-	_response.setHeader("Content-Length", utils::ulltos(con_len));
 }
 
 void		RequestHandler::handleStaticRequest( void )
@@ -248,6 +219,71 @@ void		RequestHandler::handleStaticRequest( void )
 		handleDELETE();
 	}
 }
+
+/** ------------------------ Methods related cgi request method ------------------------- */
+
+bool	RequestHandler::isCGIRequest( void ) const
+{
+	std::string ext = utils::get_file_extension(_request.getURI());
+
+	if (!utils::is_str_in_vector(ext, _location.getCGIExtension()))
+	{
+		return false;
+	}
+	return true;
+}
+
+void	RequestHandler::handleCgiRequest( void )
+{
+	CGI cgi;
+
+	cgi.setEnvironment(_request);
+	cgi.setUploadDir(searchingUploadDir());
+	cgi.setExecutable(_request.getFullPath());
+	std::string data = cgi.executeCGI(_request);
+
+	handleCgiResponse(data);
+}
+
+void	RequestHandler::handleCgiResponse(const std::string& data)
+{
+	std::istringstream					iss(data);
+	std::string							line;
+	std::string							body;
+	std::string							con_len;
+	std::map<std::string, std::string>	headers;
+
+	while (std::getline(iss, line) && line.length() != 0 )
+	{
+		utils::parse_header_field(line, headers);
+	}
+
+	std::ostringstream oss;
+	oss << iss.rdbuf();
+	body = oss.str();
+	// std::cerr << "headers[\"Content-Type\"] " << headers["Content-Type"] << std::endl;
+
+	if (headers["Content-Type"].empty())
+	{
+		setCustomErrorResponse(INTERNAL_SERVER_ERROR, getCustomErrorPath(INTERNAL_SERVER_ERROR));
+		return;
+	}
+
+	con_len = headers["content_length"];
+	std::cerr << "con_len " << con_len << std::endl; //rm
+	if (con_len.empty())
+	{
+		con_len = utils::ulltos(body.length());
+	}
+
+	_response.setBody(body);
+	_response.setStatusCode(200);
+	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
+	_response.setHeader("Server", _server.server_name);
+	_response.setHeader("Content-Type", headers["Content-Type"]);
+	_response.setHeader("Content-Length", con_len);
+}
+
 /** ------------------------ Methods related GET request method ------------------------- */
 
 void		RequestHandler::handleGET( void )
@@ -338,7 +374,7 @@ std::string		RequestHandler::appendIndexFile( const std::string& path )
 }
 
 /** ------------------------ Methods related POST request method ------------------------- */
-/**  TODO: if content_length more if max_body-size */ 
+/**  TODO: if content_length more than max_body-size */ 
 void		RequestHandler::handlePOST( void )
 {
 	std::string uploadDir = searchingUploadDir();

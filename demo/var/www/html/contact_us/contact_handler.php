@@ -1,8 +1,8 @@
+#!/usr/bin/php-cgi
 
 #$_POST = json_decode(file_get_contents("php://input"), true);
 #echo var_dump($_POST);
 
-#!/usr/bin/php-cgi
 <?php
 
 // define variables and set to empty values

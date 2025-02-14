@@ -109,62 +109,6 @@ void		Server::defaultServer( void )
 	setIndex("index.42webserver.html");
 }
 
-/** NOTES: to rm
- * - parse cgi request
- * - path also a cgi path to the executable file without query
- * -
- */
-
-// int		Server::handleCGI(Response& response, Location& loc)
-// {
-// 	response.uploadDir = utils::substr_before_rdel(response.path, "/");
-// 	response.uploadDir = Server::searchingUploadDir(response.reqURI, &loc);
-// 	if (utils::is_regular_file(response.path))
-// 	{
-// 		if (!response.location_found || !utils::is_matching_ext(response.path, loc.getCGIExtension()))
-// 		{
-// 			return 1;
-// 		}
-// 		response.uploadFile = utils::substr_after_rdel(response.path, "/");
-// 		std::cout << "response.uploadFile1 " << response.uploadFile << std::endl;
-// 		// setCGIResponse(response, OK);
-// 		setGetResponse(response, OK);
-// 		return 0;
-// 	}
-// 	else if (!utils::is_directory(response.path))
-// 	{
-// 		if (response.location_found && appendIndexFile(response.path, loc))
-// 		{
-// 			// response.uploadDir = substr_before_rdel(response.path, "/");
-// 			response.uploadFile = utils::substr_after_rdel(response.path, "/");
-// 			if (utils::is_regular_file(response.path))
-// 			{
-// 				if (!utils::is_matching_ext(response.path, loc.getCGIExtension()))
-// 				{
-// 					return 1;
-// 				}
-// 				response.uploadFile = utils::substr_after_rdel(response.path, "/");
-// 				// setCGIResponse(response, OK);
-// 				setGetResponse(response, OK);
-// 				return 0;
-// 			}
-// 			else if (!utils::is_directory(response.path))
-// 			{
-// 				return 3;
-// 			}
-// 			else
-// 			{
-// 				return 5;
-// 			}
-// 		}
-// 		else
-// 		{
-// 			return 2;
-// 		}
-// 	}
-// 	return 4;
-// }
-
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
 */

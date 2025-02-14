@@ -1,6 +1,7 @@
 #ifndef UTILS_HPP
 # define UTILS_HPP
 
+# include <map>
 # include <list>
 # include <ctime>
 # include <string>
@@ -14,6 +15,11 @@
 # include <algorithm>
 # include <sys/stat.h>
 # include <sys/types.h>
+
+# define RED "\033[31m"
+# define GREEN "\033[32m"
+# define YELLOW "\033[33m"
+# define RESET "\033[0m"
 
 namespace utils
 {
@@ -36,6 +42,7 @@ namespace utils
 	bool						is_str_in_vector(const std::string& s, const std::vector<std::string>& content);
 	bool						has_write_permission(const std::string& path);
 	bool						parse_query(const std::string& uri, std::string& new_uri, std::string& query);
+	void						parse_header_field(const std::string& header_line, std::map<std::string, std::string>&	headers);
 	std::string					get_file_extension(const std::string& path);
 	std::string 				get_interpreter(const std::string& s);
 	std::string					load_file_content(const std::string& path);

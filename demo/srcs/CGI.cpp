@@ -87,11 +87,13 @@ std::string		CGI::executeCGI(Request& request)
 		dup2(out_fds[1], STDOUT_FILENO);
 		close(out_fds[0]);
 		close(out_fds[1]);
-		std::string intr = "/usr/bin/python3";
-		char *argv[] = {(char *)intr.c_str(), (char *)executable.c_str(), NULL};
-		if (execve(intr.c_str(), argv, envp.data()) < 0)
+		char * const * nll = NULL;
+		char *arg = {(char *)executable.c_str()};
+		// std::cerr << "executable CGI: " << executable << std::endl;
+		if (execve(arg, nll, envp.data()) < 0)
 		{
-			std::cerr << "Error: execve() failed\n";
+			std::cerr << RED << "Error: execve() failed\n" << RESET;
+			write(STDOUT_FILENO, "Status: 500\n\n", 15);
 			exit(0);
 		}
 	}
@@ -122,7 +124,7 @@ std::string		CGI::executeCGI(Request& request)
 	//request.connection->cgi_fds[0] = -1;
 
 	waitpid(pid, NULL, 0); // kill child process in case of timeout;
-	// std::cerr << "RESPONSE CGI :" << respn << std::endl;
+	// std::cerr << GREEN << "RESPONSE CGI :" << respn << RESET << std::endl;
 	return respn;
 }
 

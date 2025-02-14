@@ -13,6 +13,28 @@ std::string		utils::formatDate(time_t timestamp)
 	return std::string(buf);
 }
 
+
+void	utils::parse_header_field(const std::string& header_line, std::map<std::string, std::string>&	headers)
+{
+	size_t pos = header_line.find(":");
+	if (pos == std::string::npos)
+	{
+		return;
+	}
+
+	std::string key = header_line.substr(0, pos);
+	if (utils::ends_with(key, " "))
+	{
+		return;
+	}
+	std::string value = header_line.substr(pos + 1);
+	if (std::strncmp(value.c_str(), " ", 1) == 0)
+	{
+		value.erase(0, 1);
+	}
+	headers[key] = value;
+}
+
 std::vector<std::string>	utils::ft_split(std::string& s, std::string delimeter)
 {
 	size_t pos = 0;

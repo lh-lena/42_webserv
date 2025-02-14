@@ -13,7 +13,6 @@ RUN a2enmod cgi
 # Configure Apache to handle .py (Python) and .php (PHP) scripts
 RUN echo ' \
 <VirtualHost *:80> \
-    ServerAdmin webmaster@localhost \
     DocumentRoot /var/www/html \
     \
     # CGI Configuration for Python \
@@ -24,6 +23,8 @@ RUN echo ' \
         AddHandler cgi-script .py\
         Require all granted \
     </Directory> \
+    ErrorLog ${APACHE_LOG_DIR}/error.log \
+    CustomLog ${APACHE_LOG_DIR}/access.log combined \
 </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
 # Set up the CGI-BIN directory
