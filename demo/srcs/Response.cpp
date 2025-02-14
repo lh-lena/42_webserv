@@ -15,6 +15,19 @@ void	Response::setBody(const std::string& body)
 	_body = body;
 }
 
+// std::string Response::getHeader(const std::string& key) const
+// {
+// 	std::vector<std::pair<std::string, std::string>>::const_iterator it = _headers.begin();
+// 	for (const auto& header : _headers)
+// 	{
+// 		if (header.first == key)
+// 		{
+// 			return header.second;
+// 		}
+// 	}
+// 	return "";
+// }
+
 void	Response::setStatusCode(int code)
 {
 	_status_code = code;

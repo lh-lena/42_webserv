@@ -35,9 +35,8 @@ void		RequestHandler::processRequest()
 
 	_request.setFullPath(determineFilePath(_request.getURI()));
 	
-	// std::cout << "_request.getURI(): " << _request.getURI() << std::endl;
 	// std::cout << YELLOW << "location: " << _location << RESET <<  std::endl;
-	// std::cerr << YELLOW << "_request " << _request << RESET << std::endl;
+	std::cerr << YELLOW << "_request " << _request << RESET << std::endl;
 
 	if (!isImplementedMethod())
 	{
@@ -261,15 +260,15 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	std::ostringstream oss;
 	oss << iss.rdbuf();
 	body = oss.str();
-	// std::cerr << "headers[\"Content-Type\"] " << headers["Content-Type"] << std::endl;
+	std::cerr << "headers[\"Content-Type\"] " << headers["Content-Type"] << std::endl;
 
-	if (headers["Content-Type"].empty())
+	if (utils::get_map_value("Content-Type", headers).empty())
 	{
 		setCustomErrorResponse(INTERNAL_SERVER_ERROR, getCustomErrorPath(INTERNAL_SERVER_ERROR));
 		return;
 	}
 
-	con_len = headers["content_length"];
+	con_len = utils::get_map_value("content_length", headers);
 	std::cerr << "con_len " << con_len << std::endl; //rm
 	if (con_len.empty())
 	{

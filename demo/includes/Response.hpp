@@ -25,6 +25,7 @@ private:
 	std::string							_body;
 	int									_status_code;
 	std::map<std::string, std::string>	_header_fields;
+	std::string	getHeader(const std::string& key) const;
 };
 
 #endif /* RESPONSE_HPP */
