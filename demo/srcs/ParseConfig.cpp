@@ -492,17 +492,30 @@ void	ParseConfig::handleRedirect(const std::pair<std::string, int>& value, Locat
 	std::string 				s = value.first;
 	std::vector<std::string>	vals = utils::ft_split(s, " ");
 	std::string					path = "";
-	int							code;
+	int							code = 0;
 
 	if (vals.empty())
 	{
 		throw ParseException(utils::getFormattedDateTime() + " [emerg] : invalid number of arguments in \"return\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 
-	code = utils::strToUlong(vals[0]);
-	if (code <= 0 || !utils::is_status_code(code))
+	if (vals.size() == 1 && 
+		(utils::starts_with(vals[0], "http://") || 
+		utils::starts_with(vals[0], "https://")))
 	{
-		throw ParseException(utils::getFormattedDateTime() + " [emerg] : value \"" + utils::to_string(code) + "\" must be between 300 and 599 in " + _conf_file_path + ":" + utils::itos(value.second));
+		path = vals[0];
+		instance->setRedirect(302, path);
+		return;
+	}
+
+	code = utils::strToUlong(vals[0]);
+	if (code <= 0)
+	{
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : invalid return code \"" + vals[0] + "\" in " + _conf_file_path + ":" + utils::itos(value.second));
+	}
+	if (!(utils::is_redirection(code) || utils::is_server_error(code) || utils::is_client_error(code)))
+	{
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : value \"" + vals[0] + "\" must be between 300 and 599 in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 	if (vals.size() == 2)
 		path = vals[1];

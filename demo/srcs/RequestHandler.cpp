@@ -70,7 +70,6 @@ void		RequestHandler::processRequest()
 
 void	RequestHandler::setCustomErrorResponse(int status_code, const std::string& custom_error_path)
 {
-	// std::string path = getCustomErrorPath(status_code);
 	std::string body;
 	std::string new_path;
 	std::string last_modified = std::string();
@@ -188,25 +187,53 @@ bool		RequestHandler::isRedirection( void ) const
 void	RequestHandler::setRedirectResponse( void )
 {
 	std::map<int, std::string>::const_iterator reds = _location.getRedirect().begin();
+	std::string error_path;
+	std::string body;
+	int st_code = reds->first;
+
+	std::cerr << "REDIR logs: 1: " << utils::to_string(reds->first) << " 2: " << reds->second << std::endl; // TOFIX: parsing config
 	
-	_response.setStatusCode(MOVED_PERMANENTLY);
+	_response.setStatusCode(st_code);
 	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
-	_response.setHeader("Location", reds->second);
+	if (st_code == MOVED_PERMANENTLY || st_code == MOVED_TEMPORARY)
+	{
+		_response.setHeader("Location", reds->second);
+	}
+	else if (reds->second.empty() && !(error_path = getCustomErrorPath(reds->first)).empty())
+	{
+		body = utils::load_file_content(error_path);
+		_response.setBody(body);
+		_response.setHeader("Content-Length", utils::to_string(body.size()));
+		_response.setHeader("Content-Type", utils::get_MIME_type(error_path));
+	}
+	else
+	{
+		_response.setBody(reds->second);
+		_response.setHeader("Content-Length", utils::to_string(reds->second.size()));
+		_response.setHeader("Content-Type", "text/plain");
+	}
+
 	_response.setHeader("Server", _server.server_name);
 }
 
 void		RequestHandler::handleStaticRequest( void )
 {
 	if (std::strcmp(_request.getHeader("Request-Method").c_str(), "GET") == 0 || \
-		std::strcmp(_request.getHeader("Request-Method").c_str(), "HEAD") == 0)
+	std::strcmp(_request.getHeader("Request-Method").c_str(), "HEAD") == 0)
 	{
 		if (utils::is_regular_file(_request.getFullPath()))
 		{
 			_response.setStaticPageResponse(OK, _request.getFullPath());
 		}
-		else
+		else if (utils::is_directory(_request.getFullPath()))
 		{
 			handleGetDirectoryResponse();
+		}
+		else
+		{
+			
+			std::cout << "Method: " << _request.getHeader("Request-Method") << std::endl;
+			setCustomErrorResponse(NOT_FOUND, getCustomErrorPath(NOT_FOUND));
 		}
 	}
 	else if (std::strcmp(_request.getHeader("Request-Method").c_str(), "POST") == 0)
@@ -303,27 +330,11 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 
 /** ------------------------ Methods related GET request method ------------------------- */
 
-void		RequestHandler::handleGET( void )
-{
-	if (utils::is_regular_file(_request.getFullPath()))
-	{
-		_response.setStaticPageResponse(OK, _request.getFullPath());
-	}
-	else
-	{
-		handleGetDirectoryResponse();
-	}
-}
-
 void	RequestHandler::handleGetDirectoryResponse( void )
 {
 	std::string	new_path;
 
-	if (!utils::is_directory(_request.getFullPath()))
-	{
-		setCustomErrorResponse(NOT_FOUND, getCustomErrorPath(NOT_FOUND));
-	}
-	else if (!utils::ends_with(_request.getFullPath(), "/"))
+	if (!utils::ends_with(_request.getFullPath(), "/"))
 	{
 		setCustomErrorResponse(MOVED_PERMANENTLY, "");
 		_response.setHeader("Location", _request.getHeader("Request-URI") + "/");
@@ -628,7 +639,7 @@ bool		RequestHandler::searchingPrefixMatchLocation(const std::string& requested_
 
 bool		RequestHandler::isExternalRedirect(const std::string& path)
 {
-	return (utils::is_regular_file(path)
+	return (!utils::starts_with(path, "/")
 			|| utils::starts_with(path, "http://")
 			|| utils::starts_with(path, "https://"));
 }

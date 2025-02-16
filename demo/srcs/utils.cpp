@@ -338,7 +338,7 @@ int		utils::get_dir_entries(const std::string& dirp, std::vector<std::string>& c
 
 	if ((dir = opendir(dirp.c_str())) == NULL)
 	{
-		std::cerr << "Error opening directory: " << dirp << " (" << strerror(errno) << ")" << std::endl;
+		std::cerr << "[ERROR] : Opening directory " << dirp << " (" << strerror(errno) << ")" << std::endl;
 		return -1;
 	}
 
