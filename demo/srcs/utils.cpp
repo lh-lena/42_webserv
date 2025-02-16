@@ -389,14 +389,37 @@ bool	utils::is_server_error(size_t code)
 	return (code >= 500 && code < 600);
 }
 
-bool	utils::has_write_permission(const std::string& path)
+/** checks if a directory has read, write, and execute permissions for owner, group, and others */
+bool	utils::has_all_permissions(const std::string& path)
 {
 	struct stat path_stat;
 
 	if (stat(path.c_str(), &path_stat) == 0)
 	{
-		return (path_stat.st_mode & S_IWUSR) != 0;
+		if ((path_stat.st_mode & S_IRWXU) == S_IRWXU &&
+			(path_stat.st_mode & S_IRWXG) == S_IRWXG &&
+			(path_stat.st_mode & S_IRWXO) == S_IRWXO)
+		{
+			return true;
+		}
 	}
+	return false;
+}
+
+bool	utils::has_executable_permissions(const std::string& path)
+{
+	struct stat path_stat;
+
+	if (stat(path.c_str(), &path_stat) == 0)
+	{
+		if ((path_stat.st_mode & S_IXUSR) ||
+			(path_stat.st_mode & S_IXGRP) ||
+			(path_stat.st_mode & S_IXOTH))
+		{
+			return true;
+		}
+	}
+
 	return false;
 }
 

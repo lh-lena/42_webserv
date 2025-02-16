@@ -451,44 +451,52 @@ std::string		RequestHandler::searchingUploadPath( void )
 
 /** ------------------------ Methods related DELETE request method ------------------------- */
 
+/*
+if parent directory has write permition:
+yes:
+	file exists: yes -> rm, 204
+				no -> 404 Not Found
+	sub_dir exists:
+	yes:
+		- ends with '/':
+		yes: 204
+		no: 409 Conflict
+	no: 413
+no:
+	413 Forbidden
+*/
+
 void		RequestHandler::handleDELETE( void )
 {
-	if (!utils::has_write_permission(_request.getFullPath()))
+	if (utils::is_regular_file(_request.getFullPath()))
 	{
-		setCustomErrorResponse(FORBIDDEN, getCustomErrorPath(FORBIDDEN));
-	}
-	else
-	{
-		if (utils::is_regular_file(_request.getFullPath()))
+		int status_code = remove_file(_request.getFullPath());
+		if (utils::is_client_error(status_code) || utils::is_server_error(status_code))
 		{
-			int status_code = remove_file(_request.getFullPath());
-			if (utils::is_client_error(status_code) || utils::is_server_error(status_code))
-			{
-				setCustomErrorResponse(status_code, getCustomErrorPath(status_code));
-				return;
-			}
-			else
-			{
-				_response.setStatusCode(status_code);
-			}
-		}
-		else if (utils::is_directory(_request.getFullPath()))
-		{
-			int status_code = handleDeleteDirectoryResponse();
-			if (utils::is_client_error(status_code) || utils::is_server_error(status_code))
-			{
-				setCustomErrorResponse(status_code, getCustomErrorPath(status_code));
-				return;
-			}
-			else
-			{
-				_response.setStatusCode(status_code);
-			}
+			setCustomErrorResponse(status_code, getCustomErrorPath(status_code));
+			return;
 		}
 		else
 		{
-			setCustomErrorResponse(NOT_FOUND, getCustomErrorPath(NOT_FOUND));
+			_response.setStatusCode(status_code);
 		}
+	}
+	else if (utils::is_directory(_request.getFullPath()))
+	{
+		int status_code = remove_directory(_request.getFullPath());
+		if (utils::is_client_error(status_code) || utils::is_server_error(status_code))
+		{
+			setCustomErrorResponse(status_code, getCustomErrorPath(status_code));
+			return;
+		}
+		else
+		{
+			_response.setStatusCode(status_code);
+		}
+	}
+	else
+	{
+		setCustomErrorResponse(NOT_FOUND, getCustomErrorPath(NOT_FOUND));
 	}
 }
 
@@ -499,7 +507,7 @@ int			RequestHandler::handleDeleteDirectoryResponse( void )
 	{
 		return CONFLICT;
 	}
-	else if (!utils::has_write_permission(_request.getFullPath()))
+	else if (!utils::has_all_permissions(_request.getFullPath()))
 	{
 		return FORBIDDEN;
 	}
@@ -512,6 +520,12 @@ int			RequestHandler::handleDeleteDirectoryResponse( void )
 /** @return status code */
 int			RequestHandler::remove_file(const std::string& path)
 {
+	std::string dir = utils::substr_before_rdel(path, "/");
+	// std::cerr << "parent dir: " << dir << " perm: " << utils::has_all_permissions(dir) << std::endl; //rm
+	if (!utils::has_all_permissions(dir))
+	{
+		return FORBIDDEN;
+	}
 	if (std::remove(path.c_str()) == 0)
 	{
 		return NO_CONTENT;
@@ -522,11 +536,22 @@ int			RequestHandler::remove_file(const std::string& path)
 /** @return status code */
 int			RequestHandler::remove_directory(const std::string& path)
 {
+	
+	if (!utils::ends_with(path, "/"))
+	{
+		return CONFLICT;
+	}
+	
 	std::vector<std::string> cont;
-
 	if (utils::get_dir_entries(path, cont) == 0)
 	{
 		return CONFLICT;
+	}
+
+	// std::cerr << "parent path: " << path<< " perm: " << utils::has_all_permissions(path) << std::endl; //rm
+	if (!utils::has_all_permissions(path))
+	{
+		return FORBIDDEN;
 	}
 	if (rmdir(path.c_str()) == 0)
 	{

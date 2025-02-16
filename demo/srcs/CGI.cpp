@@ -17,7 +17,6 @@ CGI::CGI(void) :
 	requered_vars.push_back("REQUEST_URI");
 	requered_vars.push_back("QUERY_STRING");
 	requered_vars.push_back("SERVER_PROTOCOL");
-
 	remove_vars.push_back("Auth-Scheme");
 	remove_vars.push_back("Authorization");
 	remove_vars.push_back("Connection");
