@@ -12,7 +12,7 @@ std::string		utils::formatDate(time_t timestamp)
 
 	return std::string(buf);
 }
-std::string		utils::get_map_value(const std::string& key, const std::map<std::string, std::string>& src)
+std::string		utils::get_value(const std::string& key, const std::map<std::string, std::string>& src)
 {
 	if (src.find(key) == src.end())
 	{
@@ -23,7 +23,7 @@ std::string		utils::get_map_value(const std::string& key, const std::map<std::st
 	return it->second;
 }
 
-void	utils::parse_header_field(const std::string& header_line, std::map<std::string, std::string>&	headers)
+void	utils::parse_header_field(const std::string& header_line, std::vector<std::pair<std::string, std::string> >& headers)
 {
 	size_t pos = header_line.find(":");
 	if (pos == std::string::npos)
@@ -41,7 +41,23 @@ void	utils::parse_header_field(const std::string& header_line, std::map<std::str
 	{
 		value.erase(0, 1);
 	}
-	headers[key] = value;
+
+	headers.push_back(std::make_pair(key, value));
+}
+
+std::string		utils::get_value(const std::string& key, const std::vector<std::pair<std::string, std::string> >& headers)
+{
+	std::vector<std::pair<std::string, std::string> >::const_iterator it = headers.begin();
+
+	for (; it != headers.end(); ++it)
+	{
+		if (it->first == key)
+		{
+			return it->second;
+		}
+	}
+
+	return "";
 }
 
 std::vector<std::string>	utils::ft_split(std::string& s, std::string delimeter)

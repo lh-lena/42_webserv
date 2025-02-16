@@ -27,16 +27,16 @@ RequestHandler::~RequestHandler() {}
 
 void		RequestHandler::processRequest()
 {
-	if (!findRequestedLocation(_request.getURI()))
+	if (!findRequestedLocation(_request.getHeader("Request-URI")))
 	{
 		setCustomErrorResponse(NOT_FOUND, getCustomErrorPath(NOT_FOUND));
 		return;
 	}
 
-	_request.setFullPath(determineFilePath(_request.getURI()));
+	_request.setFullPath(determineFilePath(_request.getHeader("Request-URI")));
 	
-	// std::cout << YELLOW << "location: " << _location << RESET <<  std::endl;
-	std::cerr << YELLOW << "_request " << _request << RESET << std::endl;
+	std::cerr << YELLOW << "request:\n" << _request << RESET << std::endl;
+	std::cout << YELLOW << "location: " << _location << RESET <<  std::endl;
 
 	if (!isImplementedMethod())
 	{
@@ -172,12 +172,12 @@ std::string			RequestHandler::determineFilePath(const std::string& requested_pat
 
 bool		RequestHandler::isMethodAllowed( void ) const
 {
-	return utils::is_str_in_vector(_request.getMethod(), _location.getAllowedMethods());
+	return utils::is_str_in_vector(_request.getHeader("Request-Method"), _location.getAllowedMethods());
 }
 
 bool		RequestHandler::isImplementedMethod( void ) const
 {
-	return utils::is_str_in_vector(utils::str_toupper(_request.getMethod()), _server.getImplementedMethods());
+	return utils::is_str_in_vector(utils::str_toupper(_request.getHeader("Request-Method")), _server.getImplementedMethods());
 }
 
 bool		RequestHandler::isRedirection( void ) const
@@ -197,8 +197,8 @@ void	RequestHandler::setRedirectResponse( void )
 
 void		RequestHandler::handleStaticRequest( void )
 {
-	if (std::strcmp(_request.getMethod().c_str(), "GET") == 0 || \
-		std::strcmp(_request.getMethod().c_str(), "HEAD") == 0)
+	if (std::strcmp(_request.getHeader("Request-Method").c_str(), "GET") == 0 || \
+		std::strcmp(_request.getHeader("Request-Method").c_str(), "HEAD") == 0)
 	{
 		if (utils::is_regular_file(_request.getFullPath()))
 		{
@@ -209,11 +209,11 @@ void		RequestHandler::handleStaticRequest( void )
 			handleGetDirectoryResponse();
 		}
 	}
-	else if (std::strcmp(_request.getMethod().c_str(), "POST") == 0)
+	else if (std::strcmp(_request.getHeader("Request-Method").c_str(), "POST") == 0)
 	{
 		handlePOST();
 	}
-	else if (std::strcmp(_request.getMethod().c_str(), "DELETE") == 0)
+	else if (std::strcmp(_request.getHeader("Request-Method").c_str(), "DELETE") == 0)
 	{
 		handleDELETE();
 	}
@@ -223,7 +223,7 @@ void		RequestHandler::handleStaticRequest( void )
 
 bool	RequestHandler::isCGIRequest( void ) const
 {
-	std::string ext = utils::get_file_extension(_request.getURI());
+	std::string ext = utils::get_file_extension(_request.getHeader("Request-URI"));
 
 	if (!utils::is_str_in_vector(ext, _location.getCGIExtension()))
 	{
@@ -236,9 +236,12 @@ void	RequestHandler::handleCgiRequest( void )
 {
 	CGI cgi;
 
-	cgi.setEnvironment(_request);
-	cgi.setUploadDir(searchingUploadDir());
 	cgi.setExecutable(_request.getFullPath());
+	std::cerr << "INFO 1" << std::endl;
+	cgi.setUploadDir(searchingUploadPath());
+	std::cerr << "INFO 2" << std::endl;
+	cgi.setEnvironment(_request);
+	std::cerr << "INFO 3" << std::endl;
 	std::string data = cgi.executeCGI(_request);
 
 	handleCgiResponse(data);
@@ -246,11 +249,11 @@ void	RequestHandler::handleCgiRequest( void )
 
 void	RequestHandler::handleCgiResponse(const std::string& data)
 {
-	std::istringstream					iss(data);
-	std::string							line;
-	std::string							body;
-	std::string							con_len;
-	std::map<std::string, std::string>	headers;
+	std::istringstream	iss(data);
+	std::string			line;
+	std::string			body;
+	std::string			con_len;
+	std::vector<std::pair<std::string, std::string> >	headers;
 
 	while (std::getline(iss, line) && line.length() != 0 )
 	{
@@ -260,15 +263,17 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	std::ostringstream oss;
 	oss << iss.rdbuf();
 	body = oss.str();
-	std::cerr << "headers[\"Content-Type\"] " << headers["Content-Type"] << std::endl;
 
-	if (utils::get_map_value("Content-Type", headers).empty())
+	std::cerr << "headers[\"Content-Type\"] " << utils::get_value("Content-Type", headers) << std::endl;
+	std::cerr << "headers[\"Set-Cookie\"] " << utils::get_value("Set-Cookie", headers) << std::endl;
+
+	if (utils::get_value("Content-Type", headers).empty())
 	{
 		setCustomErrorResponse(INTERNAL_SERVER_ERROR, getCustomErrorPath(INTERNAL_SERVER_ERROR));
 		return;
 	}
 
-	con_len = utils::get_map_value("content_length", headers);
+	con_len = utils::get_value("content_length", headers);
 	std::cerr << "con_len " << con_len << std::endl; //rm
 	if (con_len.empty())
 	{
@@ -279,8 +284,19 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	_response.setStatusCode(200);
 	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
 	_response.setHeader("Server", _server.server_name);
-	_response.setHeader("Content-Type", headers["Content-Type"]);
+	_response.setHeader("Content-Type", utils::get_value("Content-Type", headers));
 	_response.setHeader("Content-Length", con_len);
+
+	std::vector<std::pair<std::string, std::string> >::const_iterator it = headers.begin();
+	std::vector<std::string> cookies_val;
+	for (; it != headers.end(); ++it)
+	{
+		if (it->first == "Set-Cookie" && !utils::is_str_in_vector(it->first, cookies_val))
+		{
+			cookies_val.push_back(it->second);
+			_response.setHeader("Set-Cookie", it->second);
+		}
+	}
 }
 
 /** ------------------------ Methods related GET request method ------------------------- */
@@ -308,7 +324,7 @@ void	RequestHandler::handleGetDirectoryResponse( void )
 	else if (!utils::ends_with(_request.getFullPath(), "/"))
 	{
 		setCustomErrorResponse(MOVED_PERMANENTLY, "");
-		_response.setHeader("Location", _request.getURI() + "/");
+		_response.setHeader("Location", _request.getHeader("Request-URI") + "/");
 	}
 
 	new_path = appendIndexFile(_request.getFullPath());
@@ -376,7 +392,7 @@ std::string		RequestHandler::appendIndexFile( const std::string& path )
 /**  TODO: if content_length more than max_body-size */ 
 void		RequestHandler::handlePOST( void )
 {
-	std::string uploadDir = searchingUploadDir();
+	std::string uploadDir = searchingUploadPath();
 
 	if (utils::substr_after_rdel(_request.getFullPath(), ".").empty())
 	{
@@ -414,7 +430,7 @@ void		RequestHandler::handlePOST( void )
 	_response.setStatusCode(CREATED);
 }
 
-std::string		RequestHandler::searchingUploadDir( void )
+std::string		RequestHandler::searchingUploadPath( void )
 {
 	std::string	uploadDir = "";
 	std::string fullPath = "";

@@ -7,26 +7,13 @@ Response::~Response() {}
 
 void	Response::setHeader(const std::string& key, const std::string& value)
 {
-	_header_fields[key] = value;
+	_header_fields.push_back(std::make_pair(key, value));
 }
 
 void	Response::setBody(const std::string& body)
 {
 	_body = body;
 }
-
-// std::string Response::getHeader(const std::string& key) const
-// {
-// 	std::vector<std::pair<std::string, std::string>>::const_iterator it = _headers.begin();
-// 	for (const auto& header : _headers)
-// 	{
-// 		if (header.first == key)
-// 		{
-// 			return header.second;
-// 		}
-// 	}
-// 	return "";
-// }
 
 void	Response::setStatusCode(int code)
 {
@@ -89,7 +76,8 @@ std::string		Response::getResponse( void ) const
 				<< utils::get_reason_phrase(_status_code)
 				<< CRLF;
 
-	for (std::map<std::string, std::string>::const_iterator it = _header_fields.begin(); it != _header_fields.end(); ++it)
+	std::vector<std::pair<std::string, std::string> >::const_iterator it = _header_fields.begin();
+	for (; it != _header_fields.end(); ++it)
 	{
 		response << it->first << ": " << it->second << CRLF;
 	}

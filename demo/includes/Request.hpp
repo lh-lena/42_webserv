@@ -15,34 +15,28 @@ public:
 
 	Connection *connection;
 
-	bool								parse(const std::string& data);
-	void								setFullPath(const std::string& path);
-	const std::string&					getMethod() const;
-	const std::string&					getURI() const;
-	const std::string&					getQueryString() const;
-	const std::string&					getProtocol() const;
-	const std::string&					getBody() const;
-	const std::string&					getFullPath() const;
-	const std::string					getHeader(const std::string& key) const;
-
-	bool								isValid();
-	bool								isBodyExpected();
+	bool	parse(const std::string& data);
+	bool	isValid();
+	bool	isBodyExpected();
+	const std::string&	getBody() const;
+	const std::string&	getFullPath() const;
+	const std::string	getHeader(const std::string& key) const;
+	void	setFullPath(const std::string& path);
+	std::vector<std::pair<std::string, std::string> > getHeaders() const;
 
 private:
-	bool								_is_valid;
-	std::string							_full_path;
-	std::string							_method;
-	std::string							_reqURI;
-	std::string							_protocol;
-	std::string							_query;
-	std::string							_body;
-	std::map<std::string, std::string>	_header_fields;
+	bool			_is_valid;
+	std::string		_full_path;
+	std::string		_upload_path;
+	std::string		_body;
+	std::vector<std::pair<std::string, std::string> >	_header_fields;
 
-	void								parseStartLine(const std::string& str);
-	void								parseHeader(const std::string& header_lines);
-	void								parseBody(const std::string& body);
+	void	parseStartLine(const std::string& str);
+	void	parseHeader(const std::string& header_lines);
+	void	parseBody(const std::string& body);
+	void	setHeader(const std::string& key, const std::string& value);
 };
 
-std::ostream &			operator<<( std::ostream & o, Request const & i );
+std::ostream &	operator<<( std::ostream & o, Request const & i );
 
 #endif

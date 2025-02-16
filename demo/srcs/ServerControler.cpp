@@ -174,8 +174,8 @@ static int	create_tcp_server_socket(int port)
 */
 static int	isInPollfds(int fd, const std::vector<int> & sds)
 {
-	int	size = sds.size();
-	for (int i = 0; i < size; i++)
+	int	ss = sds.size();
+	for (int i = 0; i < ss; i++)
 	{
 		if (fd == sds[i])
 			return sds[i];

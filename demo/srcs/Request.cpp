@@ -62,10 +62,15 @@ bool		Request::isBodyExpected()
 void	Request::parseStartLine(const std::string& str)
 {
 	std::istringstream iss(str);
+	std::string	method, reqURI, protocol, query;
 
-	iss >> _method >> _reqURI >> _protocol;
-	_reqURI = RequestHandler::canonicalizePath(_reqURI);
-	utils::parse_query(_reqURI, _reqURI, _query);
+	iss >> method >> reqURI >> protocol;
+	reqURI = RequestHandler::canonicalizePath(reqURI);
+	utils::parse_query(reqURI, reqURI, query);
+	setHeader("Request-Method", method);
+	setHeader("Request-URI", reqURI);
+	setHeader("Server-Protocol", protocol);
+	setHeader("Query-String", query);
 }
 
 void	Request::parseHeader(const std::string& header_lines)
@@ -87,7 +92,7 @@ void	Request::parseHeader(const std::string& header_lines)
 	{
 		value.erase(0, 1);
 	}
-	_header_fields[key] = value;
+	setHeader(key, value);
 	_is_valid = true;
 }
 
@@ -96,44 +101,41 @@ void	Request::parseBody(const std::string& body)
 	_body = body;
 }
 
+std::vector<std::pair<std::string, std::string> >	Request::getHeaders() const
+{
+	return _header_fields;
+}
+
+
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
 */
+
+void	Request::setHeader(const std::string& key, const std::string& value)
+{
+	_header_fields.push_back(std::make_pair(key, value));
+}
 
 void					Request::setFullPath(const std::string& path)
 {
 	_full_path = path;
 }
 
-const std::string&		Request::getMethod() const
-{
-	return _method;
-}
-
-const std::string&		Request::getURI() const
-{
-	return _reqURI;
-}
-
-const std::string&		Request::getQueryString() const
-{
-	return _query;
-}
-
-const std::string&		Request::getProtocol() const
-{
-	return _protocol;
-}
+// void					Request::setUploadPath(const std::string& path)
+// {
+// 	_upload_path = path;
+// }
 
 const std::string		Request::getHeader(const std::string& key) const
 {
-	if (_header_fields.find(key) == _header_fields.end())
+	std::vector<std::pair<std::string, std::string> >::const_iterator it = _header_fields.begin();
+	for (; it != _header_fields.end(); ++it)
 	{
-		return "";
+		if (it->first == key) {
+			return it->second;
+		}
 	}
-
-	std::map<std::string, std::string>::const_iterator	it = _header_fields.find(key);
-	return it->second;
+	return "";
 }
 
 const std::string&		Request::getBody() const
@@ -146,13 +148,18 @@ const std::string&		Request::getFullPath() const
 	return _full_path;
 }
 
+// const std::string&		Request::getUploadPath() const
+// {
+// 	return _upload_path;
+// }
+
 std::ostream &			operator<<( std::ostream & o, Request const & i )
 {
-	o	<< "method = " << i.getMethod() << std::endl
-		<< "reqURI = " << i.getURI() << std::endl
+	o	<< "method = " << i.getHeader("Request-Method") << std::endl
+		<< "reqURI = " << i.getHeader("Request-URI") << std::endl
 		<< "fullPath = " << i.getFullPath() << std::endl
-		<< "protocol = " << i.getProtocol() << std::endl
-		<< "query = " << i.getQueryString() << std::endl
+		<< "protocol = " << i.getHeader("Server-Protocol") << std::endl
+		<< "query = " << i.getHeader("Query-String") << std::endl
 		<< "body = " << i.getBody();
 
 	return o;

@@ -58,7 +58,7 @@ public:
 	void					handleGetDirectoryResponse( void );
 	std::string				appendIndexFile( const std::string& path );
 	void					handlePOST( void );
-	std::string				searchingUploadDir( void );
+	std::string				searchingUploadPath( void );
 	void					handleDELETE( void );
 	int						remove_file(const std::string& path);
 	int						remove_directory(const std::string& path);
