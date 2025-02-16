@@ -91,12 +91,12 @@ ParseConfig::ParseException::~ParseException() throw() {};
 void		ParseConfig::readFileContent( void )
 {
 	if (utils::is_directory(_conf_file_path))
-		throw ParseException("[emerg] : open() " + _conf_file_path + " failed (Is a directory)");
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : open() " + _conf_file_path + " failed (Is a directory)");
 
 	std::ifstream conf_file(_conf_file_path.c_str());
 
 	if (!conf_file.is_open())
-		throw ParseException("[emerg] : open() " + _conf_file_path + " failed (" + std::strerror(errno) + ")");
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : open() " + _conf_file_path + " failed (" + std::strerror(errno) + ")");
 
 	std::string line;
 	int i = 0;
@@ -149,13 +149,13 @@ void 		ParseConfig::parseConfigContent( void )
 	Server						server;
 
 	if (_conf_content.empty())
-		throw ParseException("[emerg] : Unexpected end of configuration file " + _conf_file_path);
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : Unexpected end of configuration file " + _conf_file_path);
 	while (!_conf_content.empty())
 	{
 		el = getToken(&_conf_content);
 		directive = el.first;
 		if (_global_directives.find(directive) == _global_directives.end())
-			throw ParseException("[ERROR] parseConfigContent Unknown directive: " + directive + " in " + _conf_file_path);
+			throw ParseException(utils::getFormattedDateTime() + " [ERROR] parseConfigContent Unknown directive: " + directive + " in " + _conf_file_path);
 		exceptTocken(&_conf_content, el, 0);
 		el = getToken(&_conf_content);
 		value = el.first;
@@ -169,7 +169,7 @@ void 		ParseConfig::parseConfigContent( void )
 		}
 	}
 	if (!_conf_content.empty())
-		throw ParseException("[emerg] : Unexpected data in configuration file " + _conf_file_path);
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : Unexpected data in configuration file " + _conf_file_path);
 	/** Create a default server */
 	if (_serverControler.getServBlockNbr() <= 0)
 	{
@@ -195,7 +195,7 @@ void		ParseConfig::handleHttpBlock(const std::pair<std::string, int>& value, Ser
 		if (directive == "}")
 			break;
 		if (_http_directives.find(directive) == _http_directives.end())
-			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path + ":" + utils::itos(value.second));
+			throw ParseException(utils::getFormattedDateTime() + " [emerg] unknown directive " + directive + " in " + _conf_file_path + ":" + utils::itos(value.second));
 		exceptTocken(&_conf_content, el, 0);
 		el = getToken(&_conf_content);
 		val = el.first;
@@ -242,7 +242,7 @@ void		ParseConfig::handleServerBlock(const std::pair<std::string, int>& value, S
 		if (directive == "}")
 			break;
 		if (_server_directives.find(directive) == _server_directives.end())
-			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path + ":" + utils::itos(value.second));
+			throw ParseException(utils::getFormattedDateTime() + " [emerg] unknown directive " + directive + " in " + _conf_file_path + ":" + utils::itos(value.second));
 		exceptTocken(&_conf_content, el, 0);
 		el = getToken(&_conf_content);
 		val = el.first;
@@ -316,7 +316,7 @@ void		ParseConfig::handleLocationBlock(const std::pair<std::string, int>& value,
 		if (directive == "}")
 			break;
 		if (_location_directives.find(directive) == _location_directives.end())
-			throw ParseException("[emerg] unknown directive " + directive + " in " + _conf_file_path + ":" + utils::itos(value.second));
+			throw ParseException(utils::getFormattedDateTime() + " [emerg] unknown directive " + directive + " in " + _conf_file_path + ":" + utils::itos(value.second));
 		exceptTocken(&_conf_content, el, 0);
 		el = getToken(&_conf_content);
 		val = el.first;
@@ -365,10 +365,10 @@ void		ParseConfig::handleWorkCont(const std::pair<std::string, int>& value, Serv
 	std::string s = value.first;
 
 	if (!utils::is_digits(s))
-		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required only digits in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw ParseConfig::ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"worker_connections\" required only digits in " + _conf_file_path + ":" + utils::itos(value.second));
 	val = utils::strToUlong(s);
 	if (val <= 0)
-		throw ParseConfig::ParseException("[emerg] : directive \"worker_connections\" required a positive number in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw ParseConfig::ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"worker_connections\" required a positive number in " + _conf_file_path + ":" + utils::itos(value.second));
 
 	instance->setWorkCont(val);
 }
@@ -406,14 +406,14 @@ template<typename T> void	ParseConfig::handleClientBodySize(const std::pair<std:
 	std::string unit = s.substr(s.length() - 1);
 	std::string nbr = s.substr(0, s.length() - 1);
 	if (!utils::is_digits(nbr))
-		throw ParseException("[emerg] : directive \"client_max_body_size\" required only digits in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"client_max_body_size\" required only digits in " + _conf_file_path + ":" + utils::itos(value.second));
 	val = utils::strToUlong(nbr);
 	if (val <= 0)
-		throw ParseException("[emerg] : directive \"client_max_body_size\" required a positive number in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"client_max_body_size\" required a positive number in " + _conf_file_path + ":" + utils::itos(value.second));
 	if (val > 100)
-		throw ParseException("[emerg] : directive \"client_max_body_size\" limited size up to 100 Megabytes in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"client_max_body_size\" limited size up to 100 Megabytes in " + _conf_file_path + ":" + utils::itos(value.second));
 	if (unit != "M")
-		throw ParseException("[emerg] : directive \"client_max_body_size\" required a number's unit in Megabytes in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"client_max_body_size\" required a number's unit in Megabytes in " + _conf_file_path + ":" + utils::itos(value.second));
 	val = val * 1024 * 1024;
 	instance->setClientMaxBody(val);
 }
@@ -434,7 +434,7 @@ void		ParseConfig::handleListen(const std::pair<std::string, int>& value, Server
 		port_val = utils::strToUlong(s);
 		if(port_val <= 0)
 		{
-			throw  ParseException("[emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + utils::itos(value.second));
+			throw  ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + utils::itos(value.second));
 		}
 		instance->setPort(port_val);
 		return;
@@ -447,11 +447,11 @@ void		ParseConfig::handleListen(const std::pair<std::string, int>& value, Server
 	if (port[0] == '$')
 		port = processEnvVar(port);
 	if (host.empty() || port.empty())
-		throw ParseException("[emerg] \"" + value.first + "\" invalid input in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] \"" + value.first + "\" invalid input in " + _conf_file_path + ":" + utils::itos(value.second));
 	port_val = utils::strToUlong(port);
 	if(port_val <= 0)
 	{
-		throw  ParseException("[emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw  ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 	instance->setPort(port_val);
 }
@@ -470,7 +470,7 @@ void		ParseConfig::handleAutoindex(const std::pair<std::string, int>& value, Loc
 	else if (s == "off")
 		instance->setAutoindex(false);
 	else
-		throw ParseException("[emerg] : directive \"autoindex\" misses 'on' or 'off' statement in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"autoindex\" misses 'on' or 'off' statement in " + _conf_file_path + ":" + utils::itos(value.second));
 }
 
 void		ParseConfig::handleAllowedMethods(const std::pair<std::string, int>& value, Location* instance)
@@ -483,7 +483,7 @@ void		ParseConfig::handleAllowedMethods(const std::pair<std::string, int>& value
 	}
 	else
 	{
-		throw ParseException("[emerg] : method \"" + s + "\" not allowed in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : method \"" + s + "\" not allowed in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 }
 
@@ -496,13 +496,13 @@ void	ParseConfig::handleRedirect(const std::pair<std::string, int>& value, Locat
 
 	if (vals.empty())
 	{
-		throw ParseException("[emerg] : invalid number of arguments in \"return\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : invalid number of arguments in \"return\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 
 	code = utils::strToUlong(vals[0]);
 	if (code <= 0 || !utils::is_status_code(code))
 	{
-		throw ParseException("[emerg] : value \"" + utils::to_string(code) + "\" must be between 300 and 599 in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : value \"" + utils::to_string(code) + "\" must be between 300 and 599 in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 	if (vals.size() == 2)
 		path = vals[1];
@@ -524,7 +524,7 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 
 	if (vals.empty())
 	{
-		throw ParseException("[emerg] : invalid number of arguments in \"error_page\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : invalid number of arguments in \"error_page\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 
 	for (int i = 0; i < size; i++)
@@ -536,7 +536,7 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 		errorCode = utils::strToUlong(vals[i]);
 		if (errorCode <= 0 || !utils::is_status_code(errorCode))
 		{
-			throw ParseException("[emerg] : invalid status code in \"error_page\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
+			throw ParseException(utils::getFormattedDateTime() + " [emerg] : invalid status code in \"error_page\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
 		}
 		if (size == 1)
 		{
@@ -575,17 +575,17 @@ void		ParseConfig::handleCGIExtension(const std::pair<std::string, int>& value, 
 int		ParseConfig::exceptTocken(std::list<std::pair<std::string, int> > *src, std::pair<std::string, int> tocken, int expected)
 {
 	if (src->empty())
-		throw ParseException("[emerg] : Unexpected end of configuration file " + _conf_file_path);
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : Unexpected end of configuration file " + _conf_file_path);
 
 	std::pair<std::string, int> front = src->front();
 	if (front.first != tocken.first)
 	{
 		if (expected == 2)
-			throw ParseException("[emerg] : directive has no opening \"" + tocken.first + "\" in " + _conf_file_path + ":" + utils::itos(tocken.second));
+			throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive has no opening \"" + tocken.first + "\" in " + _conf_file_path + ":" + utils::itos(tocken.second));
 		else if (expected)
-			throw ParseException("[emerg] : is not terminated by \"" + tocken.first + "\" in " + _conf_file_path + ":" + utils::itos(tocken.second));
+			throw ParseException(utils::getFormattedDateTime() + " [emerg] : is not terminated by \"" + tocken.first + "\" in " + _conf_file_path + ":" + utils::itos(tocken.second));
 		else
-			throw ParseException("[emerg] : unexpected \"" + tocken.first + "\" in " + _conf_file_path + ":" + utils::itos(tocken.second));
+			throw ParseException(utils::getFormattedDateTime() + " [emerg] : unexpected \"" + tocken.first + "\" in " + _conf_file_path + ":" + utils::itos(tocken.second));
 	}
 
 	src->pop_front();
@@ -615,7 +615,7 @@ std::string ParseConfig::processEnvVar(const std::string &input)
 std::pair<std::string, int> ParseConfig::getToken(std::list<std::pair<std::string, int> > *src)
 {
 	if (src->empty())
-		throw ParseConfig::ParseException("[emerg] : Unexpected end of configuration content in " + _conf_file_path);
+		throw ParseConfig::ParseException(utils::getFormattedDateTime() + " [emerg] : Unexpected end of configuration content in " + _conf_file_path);
 	std::pair<std::string, int> token = src->front();
 	return token;
 }

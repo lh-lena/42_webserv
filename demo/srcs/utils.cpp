@@ -12,6 +12,19 @@ std::string		utils::formatDate(time_t timestamp)
 
 	return std::string(buf);
 }
+
+std::string		utils::getFormattedDateTime( void )
+{
+	std::time_t now = std::time(NULL);
+	std::tm *localTime = std::localtime(&now);
+
+	char buf[20];
+
+	std::strftime(buf, sizeof(buf), "%Y/%m/%d %H:%M:%S", localTime);
+
+	return std::string(buf);
+}
+
 std::string		utils::get_value(const std::string& key, const std::map<std::string, std::string>& src)
 {
 	if (src.find(key) == src.end())

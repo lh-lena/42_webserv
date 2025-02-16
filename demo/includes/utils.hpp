@@ -45,6 +45,7 @@ namespace utils
 	bool						has_executable_permissions(const std::string& path);
 	bool						parse_query(const std::string& uri, std::string& new_uri, std::string& query);
 	void						parse_header_field(const std::string& header_line, std::vector<std::pair<std::string, std::string> >& headers);
+	std::string					getFormattedDateTime( void );
 	std::string					get_value(const std::string& key, const std::vector<std::pair<std::string, std::string> >& headers);
 	std::string					get_value(const std::string& key, const std::map<std::string, std::string>& src);
 	std::string					get_file_extension(const std::string& path);
