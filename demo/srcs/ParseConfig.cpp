@@ -502,7 +502,7 @@ void	ParseConfig::handleRedirect(const std::pair<std::string, int>& value, Locat
 	code = utils::strToUlong(vals[0]);
 	if (code <= 0 || !utils::is_status_code(code))
 	{
-		throw ParseException("[emerg] : an invalid value \"" + utils::to_string(code) + "\" must be between 300 and 599 in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw ParseException("[emerg] : value \"" + utils::to_string(code) + "\" must be between 300 and 599 in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 	if (vals.size() == 2)
 		path = vals[1];
