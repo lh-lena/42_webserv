@@ -51,7 +51,7 @@ namespace utils
 	std::string 				get_interpreter(const std::string& s);
 	std::string					load_file_content(const std::string& path);
 	std::string					itos(int i);
-	std::string					ulltos(unsigned long long i);
+	std::string					to_string(unsigned long long i);
 	std::string					get_reason_phrase(int code);
 	std::string					str_tolower(const std::string& s);
 	std::string					str_toupper(const std::string& s);

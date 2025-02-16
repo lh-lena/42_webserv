@@ -36,7 +36,7 @@ void	Response::setStaticPageResponse(int code, const std::string& path)
 	setHeader("Server", _server_name);
 	setHeader("Last-Modified", utils::formatDate(utils::get_timestamp(path)));
 	setHeader("Content-Type", utils::get_MIME_type(path));
-	setHeader("Content-Length", utils::ulltos(con_len));
+	setHeader("Content-Length", utils::to_string(con_len));
 }
 
 void	Response::setErrorResponse(int code, std::string path)

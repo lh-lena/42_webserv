@@ -102,7 +102,7 @@ std::string		utils::itos(int i)
 	return ss.str();
 }
 
-std::string		utils::ulltos(unsigned long long i)
+std::string		utils::to_string(unsigned long long i)
 {
 	std::stringstream ss;
 

@@ -279,7 +279,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	std::cerr << "con_len " << con_len << std::endl; //rm
 	if (con_len.empty())
 	{
-		con_len = utils::ulltos(body.length());
+		con_len = utils::to_string(body.length());
 	}
 
 	_response.setBody(body);
@@ -359,7 +359,7 @@ void	RequestHandler::setDirectoryListingResponse(int status_code)
 	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
 	_response.setHeader("Server", _server.server_name);
 	_response.setHeader("Content-Type", utils::get_MIME_type(body));
-	_response.setHeader("Content-Length", utils::ulltos(con_len));
+	_response.setHeader("Content-Length", utils::to_string(con_len));
 }
 
 std::string		RequestHandler::appendIndexFile( const std::string& path )
