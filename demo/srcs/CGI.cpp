@@ -8,50 +8,79 @@
 
 CGI::CGI(void) :
 	interpreter(std::string()),
-	upload_dir(std::string()),
+	upload_path(std::string()),
 	executable(std::string())
-{}
+{
+	requered_vars.push_back("CONTENT_TYPE");
+	requered_vars.push_back("CONTENT_LENGTH");
+	requered_vars.push_back("REQUEST_METHOD");
+	requered_vars.push_back("REQUEST_URI");
+	requered_vars.push_back("QUERY_STRING");
+	requered_vars.push_back("SERVER_PROTOCOL");
+
+	remove_vars.push_back("Auth-Scheme");
+	remove_vars.push_back("Authorization");
+	remove_vars.push_back("Connection");
+}
 
 CGI::~CGI(void)
 {}
 
 void CGI::setEnvironment(const Request& request)
 {
-	env["AUTH_TYPE"] = !request.getHeader("Auth-Scheme").empty() ? request.getHeader("Authorization") : std::string();
-	env["CONTENT_TYPE"] = request.getHeader("Content-Type");
-	env["CONTENT_LENGTH"] = request.getHeader("Content-Length");
-	env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	env["REDIRECT_STATUS"] = "200";
-	env["HTTP_ACCEPT_CHARSET"] = request.getHeader("Accept-Charset");
-	env["PATH_INFO"] = "/"; // the portion of the URI path following the script name but preceding any query data.
-	env["PATH_TRANSLATED"] = std::string();
-	env["QUERY_STRING"] = request.getQueryString();
-	env["REMOTE_ADDR"] = std::string(); // Returns the IP address of the client that sent the request
-	env["REMOTE_HOST"] = std::string(); // the fully-qualified name of the client that sent the request, or the IP address of the clien
-	env["REMOTE_IDENT"] = request.getHeader("Authorization");
-	env["REMOTE_USER"] = request.getHeader("Authorization");
-	env["REQUEST_METHOD"] = request.getMethod();
-	env["REQUEST_URI"] = request.getURI() + request.getQueryString();
-	env["SCRIPT_NAME"] = request.getFullPath();
-	env["SCRIPT_FILENAME"] = request.getFullPath();
-	env["SERVER_NAME"] = request.getHeader("Hostname");
-	env["SERVER_PORT"] = std::string();
-	env["SERVER_PROTOCOL"] = request.getProtocol();
-	env["SERVER_SOFTWARE"] = "42-server/1.0";
-	env["SERVER_ROOT"] = std::string();
-	env["UPLOAD_DIR"] = upload_dir;
-	env["HTTP_COOKIE"] = request.getHeader("Cookie");
+	std::string tmp_val = "";
+	_env = request.getHeaders();
 
-	std::map<std::string, std::string>::iterator it = env.begin();
-	for (; it != env.end(); it++)
+	std::vector<std::pair<std::string, std::string> >::iterator it = _env.begin();
+	for(; it != _env.end();)
 	{
-		std::string el =  it->first + "=" + it->second;
+		if (utils::is_str_in_vector(it->first, remove_vars))
+		{
+			it = _env.erase(it);
+			continue;
+		}
+		it->first = utils::str_toupper(it->first);
+		std::replace(it->first.begin(), it->first.end(), '-', '_');
+		if (!utils::is_str_in_vector(it->first, requered_vars))
+		{
+			std::string key = "HTTP_" + it->first;
+			it->first = key;
+		}
+		it++;
+	}
+	std::cerr << "INFO 4" << std::endl;
+	tmp_val = !request.getHeader("Auth-Scheme").empty() ? request.getHeader("Authorization") : std::string();
+	addEnvField("AUTH_TYPE", tmp_val);
+	addEnvField("GATEWAY_INTERFACE", "CGI/1.1");
+	// addEnvField("REDIRECT_STATUS", "200"); //??
+	addEnvField("PATH_INFO", "/"); // the portion of the URI path following the script name but preceding any query data.
+	addEnvField("PATH_TRANSLATED", std::string());
+	addEnvField("REMOTE_ADDR", std::string());
+	addEnvField("REMOTE_HOST", std::string());
+	addEnvField("SERVER_PORT", std::string());
+	addEnvField("REMOTE_IDENT", request.getHeader("Authorization"));
+	addEnvField("REMOTE_USER", request.getHeader("Authorization"));
+	// addEnvField("REQUEST_URI", request.getURI() + request.getQueryString()); //?
+	addEnvField("SCRIPT_NAME", request.getFullPath());
+	addEnvField("SCRIPT_FILENAME", request.getFullPath());
+	addEnvField("SERVER_ROOT", std::string());
+	addEnvField("SERVER_SOFTWARE", "42-webserv/1.0");
+	addEnvField("SERVER_NAME", utils::substr_before_rdel(request.getHeader("host"), ":"));
+	addEnvField("SERVER_PORT", utils::substr_after_rdel(request.getHeader("host"), ":"));
+	addEnvField("UPLOAD_PATH", upload_path);
+	// addEnvField("WEBTOP_USER", request.getHeader("Cookie")); // The user name of the user who is logged in.
+	std::cerr << "INFO 5" << std::endl;
+	std::vector<std::pair<std::string, std::string> >::const_iterator it2 = _env.begin();
+	for (; it2 != _env.end(); ++it2)
+	{
+		std::string el =  it2->first + "=" + it2->second;
 		char *cStr = new char[el.length() + 1];
 		std::strcpy(cStr, el.c_str());
 		envp.push_back(cStr);
 	}
-
+	std::cerr << "INFO 6" << std::endl;
 	envp.push_back(NULL);
+	printEnvironment();
 }
 
 void	CGI::cleanEnvironment()
@@ -65,7 +94,7 @@ void	CGI::printEnvironment()
 	std::cout << "CGI::printEnvironment()" << std::endl;
 
 	std::vector<char*>::iterator it = envp.begin();
-	for(; it != envp.end(); it++)
+	for(; it != envp.end() && *it != NULL; ++it)
 	{
 		std::cout << *it << std::endl;
 	}
@@ -86,7 +115,6 @@ std::string		CGI::executeCGI(Request& request)
 	//request.connection->cgi_fds[1] = in_fds[1];
 
 	pid_t pid = fork();
-
 	if (pid == 0)
 	{
 		dup2(in_fds[0], STDIN_FILENO);
@@ -132,7 +160,7 @@ std::string		CGI::executeCGI(Request& request)
 	//request.connection->cgi_fds[0] = -1;
 
 	waitpid(pid, NULL, 0); // kill child process in case of timeout;
-	// std::cerr << GREEN << "RESPONSE CGI :" << respn << RESET << std::endl;
+	std::cerr << GREEN << "RESPONSE CGI :" << respn << RESET << std::endl;
 	cleanEnvironment();
 	return respn;
 }
@@ -149,5 +177,10 @@ void		CGI::setExecutable(const std::string& str)
 
 void		CGI::setUploadDir(const std::string& str)
 {
-	upload_dir = str;
+	upload_path = str;
+}
+
+void		CGI::addEnvField(const std::string& key, const std::string& value)
+{
+	_env.push_back(std::make_pair(key, value));
 }

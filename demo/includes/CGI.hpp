@@ -13,11 +13,9 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 
-/** only template, not sure about arguments */
 class CGI
 {
 public:
-	// CGI(const Request& request) : _request(request) {};
 	CGI();
 	~CGI();
 
@@ -32,12 +30,15 @@ public:
 	int	fds[2];
 
 private:
-	std::map<std::string, std::string>	env;
+	std::vector<std::pair<std::string, std::string> >	_env;
 	std::vector<char*>					envp;
-	std::string							interpreter;
-	std::string							upload_dir;
-	std::string							executable;
+	std::vector<std::string>	requered_vars;
+	std::vector<std::string>	remove_vars;
+	std::string					interpreter;
+	std::string					upload_path;
+	std::string					executable;
 	void	cleanEnvironment();
+	void	addEnvField(const std::string& key, const std::string&);
 };
 
 #endif /* CGIHANDLER_HPP */
