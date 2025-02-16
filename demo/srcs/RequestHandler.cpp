@@ -236,12 +236,14 @@ void	RequestHandler::handleCgiRequest( void )
 {
 	CGI cgi;
 
+	if (!utils::has_executable_permissions(_request.getFullPath()))
+	{
+		setCustomErrorResponse(FORBIDDEN, getCustomErrorPath(FORBIDDEN));
+		return;
+	}
 	cgi.setExecutable(_request.getFullPath());
-	std::cerr << "INFO 1" << std::endl;
 	cgi.setUploadDir(searchingUploadPath());
-	std::cerr << "INFO 2" << std::endl;
 	cgi.setEnvironment(_request);
-	std::cerr << "INFO 3" << std::endl;
 	std::string data = cgi.executeCGI(_request);
 
 	handleCgiResponse(data);
@@ -389,7 +391,7 @@ std::string		RequestHandler::appendIndexFile( const std::string& path )
 }
 
 /** ------------------------ Methods related POST request method ------------------------- */
-/**  TODO: if content_length more than max_body-size */ 
+/**  TODO: if content_length more than max_body-size */
 void		RequestHandler::handlePOST( void )
 {
 	std::string uploadDir = searchingUploadPath();
@@ -451,21 +453,6 @@ std::string		RequestHandler::searchingUploadPath( void )
 
 /** ------------------------ Methods related DELETE request method ------------------------- */
 
-/*
-if parent directory has write permition:
-yes:
-	file exists: yes -> rm, 204
-				no -> 404 Not Found
-	sub_dir exists:
-	yes:
-		- ends with '/':
-		yes: 204
-		no: 409 Conflict
-	no: 413
-no:
-	413 Forbidden
-*/
-
 void		RequestHandler::handleDELETE( void )
 {
 	if (utils::is_regular_file(_request.getFullPath()))
@@ -483,7 +470,7 @@ void		RequestHandler::handleDELETE( void )
 	}
 	else if (utils::is_directory(_request.getFullPath()))
 	{
-		int status_code = remove_directory(_request.getFullPath());
+		int status_code = handleDeleteDirectoryResponse();
 		if (utils::is_client_error(status_code) || utils::is_server_error(status_code))
 		{
 			setCustomErrorResponse(status_code, getCustomErrorPath(status_code));
@@ -507,22 +494,31 @@ int			RequestHandler::handleDeleteDirectoryResponse( void )
 	{
 		return CONFLICT;
 	}
-	else if (!utils::has_all_permissions(_request.getFullPath()))
+	if (!utils::has_user_permissions(_request.getFullPath()))
 	{
 		return FORBIDDEN;
 	}
-	else
+	return FORBIDDEN;
+	/*
+	int rc = 0;
+	if ((rc = remove_directory_recursively(_request.getFullPath())) != NO_CONTENT)
 	{
-		return remove_directory(_request.getFullPath());
+		return rc;
 	}
+	if (rmdir(_request.getFullPath().c_str()) == 0)
+	{
+		return NO_CONTENT;
+	}
+
+	return INTERNAL_SERVER_ERROR;
+	*/
 }
 
 /** @return status code */
 int			RequestHandler::remove_file(const std::string& path)
 {
 	std::string dir = utils::substr_before_rdel(path, "/");
-	// std::cerr << "parent dir: " << dir << " perm: " << utils::has_all_permissions(dir) << std::endl; //rm
-	if (!utils::has_all_permissions(dir))
+	if (!utils::has_user_permissions(dir))
 	{
 		return FORBIDDEN;
 	}
@@ -534,31 +530,34 @@ int			RequestHandler::remove_file(const std::string& path)
 }
 
 /** @return status code */
-int			RequestHandler::remove_directory(const std::string& path)
+int			RequestHandler::remove_directory_recursively(const std::string& path)
 {
-	
-	if (!utils::ends_with(path, "/"))
-	{
-		return CONFLICT;
-	}
-	
 	std::vector<std::string> cont;
-	if (utils::get_dir_entries(path, cont) == 0)
-	{
-		return CONFLICT;
-	}
-
-	// std::cerr << "parent path: " << path<< " perm: " << utils::has_all_permissions(path) << std::endl; //rm
-	if (!utils::has_all_permissions(path))
+	int rc = 0;
+	if (utils::get_dir_entries(path, cont) != 0)
 	{
 		return FORBIDDEN;
 	}
-	if (rmdir(path.c_str()) == 0)
-	{
-		return NO_CONTENT;
-	}
 
-	return INTERNAL_SERVER_ERROR;
+	std::vector<std::string>::iterator it = cont.begin();
+	for (; it != cont.end(); ++it)
+	{
+		if ((*it).compare("..") == 0)
+			continue;
+		if (utils::is_regular_file(path + (*it)))
+		{
+			if (std::remove((path + (*it)).c_str()) != 0)
+				return INTERNAL_SERVER_ERROR;
+		}
+		else
+		{
+			if ((rc = remove_directory_recursively(path + (*it))) != NO_CONTENT)
+				return rc;
+			if (rmdir((path + (*it)).c_str()) != 0)
+				return INTERNAL_SERVER_ERROR;
+		}
+	}
+	return NO_CONTENT;
 }
 
 /* ------------------------ Methods related to Location  ------------------------- */

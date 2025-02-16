@@ -406,6 +406,20 @@ bool	utils::has_all_permissions(const std::string& path)
 	return false;
 }
 
+bool	utils::has_user_permissions(const std::string& path)
+{
+	struct stat path_stat;
+
+	if (stat(path.c_str(), &path_stat) == 0)
+	{
+		if ((path_stat.st_mode & S_IRWXU) == S_IRWXU)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 bool	utils::has_executable_permissions(const std::string& path)
 {
 	struct stat path_stat;

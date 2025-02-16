@@ -61,7 +61,7 @@ public:
 	std::string				searchingUploadPath( void );
 	void					handleDELETE( void );
 	int						remove_file(const std::string& path);
-	int						remove_directory(const std::string& path);
+	int						remove_directory_recursively(const std::string& path);
 	int						handleDeleteDirectoryResponse( void );
 private:
 };
