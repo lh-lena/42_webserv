@@ -5,7 +5,7 @@
 # include <string>
 # include <vector>
 # include <map>
-# include "Connection.hpp"
+//# include "Connection.hpp"
 
 class Request
 {
@@ -13,7 +13,7 @@ public:
 	Request();
 	~Request();
 
-	Connection *connection;
+	//Connection *connection;
 
 	bool	parse(const std::string& data);
 	bool	isValid();

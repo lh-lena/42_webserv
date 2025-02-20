@@ -19,30 +19,31 @@ Connection::Connection(int fd): _fd(fd)
 Connection::~Connection()
 {}
 
-// std::string	Connection::unchunkRequest(char *buf)
-// {
-// 	if (!buf[0])
-// 		return "";
-// }
-
-void	Connection::checkHeaders(char *buf) // what's happening in case of incomplete headers?
+void	Connection::unchunkRequest()
 {
-	size_t	res;
-	std::string str;
+	return;
+}
 
-	if (buf[BUFF_SIZE - 1] != '\0')
-	{
-		char c = buf[BUFF_SIZE - 1];
-		buf[BUFF_SIZE - 1] = '\0';
-		str = buf;
-		str = str + c;
-	}
-
-	res = str.find("\r\n\r\n");
-	if (res == std::string::npos)
+void	Connection::checkRequest() // what's happening in case of incomplete headers?
+{
+	if (_request.empty())
 		return;
 
-	_req_head_len = res;
+	size_t	res;
+
+	res = _request.find("\r\n\r\n");
+	if (res != std::string::npos)
+		_req_head_len = res + 4;
+
+	res = _request.find("Content-Length");
+	if (res != std::string::npos)
+	{
+		//_req_body_len = getContLength(&_request[i + 15]);
+	}
+
+	res = _request.find("Transfer-Encoding: chunked");
+	if (res != std::string::npos)
+		unchunkRequest();
 }
 
 int		Connection::getFd() const

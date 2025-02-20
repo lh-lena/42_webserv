@@ -457,14 +457,48 @@ void	ServerControler::startServing()
 
 void	ServerControler::handleInEvent(int fd)
 {
-	if (fd < 0)
+	Connection *conn = getConnection(fd);
+	if (conn == NULL)
 		return;
+
+	std::string request;
+	std::string response;
+	char buf[BUFF_SIZE];
+	memset(buf, 0, sizeof(buf));
+	int res = recv(fd, buf, sizeof(buf) - 1, 0);
+	if (res < 0)
+	{
+		std::cout << "Error: recv() failed" << std::endl;
+		removeConnection(fd);
+		return;
+	}
+	if (res > 0)
+	{
+		conn->appendRequest(buf);
+	}
+	else if (res == 0)
+	{
+		conn->checkRequest();
+		request = conn->getRequest();
+		if (conn->isReqComplete())
+			response = processRequest(request);
+	}
 }
 
 void	ServerControler::handleOutEvent(int fd)
 {
-	if (fd < 0)
+	Connection *conn = getConnection(fd);
+	if (conn == NULL)
 		return;
+	std::string str = conn->getResponse();
+	if (str.empty())
+		return;
+	int res = send(fd, str.c_str(), str.size(), 0);
+	if (res < 0)
+		throw std::runtime_error("Error: send() failed");
+	std::cout <<"[LOG] : Transmitted Data Size "<< res <<" Bytes."  << std::endl;
+	std::cout <<"[LOG] : File Transfer Complete." << std::endl;
+	
 }
 
 void	ServerControler::sig_handler(int sig_num)
@@ -553,10 +587,6 @@ Connection	*	ServerControler::getConnection(int fd)
 	{
 		if (_conns[i].getFd() == fd)
 			return &_conns[i];
-		// if (_conns[i].cgi_fds[0] == fd)
-		// 	return &_conns[i];
-		// if (_conns[i].cgi_fds[1] == fd)
-		// 	return &_conns[i];
 	}
 	return NULL;
 }

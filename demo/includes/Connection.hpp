@@ -3,7 +3,6 @@
 
 # include <string>
 # include <ctime>
-//# include "CGI.hpp"
 
 # define BUFF_SIZE 1500
 
@@ -14,8 +13,6 @@ class Connection
 	Connection();
 	Connection(int fd);
 	~Connection();
-
-	//CGI _cgi;
 
 	int		getFd() const;
 	void	setFd(const int fd);
@@ -33,8 +30,8 @@ class Connection
 	std::string	getResponse() const;
 	void	setResponse(const std::string & s);
 
-	std::string unchunkRequest(char *buf);
-	void	checkHeaders(char *buf);
+	void 	unchunkRequest();
+	void	checkRequest();
 
 	private:
 
