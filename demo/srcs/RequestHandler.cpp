@@ -34,9 +34,9 @@ void		RequestHandler::processRequest()
 	}
 
 	_request.setFullPath(determineFilePath(_request.getHeader("Request-URI")));
-	
-	std::cerr << YELLOW << "request:\n" << _request << RESET << std::endl;
-	std::cout << YELLOW << "location: " << _location << RESET <<  std::endl;
+
+	// std::cerr << YELLOW << "request:\n" << _request << RESET << std::endl;
+	// std::cout << YELLOW << "location: " << _location << RESET <<  std::endl;
 
 	if (!isImplementedMethod())
 	{
@@ -76,11 +76,14 @@ void	RequestHandler::setCustomErrorResponse(int status_code, const std::string& 
 	std::string location = std::string();
 	std::string date = utils::formatDate(utils::get_timestamp(""));
 
+	// std::cerr << RED << "custom_error_path " << custom_error_path 
+	// 			<< "\nstatus_code " << status_code << RESET<< std::endl;
+
 	if (custom_error_path.empty())
 	{
 		body = utils::generate_html_error_page(status_code);
 	}
-	else if (isExternalRedirect(custom_error_path))
+	else if (isExternalRedirect(custom_error_path) || status_code == MOVED_PERMANENTLY || status_code == MOVED_TEMPORARY)
 	{
 		status_code = MOVED_TEMPORARY;
 		location = custom_error_path;
@@ -131,11 +134,11 @@ std::string		RequestHandler::getCustomErrorPath(int status_code)
 
 	if (er_pages.size() > 0 && er_pages.find(status_code) != er_pages.end())
 	{
-		// path = er_pages[status_code];
-		if (findRequestedLocation(er_pages[status_code]))
-		{
-			path = determineFilePath(er_pages[status_code]);
-		}
+		path = er_pages[status_code];
+		// if (findRequestedLocation(er_pages[status_code]))
+		// {
+		// 	path = determineFilePath(er_pages[status_code]);
+		// }
 	}
 	return path;
 }
@@ -191,7 +194,7 @@ void	RequestHandler::setRedirectResponse( void )
 	std::string body;
 	int st_code = reds->first;
 
-	std::cerr << "REDIR logs: 1: " << utils::to_string(reds->first) << " 2: " << reds->second << std::endl; // TOFIX: parsing config
+	// std::cerr << "REDIR logs: 1: " << utils::to_string(reds->first) << " 2: " << reds->second << std::endl; // TOFIX: parsing config
 	
 	_response.setStatusCode(st_code);
 	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
@@ -231,7 +234,6 @@ void		RequestHandler::handleStaticRequest( void )
 		}
 		else
 		{
-			
 			std::cout << "Method: " << _request.getHeader("Request-Method") << std::endl;
 			setCustomErrorResponse(NOT_FOUND, getCustomErrorPath(NOT_FOUND));
 		}
@@ -293,8 +295,8 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	oss << iss.rdbuf();
 	body = oss.str();
 
-	std::cerr << "headers[\"Content-Type\"] " << utils::get_value("Content-Type", headers) << std::endl;
-	std::cerr << "headers[\"Set-Cookie\"] " << utils::get_value("Set-Cookie", headers) << std::endl;
+	// std::cerr << "headers[\"Content-Type\"] " << utils::get_value("Content-Type", headers) << std::endl;
+	// std::cerr << "headers[\"Set-Cookie\"] " << utils::get_value("Set-Cookie", headers) << std::endl;
 
 	if (utils::get_value("Content-Type", headers).empty())
 	{
@@ -303,7 +305,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	}
 
 	con_len = utils::get_value("content_length", headers);
-	std::cerr << "con_len " << con_len << std::endl; //rm
+	// std::cerr << "con_len " << con_len << std::endl; //rm
 	if (con_len.empty())
 	{
 		con_len = utils::to_string(body.length());
@@ -315,6 +317,10 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	_response.setHeader("Server", _server.server_name);
 	_response.setHeader("Content-Type", utils::get_value("Content-Type", headers));
 	_response.setHeader("Content-Length", con_len);
+	if (!utils::get_value("Location", headers).empty())
+	{
+		_response.setHeader("Location", utils::get_value("Location", headers));
+	}
 
 	std::vector<std::pair<std::string, std::string> >::const_iterator it = headers.begin();
 	std::vector<std::string> cookies_val;
@@ -341,6 +347,9 @@ void	RequestHandler::handleGetDirectoryResponse( void )
 	}
 
 	new_path = appendIndexFile(_request.getFullPath());
+
+	// std::cerr << "DIR RESP new_path " << new_path << std::endl;
+
 	if (new_path.compare(_request.getFullPath().c_str()) != 0)
 	{
 		_response.setStaticPageResponse(OK, new_path);
@@ -402,21 +411,36 @@ std::string		RequestHandler::appendIndexFile( const std::string& path )
 }
 
 /** ------------------------ Methods related POST request method ------------------------- */
+
+std::string generateRawDataFilename()
+{
+    std::time_t t = std::time(nullptr);
+    std::tm tm = *std::localtime(&t);
+    std::stringstream ss;
+    ss << std::put_time(&tm, "%Y%m%d_%H%M%S");
+    return "raw_data_" + ss.str();
+}
+
 /**  TODO: if content_length more than max_body-size */
 void		RequestHandler::handlePOST( void )
 {
 	std::string uploadDir = searchingUploadPath();
-
-	if (utils::substr_after_rdel(_request.getFullPath(), ".").empty())
+	if (!utils::ends_with(uploadDir, "/"))
 	{
-		setCustomErrorResponse(FORBIDDEN, getCustomErrorPath(FORBIDDEN));
-		return;
+		uploadDir = uploadDir + "/";
 	}
-	std::string uploadFile = utils::substr_after_rdel(_request.getFullPath(), "/");
-	std::ofstream file((uploadDir + uploadFile).c_str()); // "/" ??
-	if (!file.is_open())
+	// std::cerr << "upload path: " << uploadDir << std::endl;
+	std::string filename = generateRawDataFilename();
+	std::string body = _request.getBody();
+
+	// std::cerr << "filename: " << filename << std::endl;
+
+	std::string filepath = uploadDir + filename;
+	// std::cerr << "filepath: " << filepath << std::endl;
+	std::ofstream outfile(filepath, std::ios::binary);
+	if (!outfile.is_open())
 	{
-		std::cerr	<< "Failed to open file: " << _request.getFullPath()
+		std::cerr	<< "Failed to open file: " << filepath
 					<< " (" << strerror(errno) << ")" << std::endl;
 
 		if (errno == EACCES || errno == EROFS || errno == ENOENT)
@@ -427,19 +451,18 @@ void		RequestHandler::handlePOST( void )
 		{
 			setCustomErrorResponse(INTERNAL_SERVER_ERROR, getCustomErrorPath(INTERNAL_SERVER_ERROR));
 		}
-
 		return;
 	}
-
-	file << _request.getBody();
-	if (file.fail())
+	// std::copy(body.begin(), body.end(), std::ostream_iterator<char>(outfile));
+	outfile.write(body.c_str(), body.length());
+	if (outfile.fail())
 	{
-		std::cerr << "Error writing to file: " << uploadDir + uploadFile << std::endl;
+		std::cerr << "Error writing to file: " << filepath << std::endl;
 		setCustomErrorResponse(INTERNAL_SERVER_ERROR, getCustomErrorPath(INTERNAL_SERVER_ERROR));
-		file.close();
+		outfile.close();
 		return;
 	}
-	file.close();
+	outfile.close();
 	_response.setStatusCode(CREATED);
 }
 
@@ -450,14 +473,21 @@ std::string		RequestHandler::searchingUploadPath( void )
 
 	if (_location.getUploadDir().empty() && !_server.getUploadDir().empty())
 	{
-		uploadDir = _location.getUploadDir();
+		uploadDir = _server.getUploadDir();
+		findRequestedLocation(uploadDir); //added
 		fullPath = determineFilePath(uploadDir);
 	}
 	else if (!_location.getUploadDir().empty())
 	{
 		uploadDir = _location.getUploadDir();
+		findRequestedLocation(uploadDir); //added
 		fullPath = determineFilePath(uploadDir);
 	}
+
+	// std::cerr << YELLOW << _location << RESET << std::endl;
+	// std::cerr << GREEN << "_server.getUploadDir() " << _server.getUploadDir() << "\n" <<
+	// " _location.getUploadDir() " << _location.getUploadDir() << " \fullPath  "<<
+	// fullPath << RESET << std::endl; //rm
 
 	return fullPath;
 }

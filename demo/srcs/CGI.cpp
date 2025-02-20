@@ -1,10 +1,6 @@
 
 #include "../includes/CGI.hpp"
 #include "../includes/Server.hpp"
-// #include "../includes/Request.hpp"
-
-// CGI::CGI(const Server& server, const Location& loc) :
-// {}
 
 CGI::CGI(void) :
 	interpreter(std::string()),
@@ -47,7 +43,6 @@ void CGI::setEnvironment(const Request& request)
 		}
 		it++;
 	}
-	std::cerr << "INFO 4" << std::endl;
 	tmp_val = !request.getHeader("Auth-Scheme").empty() ? request.getHeader("Authorization") : std::string();
 	addEnvField("AUTH_TYPE", tmp_val);
 	addEnvField("GATEWAY_INTERFACE", "CGI/1.1");
@@ -68,7 +63,6 @@ void CGI::setEnvironment(const Request& request)
 	addEnvField("SERVER_PORT", utils::substr_after_rdel(request.getHeader("host"), ":"));
 	addEnvField("UPLOAD_PATH", upload_path);
 	// addEnvField("WEBTOP_USER", request.getHeader("Cookie")); // The user name of the user who is logged in.
-	std::cerr << "INFO 5" << std::endl;
 	std::vector<std::pair<std::string, std::string> >::const_iterator it2 = _env.begin();
 	for (; it2 != _env.end(); ++it2)
 	{
@@ -77,9 +71,7 @@ void CGI::setEnvironment(const Request& request)
 		std::strcpy(cStr, el.c_str());
 		envp.push_back(cStr);
 	}
-	std::cerr << "INFO 6" << std::endl;
 	envp.push_back(NULL);
-	printEnvironment();
 }
 
 void	CGI::cleanEnvironment()
@@ -124,7 +116,6 @@ std::string		CGI::executeCGI(Request& request)
 		close(out_fds[1]);
 		char * const * nll = NULL;
 		char *arg = {(char *)executable.c_str()};
-		std::cerr << "executable CGI: " << executable << std::endl;
 		if (execve(arg, nll, envp.data()) < 0)
 		{
 			std::cerr << RED << "Error: execve() failed\n" << RESET;
@@ -159,7 +150,7 @@ std::string		CGI::executeCGI(Request& request)
 	//request.connection->cgi_fds[0] = -1;
 
 	waitpid(pid, NULL, 0); // kill child process in case of timeout;
-	std::cerr << GREEN << "RESPONSE CGI :" << respn << RESET << std::endl;
+	// std::cerr << GREEN << "RESPONSE CGI :" << respn << RESET << std::endl;
 	cleanEnvironment();
 	return respn;
 }
