@@ -35,8 +35,8 @@ void		RequestHandler::processRequest()
 
 	_request.setFullPath(determineFilePath(_request.getHeader("Request-URI")));
 
-	std::cerr << YELLOW << "request:\n" << _request << RESET << std::endl;
-	std::cout << YELLOW << "location: " << _location << RESET <<  std::endl;
+	// std::cerr << YELLOW << "request:\n" << _request << RESET << std::endl;
+	// std::cout << YELLOW << "location: " << _location << RESET <<  std::endl;
 
 	if (!isImplementedMethod())
 	{
@@ -76,8 +76,8 @@ void	RequestHandler::setCustomErrorResponse(int status_code, const std::string& 
 	std::string location = std::string();
 	std::string date = utils::formatDate(utils::get_timestamp(""));
 
-	std::cerr << RED << "custom_error_path " << custom_error_path 
-				<< "\nstatus_code " << status_code << RESET<< std::endl;
+	// std::cerr << RED << "custom_error_path " << custom_error_path 
+	// 			<< "\nstatus_code " << status_code << RESET<< std::endl;
 
 	if (custom_error_path.empty())
 	{
@@ -194,7 +194,7 @@ void	RequestHandler::setRedirectResponse( void )
 	std::string body;
 	int st_code = reds->first;
 
-	std::cerr << "REDIR logs: 1: " << utils::to_string(reds->first) << " 2: " << reds->second << std::endl; // TOFIX: parsing config
+	// std::cerr << "REDIR logs: 1: " << utils::to_string(reds->first) << " 2: " << reds->second << std::endl; // TOFIX: parsing config
 	
 	_response.setStatusCode(st_code);
 	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
@@ -295,8 +295,8 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	oss << iss.rdbuf();
 	body = oss.str();
 
-	std::cerr << "headers[\"Content-Type\"] " << utils::get_value("Content-Type", headers) << std::endl;
-	std::cerr << "headers[\"Set-Cookie\"] " << utils::get_value("Set-Cookie", headers) << std::endl;
+	// std::cerr << "headers[\"Content-Type\"] " << utils::get_value("Content-Type", headers) << std::endl;
+	// std::cerr << "headers[\"Set-Cookie\"] " << utils::get_value("Set-Cookie", headers) << std::endl;
 
 	if (utils::get_value("Content-Type", headers).empty())
 	{
@@ -305,7 +305,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	}
 
 	con_len = utils::get_value("content_length", headers);
-	std::cerr << "con_len " << con_len << std::endl; //rm
+	// std::cerr << "con_len " << con_len << std::endl; //rm
 	if (con_len.empty())
 	{
 		con_len = utils::to_string(body.length());
@@ -348,7 +348,7 @@ void	RequestHandler::handleGetDirectoryResponse( void )
 
 	new_path = appendIndexFile(_request.getFullPath());
 
-	std::cerr << "DIR RESP new_path " << new_path << std::endl;
+	// std::cerr << "DIR RESP new_path " << new_path << std::endl;
 
 	if (new_path.compare(_request.getFullPath().c_str()) != 0)
 	{
@@ -429,14 +429,14 @@ void		RequestHandler::handlePOST( void )
 	{
 		uploadDir = uploadDir + "/";
 	}
-	std::cerr << "upload path: " << uploadDir << std::endl;
+	// std::cerr << "upload path: " << uploadDir << std::endl;
 	std::string filename = generateRawDataFilename();
 	std::string body = _request.getBody();
 
-	std::cerr << "filename: " << filename << std::endl;
+	// std::cerr << "filename: " << filename << std::endl;
 
 	std::string filepath = uploadDir + filename;
-	std::cerr << "filepath: " << filepath << std::endl;
+	// std::cerr << "filepath: " << filepath << std::endl;
 	std::ofstream outfile(filepath, std::ios::binary);
 	if (!outfile.is_open())
 	{
@@ -484,10 +484,10 @@ std::string		RequestHandler::searchingUploadPath( void )
 		fullPath = determineFilePath(uploadDir);
 	}
 
-	std::cerr << YELLOW << _location << RESET << std::endl;
-	std::cerr << GREEN << "_server.getUploadDir() " << _server.getUploadDir() << "\n" <<
-	" _location.getUploadDir() " << _location.getUploadDir() << " \fullPath  "<<
-	fullPath << RESET << std::endl; //rm
+	// std::cerr << YELLOW << _location << RESET << std::endl;
+	// std::cerr << GREEN << "_server.getUploadDir() " << _server.getUploadDir() << "\n" <<
+	// " _location.getUploadDir() " << _location.getUploadDir() << " \fullPath  "<<
+	// fullPath << RESET << std::endl; //rm
 
 	return fullPath;
 }
