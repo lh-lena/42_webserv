@@ -4,17 +4,17 @@
 #echo var_dump($_POST);
 
 <?php
-
-// define variables and set to empty values
-$input = $data = $response = $name = $email = $message = $timestamp = "";
-
-// determine the request method
-$request_method = $_SERVER['REQUEST_METHOD'];
-
 // enable error reporting
 ini_set('display_errors', 1);
 ini_set('error_log', __DIR__ . '/php_errors.log');
 error_reporting(E_ALL);
+
+// define variables and set to empty values
+$input = $data = $response = $name = $email = $message = $file = $timestamp = "";
+
+// determine the request method
+$request_method = $_SERVER['REQUEST_METHOD'];
+$uploadDir = $_SERVER['UPLOAD_PATH'];
 
 // init response
 $response = ['success' => false];
