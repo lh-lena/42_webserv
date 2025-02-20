@@ -49,7 +49,6 @@ namespace utils
 	std::string					get_value(const std::string& key, const std::vector<std::pair<std::string, std::string> >& headers);
 	std::string					get_value(const std::string& key, const std::map<std::string, std::string>& src);
 	std::string					get_file_extension(const std::string& path);
-	std::string 				get_interpreter(const std::string& s);
 	std::string					load_file_content(const std::string& path);
 	std::string					itos(int i);
 	std::string					to_string(unsigned long long i);
@@ -63,6 +62,7 @@ namespace utils
 	std::string					generate_path(const std::string& base_path, const std::string& status_code);
 	std::string					substr_after_rdel(const std::string& path, const std::string& del);
 	std::string					substr_before_rdel(const std::string& path, const std::string& del);
+	std::string					sanitize_file_name(const std::string& filename);
 	std::vector<std::string>	ft_split(std::string& s, std::string delimeter);
 	int							get_dir_entries(const std::string& dirp, std::vector<std::string>& content);
 	bool						is_matching_ext(const std::string& s, const std::vector<std::string>& exts);

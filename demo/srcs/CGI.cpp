@@ -1,10 +1,6 @@
 
 #include "../includes/CGI.hpp"
 #include "../includes/Server.hpp"
-// #include "../includes/Request.hpp"
-
-// CGI::CGI(const Server& server, const Location& loc) :
-// {}
 
 CGI::CGI(void) :
 	interpreter(std::string()),
@@ -47,7 +43,6 @@ void CGI::setEnvironment(const Request& request)
 		}
 		it++;
 	}
-	std::cerr << "INFO 4" << std::endl;
 	tmp_val = !request.getHeader("Auth-Scheme").empty() ? request.getHeader("Authorization") : std::string();
 	addEnvField("AUTH_TYPE", tmp_val);
 	addEnvField("GATEWAY_INTERFACE", "CGI/1.1");
@@ -77,9 +72,7 @@ void CGI::setEnvironment(const Request& request)
 		std::strcpy(cStr, el.c_str());
 		envp.push_back(cStr);
 	}
-	std::cerr << "INFO 6" << std::endl;
 	envp.push_back(NULL);
-	printEnvironment();
 }
 
 void	CGI::cleanEnvironment()

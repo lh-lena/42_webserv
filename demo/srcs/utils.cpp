@@ -267,6 +267,23 @@ std::string		utils::substr_before_rdel(const std::string& path, const std::strin
 
 	return path.substr(0, pos);
 }
+/** Limit length to 255 characters */
+std::string		utils::sanitize_file_name(const std::string& filename)
+{
+	std::string sanitized;
+
+	std::string::const_iterator it = filename.begin();
+	for (; it != filename.end(); ++it)
+	{
+		char c = *it;
+		if (isalnum(c) || c == '.' || c == '-' || c == '_')
+		{
+			sanitized += c;
+		}
+	}
+
+	return sanitized.substr(0, 255);
+}
 
 bool		utils::is_path_exists(const std::string& path)
 {
@@ -471,26 +488,6 @@ std::string			utils::get_file_extension(const std::string& path)
 	}
 
 	return path.substr(pos);
-}
-
-std::string 	utils::get_interpreter(const std::string& s)
-{
-	std::string ext = utils::substr_after_rdel(s, ".");
-
-	if (ext.empty())
-		return std::string();
-
-	if(std::strcmp(ext.c_str(), "py") == 0)
-		return "/usr/bin/python3";
-	if(std::strcmp(ext.c_str(), "rb") == 0)
-		return "/usr/bin/ruby";
-	if(std::strcmp(ext.c_str(), "sh") == 0)
-		return "/usr/bin/bash";
-	if(std::strcmp(ext.c_str(), "php") == 0)
-		return "/usr/bin/php";
-	if(std::strcmp(ext.c_str(), "pl") == 0)
-		return "/usr/bin/perl";
-	return std::string();
 }
 
 std::string		utils::get_reason_phrase(int code)

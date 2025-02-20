@@ -24,10 +24,10 @@ public:
 	void	setFullPath(const std::string& path);
 	std::vector<std::pair<std::string, std::string> > getHeaders() const;
 
+	std::string		_upload_path;
 private:
 	bool			_is_valid;
 	std::string		_full_path;
-	std::string		_upload_path;
 	std::string		_body;
 	std::vector<std::pair<std::string, std::string> >	_header_fields;
 
