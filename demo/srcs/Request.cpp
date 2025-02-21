@@ -61,6 +61,7 @@ bool		Request::isBodyExpected()
 
 void	Request::parseStartLine(const std::string& str)
 {
+	start_line = str;
 	std::istringstream iss(str);
 	std::string	method, reqURI, protocol, query;
 
@@ -131,11 +132,21 @@ const std::string		Request::getHeader(const std::string& key) const
 	std::vector<std::pair<std::string, std::string> >::const_iterator it = _header_fields.begin();
 	for (; it != _header_fields.end(); ++it)
 	{
-		if (it->first == key) {
+		if (it->first == key)
+		{
 			return it->second;
 		}
 	}
 	return "";
+}
+
+void	Request::printHeaders() const
+{
+	std::vector<std::pair<std::string, std::string> >::const_iterator it = _header_fields.begin();
+	for (; it != _header_fields.end(); ++it)
+	{
+		std::cout << it->first << ":" << it->second << std::endl;
+	}
 }
 
 const std::string&		Request::getBody() const

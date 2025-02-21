@@ -35,8 +35,8 @@ void		RequestHandler::processRequest()
 
 	_request.setFullPath(determineFilePath(_request.getHeader("Request-URI")));
 
-	// std::cerr << YELLOW << "request:\n" << _request << RESET << std::endl;
-	// std::cout << YELLOW << "location: " << _location << RESET <<  std::endl;
+	std::cerr << YELLOW << "request:\n" << _request << RESET;
+	std::cout << YELLOW << "location: " << _location << RESET <<  std::endl;
 
 	if (!isImplementedMethod())
 	{
@@ -252,12 +252,14 @@ void		RequestHandler::handleStaticRequest( void )
 
 bool	RequestHandler::isCGIRequest( void ) const
 {
+	std::string path_info = utils::extract_path_info(_request.getHeader("Request-URI"));
 	std::string ext = utils::get_file_extension(_request.getHeader("Request-URI"));
 
 	if (!utils::is_str_in_vector(ext, _location.getCGIExtension()))
 	{
 		return false;
 	}
+	_request.setHeader("Path-Info", path_info);
 	return true;
 }
 
@@ -305,20 +307,27 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	}
 
 	con_len = utils::get_value("content_length", headers);
-	// std::cerr << "con_len " << con_len << std::endl; //rm
 	if (con_len.empty())
 	{
 		con_len = utils::to_string(body.length());
 	}
 
+	if (!utils::get_value("Status", headers).empty())
+	{
+		int st = utils::strToUlong(utils::get_value("Status", headers));
+		_response.setStatusCode(st);
+	}
+	else
+		_response.setStatusCode(200);
+
 	_response.setBody(body);
-	_response.setStatusCode(200);
 	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
 	_response.setHeader("Server", _server.server_name);
 	_response.setHeader("Content-Type", utils::get_value("Content-Type", headers));
 	_response.setHeader("Content-Length", con_len);
 	if (!utils::get_value("Location", headers).empty())
 	{
+		// _response.setStatusCode(302); //?
 		_response.setHeader("Location", utils::get_value("Location", headers));
 	}
 
@@ -414,11 +423,14 @@ std::string		RequestHandler::appendIndexFile( const std::string& path )
 
 std::string generateRawDataFilename()
 {
-    std::time_t t = std::time(nullptr);
-    std::tm tm = *std::localtime(&t);
-    std::stringstream ss;
-    ss << std::put_time(&tm, "%Y%m%d_%H%M%S");
-    return "raw_data_" + ss.str();
+	std::time_t now = std::time(NULL);
+	std::tm *localTime = std::localtime(&now);
+
+	char buf[20];
+
+	std::strftime(buf, sizeof(buf), "%Y/%m/%d_%H%M%S", localTime);
+
+    return "raw_data_" + std::string(buf);
 }
 
 /**  TODO: if content_length more than max_body-size */
@@ -437,7 +449,7 @@ void		RequestHandler::handlePOST( void )
 
 	std::string filepath = uploadDir + filename;
 	// std::cerr << "filepath: " << filepath << std::endl;
-	std::ofstream outfile(filepath, std::ios::binary);
+	std::ofstream outfile(filepath.c_str(), std::ios::binary);
 	if (!outfile.is_open())
 	{
 		std::cerr	<< "Failed to open file: " << filepath

@@ -20,6 +20,24 @@ void	Response::setStatusCode(int code)
 	_status_code = code;
 }
 
+int		Response::getStatusCode()
+{
+	return _status_code;
+}
+
+std::string Response::getHeader(const std::string& key) const
+{
+	std::vector<std::pair<std::string, std::string> >::const_iterator it = _header_fields.begin();
+	for (; it != _header_fields.end(); ++it)
+	{
+		if (it->first == key)
+		{
+			return it->second;
+		}
+	}
+	return "";
+}
+
 void	Response::setStaticPageResponse(int code, const std::string& path)
 {
 	std::string	body = utils::load_file_content(path);

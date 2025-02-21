@@ -18,7 +18,9 @@ public:
 	void			setStatusCode(int code);
 	void			setErrorResponse(int code, std::string path);
 	void			setStaticPageResponse(int code, const std::string& path);
+	int				getStatusCode( void );
 	std::string		getResponse( void ) const;
+	std::string		getHeader(const std::string& key) const;
 
 private:
 	std::string							_server_name;

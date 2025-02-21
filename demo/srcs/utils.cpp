@@ -487,7 +487,30 @@ std::string			utils::get_file_extension(const std::string& path)
 		return std::string();
 	}
 
+	size_t pos2 = path.find_first_of('/', pos);
+	if (pos2 != std::string::npos)
+	{
+		return path.substr(pos, pos2);
+	}
+
 	return path.substr(pos);
+}
+
+std::string		utils::extract_path_info(const std::string& path)
+{
+	size_t pos = path.find_last_of('.');
+	if (pos == std::string::npos)
+	{
+		return "/";
+	}
+
+	size_t pos2 = path.find_first_of('/', pos);
+	if (pos2 == std::string::npos)
+	{
+		return "/";
+	}
+
+	return path.substr(pos2);
 }
 
 std::string		utils::get_reason_phrase(int code)

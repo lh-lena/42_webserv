@@ -23,8 +23,11 @@ public:
 	const std::string	getHeader(const std::string& key) const;
 	void	setFullPath(const std::string& path);
 	std::vector<std::pair<std::string, std::string> > getHeaders() const;
+	void	printHeaders() const;
+	void	setHeader(const std::string& key, const std::string& value);
 
 	std::string		_upload_path;
+	std::string		start_line;
 private:
 	bool			_is_valid;
 	std::string		_full_path;
@@ -34,7 +37,6 @@ private:
 	void	parseStartLine(const std::string& str);
 	void	parseHeader(const std::string& header_lines);
 	void	parseBody(const std::string& body);
-	void	setHeader(const std::string& key, const std::string& value);
 };
 
 std::ostream &	operator<<( std::ostream & o, Request const & i );

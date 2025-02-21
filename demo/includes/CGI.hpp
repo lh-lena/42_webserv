@@ -32,13 +32,13 @@ public:
 private:
 	std::vector<std::pair<std::string, std::string> >	_env;
 	std::vector<char*>					envp;
-	std::vector<std::string>	requered_vars;
+	std::vector<std::string>	required_vars;
 	std::vector<std::string>	remove_vars;
 	std::string					interpreter;
 	std::string					upload_path;
 	std::string					executable;
 	void	cleanEnvironment();
-	void	addEnvField(const std::string& key, const std::string&);
+	void	addEnvField(const std::string& key, const std::string& value);
 };
 
 #endif /* CGIHANDLER_HPP */

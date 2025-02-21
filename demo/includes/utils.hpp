@@ -49,6 +49,7 @@ namespace utils
 	std::string					get_value(const std::string& key, const std::vector<std::pair<std::string, std::string> >& headers);
 	std::string					get_value(const std::string& key, const std::map<std::string, std::string>& src);
 	std::string					get_file_extension(const std::string& path);
+	std::string					extract_path_info(const std::string& path);
 	std::string					load_file_content(const std::string& path);
 	std::string					itos(int i);
 	std::string					to_string(unsigned long long i);

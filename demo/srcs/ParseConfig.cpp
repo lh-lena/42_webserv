@@ -530,6 +530,7 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 	std::string					s = value.first;
 	std::vector<std::string>	vals;
 	std::string					path = std::string();
+	int							tmp;
 	int 						errorCode;
 
 	vals = utils::ft_split(s, " ");
@@ -542,9 +543,10 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 
 	for (int i = 0; i < size; i++)
 	{
-		if (utils::strToUlong(vals[size - 1]) == -1)
+		tmp = utils::strToUlong(vals[size - 1]);
+		if (!utils::is_digits(vals[size - 1]) || !utils::is_status_code(tmp))
 			path = vals[size - 1];
-		if (i == size - 1 && utils::strToUlong(vals[size - 1]) == -1)
+		if (i == (size - 1) && utils::strToUlong(vals[size - 1]) == -1)
 			break;
 		errorCode = utils::strToUlong(vals[i]);
 		if (errorCode <= 0 || !utils::is_status_code(errorCode))

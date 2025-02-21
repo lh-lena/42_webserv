@@ -558,6 +558,18 @@ std::string	ServerControler::processRequest(std::string & data)
 
 	reqHandler.processRequest();
 
+	std::ostringstream ss;
+	std::cout << request.getHeader("Host") << std::endl;
+	// ne prazuie // did'ko
+	ss << request.getHeader("Host") + " -- "
+	<< "[" << utils::getFormattedDateTime() << "]" 
+	<< "\"" << request.start_line << "\" "
+	<< response.getStatusCode() << " "
+	<< response.getHeader("Content-Length") << " "
+	<< request.getHeader("User-Agent") + " ";
+
+	std::cout << ss.str() << std::endl;
+
 	return response.getResponse();
 }
 
