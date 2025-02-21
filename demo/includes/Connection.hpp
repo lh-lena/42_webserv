@@ -23,12 +23,13 @@ class Connection
 	void	setRequest(const std::string & s);
 	void	appendRequest(const char * s);
 	void	resetRequest();
-	bool	isReqComplete() const;
-	void	setReqComplete();
+	bool	isReqChuncked() const;
+	void	setReqChuncked();
 	size_t	getNextReqChunkSize() const;
 	void	setNextReqChunkSize(const size_t size);
 	std::string	getResponse() const;
 	void	setResponse(const std::string & s);
+	int		getReqHeadLen() const;
 
 	void 	unchunkRequest();
 	void	checkRequest();
@@ -40,7 +41,7 @@ class Connection
 	std::string _request;
 	int	_req_body_len;
 	int	_req_head_len;
-	bool _req_complete;
+	bool _req_chuncked;
 	size_t _next_req_chunk;
 	std::string _response;
 

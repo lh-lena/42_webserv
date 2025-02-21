@@ -3,17 +3,13 @@
 Connection::Connection()
 {
 	_start = time(NULL);
-	_req_complete = false;
-	// cgi_fds[0] = -1;
-	// cgi_fds[1] = -1;
+	_req_chuncked = false;
 }
 
 Connection::Connection(int fd): _fd(fd)
 {
 	_start = time(NULL);
-	_req_complete = false;
-	// cgi_fds[0] = -1;
-	// cgi_fds[1] = -1;
+	_req_chuncked = false;
 }
 
 Connection::~Connection()
@@ -22,6 +18,19 @@ Connection::~Connection()
 void	Connection::unchunkRequest()
 {
 	return;
+}
+
+static bool isChunked(std::string & str)
+{
+	size_t res = str.find("Transfer-Encoding:");
+	if (res == std::string::npos)
+		return false;
+	if (str[res + 18] == ' ')
+		res++;
+	res = res + 18;
+	if (str.compare(res, 7, "chunked"))
+		return true;
+	return false;
 }
 
 void	Connection::checkRequest() // what's happening in case of incomplete headers?
@@ -34,16 +43,11 @@ void	Connection::checkRequest() // what's happening in case of incomplete header
 	res = _request.find("\r\n\r\n");
 	if (res != std::string::npos)
 		_req_head_len = res + 4;
+	else
+		_req_head_len = _request.size();
 
-	res = _request.find("Content-Length");
-	if (res != std::string::npos)
-	{
-		//_req_body_len = getContLength(&_request[i + 15]);
-	}
-
-	res = _request.find("Transfer-Encoding: chunked");
-	if (res != std::string::npos)
-		unchunkRequest();
+	if (isChunked(_request))
+		_req_chuncked = true;
 }
 
 int		Connection::getFd() const
@@ -92,14 +96,14 @@ void	Connection::appendRequest(const char * s)
 		_request.append(s);
 }
 
-bool	Connection::isReqComplete() const
+bool	Connection::isReqChuncked() const
 {
-	return _req_complete;
+	return _req_chuncked;
 }
 
-void	Connection::setReqComplete()
+void	Connection::setReqChuncked()
 {
-	_req_complete = true;
+	_req_chuncked = true;
 }
 
 void	Connection::resetRequest()
@@ -107,7 +111,7 @@ void	Connection::resetRequest()
 	_request = "";
 	_req_body_len = 0;
 	_req_head_len = 0;
-	_req_complete = false;
+	_req_chuncked = false;
 	_next_req_chunk = 0;
 }
 
@@ -129,4 +133,9 @@ std::string	Connection::getResponse() const
 void	Connection::setResponse(const std::string & s)
 {
 	_response = s;
+}
+
+int		Connection::getReqHeadLen() const
+{
+	return _req_head_len;
 }

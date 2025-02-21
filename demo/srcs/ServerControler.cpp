@@ -465,23 +465,36 @@ void	ServerControler::handleInEvent(int fd)
 	std::string response;
 	char buf[BUFF_SIZE];
 	memset(buf, 0, sizeof(buf));
-	int res = recv(fd, buf, sizeof(buf) - 1, 0);
+	int res = recv(fd, buf, BUFF_SIZE - 1, 0);
 	if (res < 0)
 	{
 		std::cout << "Error: recv() failed" << std::endl;
 		removeConnection(fd);
 		return;
 	}
-	if (res > 0)
+	if (res > 0) // what if the last read res is exactly BUFF_SIZE - 1?
 	{
 		conn->appendRequest(buf);
+		conn->setStartTime();
 	}
 	else if (res == 0)
 	{
-		conn->checkRequest();
 		request = conn->getRequest();
-		if (conn->isReqComplete())
+		if (request.empty())
+		{
+			if (conn->isTimeout())
+				removeConnection(fd);
+			return;
+		}
+		if (conn->getReqHeadLen() == 0)
+			conn->checkRequest();
+		if (conn->isReqChuncked())
+			conn->unchunkRequest();
+		else
+		{
 			response = processRequest(request);
+			conn->resetRequest();
+		}
 	}
 }
 
@@ -498,7 +511,7 @@ void	ServerControler::handleOutEvent(int fd)
 		throw std::runtime_error("Error: send() failed");
 	std::cout <<"[LOG] : Transmitted Data Size "<< res <<" Bytes."  << std::endl;
 	std::cout <<"[LOG] : File Transfer Complete." << std::endl;
-	
+
 }
 
 void	ServerControler::sig_handler(int sig_num)
@@ -562,7 +575,7 @@ std::string	ServerControler::processRequest(std::string & data)
 	std::cout << request.getHeader("Host") << std::endl;
 	// ne prazuie // did'ko
 	ss << request.getHeader("Host") + " -- "
-	<< "[" << utils::getFormattedDateTime() << "]" 
+	<< "[" << utils::getFormattedDateTime() << "]"
 	<< "\"" << request.start_line << "\" "
 	<< response.getStatusCode() << " "
 	<< response.getHeader("Content-Length") << " "
