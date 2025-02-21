@@ -35,8 +35,8 @@ void		RequestHandler::processRequest()
 
 	_request.setFullPath(determineFilePath(_request.getHeader("Request-URI")));
 
-	std::cerr << YELLOW << "request:\n" << _request << RESET;
-	std::cout << YELLOW << "location: " << _location << RESET <<  std::endl;
+	// std::cerr << YELLOW << "request:\n" << _request << RESET;
+	// std::cout << YELLOW << "location: " << _location << RESET <<  std::endl;
 
 	if (!isImplementedMethod())
 	{
@@ -76,9 +76,6 @@ void	RequestHandler::setCustomErrorResponse(int status_code, const std::string& 
 	std::string location = std::string();
 	std::string date = utils::formatDate(utils::get_timestamp(""));
 
-	// std::cerr << RED << "custom_error_path " << custom_error_path 
-	// 			<< "\nstatus_code " << status_code << RESET<< std::endl;
-
 	if (custom_error_path.empty())
 	{
 		body = utils::generate_html_error_page(status_code);
@@ -113,11 +110,18 @@ void	RequestHandler::setCustomErrorResponse(int status_code, const std::string& 
 	_response.setStatusCode(status_code);
 	_response.setHeader("Date", date);
 	_response.setHeader("Server", _server.server_name);
-	_response.setHeader("Content-Type", utils::get_MIME_type(body));
-	if (!last_modified.empty()) _response.setHeader("Last-Modified", last_modified);
-	if (!body.empty()) _response.setHeader("Content-Length", utils::itos(body.length()));
-	if (!location.empty()) _response.setHeader("Location", location);
-	if (!body.empty()) _response.setBody(body);
+
+	if (!last_modified.empty())
+		_response.setHeader("Last-Modified", last_modified);
+	if (!body.empty())
+		_response.setHeader("Content-Length", utils::itos(body.length()));
+	if (!location.empty())
+		_response.setHeader("Location", location);
+	if (!body.empty())
+	{
+		_response.setBody(body);
+		_response.setHeader("Content-Type", utils::get_MIME_type(body));
+	}
 }
 
 /** Check for custom error pages if any, othewise generate default html error page */
@@ -135,10 +139,6 @@ std::string		RequestHandler::getCustomErrorPath(int status_code)
 	if (er_pages.size() > 0 && er_pages.find(status_code) != er_pages.end())
 	{
 		path = er_pages[status_code];
-		// if (findRequestedLocation(er_pages[status_code]))
-		// {
-		// 	path = determineFilePath(er_pages[status_code]);
-		// }
 	}
 	return path;
 }
@@ -189,13 +189,11 @@ bool		RequestHandler::isRedirection( void ) const
 
 void	RequestHandler::setRedirectResponse( void )
 {
-	std::map<int, std::string>::const_iterator reds = _location.getRedirect().begin();
 	std::string error_path;
 	std::string body;
+	std::map<int, std::string>::const_iterator reds = _location.getRedirect().begin();
 	int st_code = reds->first;
 
-	// std::cerr << "REDIR logs: 1: " << utils::to_string(reds->first) << " 2: " << reds->second << std::endl; // TOFIX: parsing config
-	
 	_response.setStatusCode(st_code);
 	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
 	if (st_code == MOVED_PERMANENTLY || st_code == MOVED_TEMPORARY)
@@ -234,7 +232,6 @@ void		RequestHandler::handleStaticRequest( void )
 		}
 		else
 		{
-			std::cout << "Method: " << _request.getHeader("Request-Method") << std::endl;
 			setCustomErrorResponse(NOT_FOUND, getCustomErrorPath(NOT_FOUND));
 		}
 	}
@@ -297,9 +294,6 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	oss << iss.rdbuf();
 	body = oss.str();
 
-	// std::cerr << "headers[\"Content-Type\"] " << utils::get_value("Content-Type", headers) << std::endl;
-	// std::cerr << "headers[\"Set-Cookie\"] " << utils::get_value("Set-Cookie", headers) << std::endl;
-
 	if (utils::get_value("Content-Type", headers).empty())
 	{
 		setCustomErrorResponse(INTERNAL_SERVER_ERROR, getCustomErrorPath(INTERNAL_SERVER_ERROR));
@@ -314,7 +308,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 
 	if (!utils::get_value("Status", headers).empty())
 	{
-		int st = utils::strToUlong(utils::get_value("Status", headers));
+		int st = utils::stod(utils::get_value("Status", headers));
 		_response.setStatusCode(st);
 	}
 	else
@@ -353,11 +347,10 @@ void	RequestHandler::handleGetDirectoryResponse( void )
 	{
 		setCustomErrorResponse(MOVED_PERMANENTLY, "");
 		_response.setHeader("Location", _request.getHeader("Request-URI") + "/");
+		return;
 	}
 
 	new_path = appendIndexFile(_request.getFullPath());
-
-	// std::cerr << "DIR RESP new_path " << new_path << std::endl;
 
 	if (new_path.compare(_request.getFullPath().c_str()) != 0)
 	{
@@ -377,11 +370,6 @@ void	RequestHandler::setDirectoryListingResponse(int status_code)
 {
 	std::string	body = utils::generate_html_directory_listing(_request.getFullPath());
 	unsigned long long con_len = body.length();
-
-/* 	if (con_len <= 0)
-	{
-		status_code = NO_CONTENT;
-	} */
 
 	_response.setStatusCode(status_code);
 	_response.setBody(body);
@@ -433,7 +421,6 @@ std::string generateRawDataFilename()
     return "raw_data_" + std::string(buf);
 }
 
-/**  TODO: if content_length more than max_body-size */
 void		RequestHandler::handlePOST( void )
 {
 	std::string uploadDir = searchingUploadPath();
@@ -441,14 +428,17 @@ void		RequestHandler::handlePOST( void )
 	{
 		uploadDir = uploadDir + "/";
 	}
-	// std::cerr << "upload path: " << uploadDir << std::endl;
 	std::string filename = generateRawDataFilename();
 	std::string body = _request.getBody();
-
-	// std::cerr << "filename: " << filename << std::endl;
-
+	// std::cerr << RED << "loc " << _location.getClientMaxBody() << "\n"
+	//  << "serv "<< _server.getClientMaxBody() << RESET << std::endl;
+	// if (body.size() > _location.getClientMaxBody() && body.size() > _server.getClientMaxBody())
+	// {
+	//		setCustomErrorResponse(REQUEST_ENTITY_TOO_LARGE, getCustomErrorPath(REQUEST_ENTITY_TOO_LARGE));
+	//		return;
+	// }
 	std::string filepath = uploadDir + filename;
-	// std::cerr << "filepath: " << filepath << std::endl;
+
 	std::ofstream outfile(filepath.c_str(), std::ios::binary);
 	if (!outfile.is_open())
 	{

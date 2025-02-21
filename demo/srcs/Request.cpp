@@ -31,6 +31,7 @@ bool	Request::parse(const std::string& data)
 
 	if (std::getline(iss, line))
 	{
+		std::cerr << "parseStartLine" << std::endl;
 		parseStartLine(line);
 	}
 	else
@@ -66,12 +67,18 @@ void	Request::parseStartLine(const std::string& str)
 	std::string	method, reqURI, protocol, query;
 
 	iss >> method >> reqURI >> protocol;
+	if (method.empty() || reqURI.empty() || protocol.empty())
+	{
+		_is_valid = false;
+		return;
+	}
 	reqURI = RequestHandler::canonicalizePath(reqURI);
 	utils::parse_query(reqURI, reqURI, query);
 	setHeader("Request-Method", method);
 	setHeader("Request-URI", reqURI);
 	setHeader("Server-Protocol", protocol);
 	setHeader("Query-String", query);
+	_is_valid = true;
 }
 
 void	Request::parseHeader(const std::string& header_lines)
@@ -172,7 +179,7 @@ std::ostream &			operator<<( std::ostream & o, Request const & i )
 		<< "protocol = " << i.getHeader("Server-Protocol") << std::endl
 		<< "query = " << i.getHeader("Query-String") << std::endl
 		<< "upload path " << i._upload_path << std::endl
-		<< "body = " << i.getBody();
-
+		;
+		/*<< "body = " << i.getBody()*/
 	return o;
 }

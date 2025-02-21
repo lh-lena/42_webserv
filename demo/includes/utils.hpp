@@ -25,7 +25,7 @@ namespace utils
 {
 	std::string					formatDate(time_t timestamp);
 	time_t						get_timestamp(std::string path);
-	long long					strToUlong(const std::string& s);
+	double						stod(const std::string& s);
 	bool						is_status_code(int code);
 	bool						is_redirection(size_t code);
 	bool						is_informational(size_t code);

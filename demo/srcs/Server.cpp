@@ -9,8 +9,8 @@
 Server::Server()
 	:
 		server_name("42_webserv/1.0"),
-		_location_nbr(0),
 		_client_max_body_size(1 * 1024 * 1024), //1M
+		_location_nbr(0),
 		_worker_connections(1024)
 {
 	setImplementedMethods("GET");
@@ -123,7 +123,7 @@ void Server::addLocationNbr(int value)
 	_location_nbr += value;
 }
 
-void	Server::setClientMaxBody(int value)
+void	Server::setClientMaxBody(unsigned long long value)
 {
 	_client_max_body_size = value;
 }
@@ -189,7 +189,7 @@ int Server::getLocationNbr( void ) const
 	return (_location_nbr);
 }
 
-int	Server::getClientMaxBody( void ) const
+unsigned long long	Server::getClientMaxBody( void ) const
 {
 	return (_client_max_body_size);
 }

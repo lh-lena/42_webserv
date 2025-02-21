@@ -559,7 +559,7 @@ std::string	ServerControler::processRequest(std::string & data)
 	Request		request;
 	Response	response;
 	Server		serv;
-
+	// std::cerr <<RED<< data << std::endl;
 	if (!request.parse(data))
 	{
 		response.setErrorResponse(BAD_REQUEST, std::string());
@@ -570,6 +570,8 @@ std::string	ServerControler::processRequest(std::string & data)
 	RequestHandler reqHandler(serv, request, response);
 
 	reqHandler.processRequest();
+
+	// std::cerr << GREEN << response.getResponse() << RESET << std::endl;
 
 	std::ostringstream ss;
 	std::cout << request.getHeader("Host") << std::endl;

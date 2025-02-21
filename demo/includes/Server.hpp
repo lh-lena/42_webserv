@@ -23,7 +23,7 @@ class Server
 
 		void								defaultServer( void );
 		void								addLocationNbr(int value);
-		void								setClientMaxBody(int value);
+		void								setClientMaxBody(unsigned long long value);
 		void								setWorkCont(int connections);
 		void								setHost(const std::string &arg);
 		void								setPort( int val );
@@ -36,7 +36,7 @@ class Server
 		void								setImplementedMethods(const std::string& str);
 		void								setUploadDir(const std::string &str);
 		int									getLocationNbr( void ) const;
-		int									getClientMaxBody( void ) const;
+		unsigned long long					getClientMaxBody( void ) const;
 		int									getWorkCont( void ) const;
 		int									getPort( void ) const;
 		const std::string&					getHost( void ) const;
@@ -52,8 +52,8 @@ class Server
 		std::string							server_name;
 
 	private:
+		unsigned long long					_client_max_body_size;
 		int									_location_nbr;
-		int									_client_max_body_size;
 		int									_worker_connections;
 		int									_port;
 		std::string							_host;

@@ -19,7 +19,7 @@ public:
 	Location &		operator=( Location const & rhs );
 
 	void										setAutoindex(bool arg);
-	void										setClientMaxBody(int value);
+	void										setClientMaxBody(unsigned long long value);
 	void										setPath(const std::string &arg);
 	void										setRoot(const std::string &arg);
 	void										setAlias(const std::string &arg);
@@ -30,7 +30,7 @@ public:
 	void										addErrorPage(int key, const std::string &val);
 	void										setRedirect( int key, const std::string &val );
 	bool										getAutoindex( void ) const;
-	int											getClientMaxBody( void ) const;
+	unsigned long long										getClientMaxBody( void ) const;
 	const std::string&							getPath( void ) const;
 	const std::string&							getRoot( void ) const;
 	const std::string&							getAlias( void ) const;
@@ -44,7 +44,7 @@ public:
 private:
 
 	bool										_autoindex;
-	int											_client_max_body_size;
+	unsigned long long							_client_max_body_size;
 	std::string									_path;
 	std::string									_root;
 	std::string									_alias;

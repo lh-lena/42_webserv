@@ -93,9 +93,9 @@ std::vector<std::string>	utils::ft_split(std::string& s, std::string delimeter)
 	return parts;
 }
 
-long long		utils::strToUlong(const std::string& s)
+double		utils::stod(const std::string& s)
 {
-	long long	val;
+	double	val;
 	std::stringstream ss(s);
 	ss >> val;
 
@@ -640,6 +640,11 @@ bool	utils::is_html_genereted_page(const std::string& path)
 
 std::string		utils::get_MIME_type(std::string path)
 {
+	if (path.empty())
+	{
+		return std::string();
+	}
+
 	size_t pos = path.rfind(".");
 
 	if (is_html_genereted_page(path))
@@ -734,7 +739,7 @@ std::string		utils::generate_html_directory_listing(const std::string& dir_path)
 
 	html << "    </ul>\n"
 			"</body\n>"
-			"</html>";
+			"</html>\n";
 
 	return html.str();
 }
@@ -788,7 +793,7 @@ std::string		utils::generate_html_error_page(int status_code)
 			<< utils::get_status_message(status_code)
 			<< "</p>\n"
 			"</body>\n"
-			"</html>";
+			"</html>\n";
 
 	return html.str();
 }
