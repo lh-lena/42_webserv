@@ -155,7 +155,7 @@ void 		ParseConfig::parseConfigContent( void )
 		el = getToken(&_conf_content);
 		directive = el.first;
 		if (_global_directives.find(directive) == _global_directives.end())
-			throw ParseException(utils::getFormattedDateTime() + " [ERROR] parseConfigContent Unknown directive: " + directive + " in " + _conf_file_path);
+			throw ParseException(utils::getFormattedDateTime() + " [emerg] parseConfigContent Unknown directive: " + directive + " in " + _conf_file_path);
 		exceptTocken(&_conf_content, el, 0);
 		el = getToken(&_conf_content);
 		value = el.first;
@@ -415,10 +415,8 @@ template<typename T> void	ParseConfig::handleClientBodySize(const std::pair<std:
 		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"client_max_body_size\" limited size up to 100 Megabytes in " + _conf_file_path + ":" + utils::itos(value.second));
 	if (unit != "M")
 		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"client_max_body_size\" required a number's unit in Megabytes in " + _conf_file_path + ":" + utils::itos(value.second));
-	std::cerr << "val " << val << std::endl;
+	
 	res = val * 1024 * 1024;
-	std::cerr << "val " << res << std::endl;
-
 	instance->setClientMaxBody(res);
 }
 
@@ -631,7 +629,7 @@ std::string ParseConfig::processEnvVar(const std::string &input)
 std::pair<std::string, int> ParseConfig::getToken(std::list<std::pair<std::string, int> > *src)
 {
 	if (src->empty())
-		throw ParseConfig::ParseException(utils::getFormattedDateTime() + " [emerg] : Unexpected end of configuration content in " + _conf_file_path);
+		throw ParseConfig::ParseException(utils::getFormattedDateTime() + " [emerg] : unexpected end of configuration content in " + _conf_file_path);
 	std::pair<std::string, int> token = src->front();
 	return token;
 }

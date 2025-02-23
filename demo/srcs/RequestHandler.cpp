@@ -33,8 +33,6 @@ void		RequestHandler::processRequest()
 		return;
 	}
 
-	_request.setFullPath(determineFilePath(_request.getHeader("Request-URI")));
-
 	// std::cerr << YELLOW << "request:\n" << _request << RESET;
 	// std::cout << YELLOW << "location: " << _location << RESET <<  std::endl;
 
@@ -106,7 +104,6 @@ void	RequestHandler::setCustomErrorResponse(int status_code, const std::string& 
 		else if (_location.getAutoindex())
 		{
 			body = generateHtmlDirectoryListing(new_path);
-			// body = utils::generate_html_directory_listing(new_path);
 		}
 		else
 		{
@@ -227,6 +224,8 @@ void	RequestHandler::setRedirectResponse( void )
 
 void		RequestHandler::handleStaticRequest( void )
 {
+	_request.setFullPath(determineFilePath(_request.getHeader("Request-URI")));
+
 	if (std::strcmp(_request.getHeader("Request-Method").c_str(), "GET") == 0 || \
 	std::strcmp(_request.getHeader("Request-Method").c_str(), "HEAD") == 0)
 	{
@@ -272,16 +271,19 @@ void	RequestHandler::handleCgiRequest( void )
 {
 	CGI cgi;
 
+	_request.setFullPath(determineFilePath(_request.getHeader("Request-URI")));
+
 	if (!utils::has_executable_permissions(_request.getFullPath()))
 	{
 		setCustomErrorResponse(FORBIDDEN, getCustomErrorPath(FORBIDDEN));
 		return;
 	}
+
 	cgi.setExecutable(_request.getFullPath());
 	cgi.setUploadDir(searchingUploadPath());
 	cgi.setEnvironment(_request);
 	std::string data = cgi.executeCGI(_request);
-
+	std::cerr << GREEN << data << RESET << std::endl;
 	handleCgiResponse(data);
 }
 
@@ -329,7 +331,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	_response.setHeader("Content-Length", con_len);
 	if (!utils::get_value("Location", headers).empty())
 	{
-		// _response.setStatusCode(302); //?
+		_response.setStatusCode(302);
 		_response.setHeader("Location", utils::get_value("Location", headers));
 	}
 
@@ -429,7 +431,6 @@ std::string generateRawDataFilename()
     return "raw_data_" + std::string(buf);
 }
 
-/** TODO:  */
 void		RequestHandler::handlePOST( void )
 {
 	std::string uploadDir = searchingUploadPath();
@@ -647,7 +648,6 @@ bool		RequestHandler::searchingExtensionMatchLocation(const std::string& request
 	return false;
 }
 
-
 /**
  * Normalize a URI by resolving its root and determining the longest prefix-based match from location blocks.
  *
@@ -735,6 +735,15 @@ std::string	RequestHandler::generateHtmlDirectoryListing( const std::string& pat
 			"    <meta charset=\"UTF-8\">\n"
 			"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
 			"    <title>Directory Listing</title>\n"
+			"    <style>\n"
+			"        body {\n"
+			"            font-size: 20px;\n"
+			"            font-family: Arial, sans-serif;\n"
+			"        }\n"
+			"        ul {\n"
+			"            list-style-type: square;\n"
+			"        }\n"
+			"    </style>"
 			"</head>\n"
 			"<body>\n"
 			"<h1>Index of "

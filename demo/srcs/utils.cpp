@@ -18,9 +18,9 @@ std::string		utils::getFormattedDateTime( void )
 	std::time_t now = std::time(NULL);
 	std::tm *localTime = std::localtime(&now);
 
-	char buf[20];
+	char buf[30];
 
-	std::strftime(buf, sizeof(buf), "%Y/%m/%d %H:%M:%S", localTime);
+	std::strftime(buf, sizeof(buf), "[%Y/%m/%d %H:%M:%S]", localTime);
 
 	return std::string(buf);
 }

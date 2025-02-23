@@ -16,6 +16,11 @@
 # include <sys/stat.h>
 # include <sys/types.h>
 
+# define GRAY  "\033[90m"
+# define BLUE   "\033[94m"
+# define MAGENTA "\033[95m"
+# define CYAN   "\033[96m"
+# define WHITE  "\033[97m"
 # define RED "\033[31m"
 # define GREEN "\033[32m"
 # define YELLOW "\033[33m"

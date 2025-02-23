@@ -31,7 +31,6 @@ bool	Request::parse(const std::string& data)
 
 	if (std::getline(iss, line))
 	{
-		std::cerr << "parseStartLine" << std::endl;
 		parseStartLine(line);
 	}
 	else

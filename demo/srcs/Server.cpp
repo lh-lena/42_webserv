@@ -63,8 +63,8 @@ Server &				Server::operator=( Server const & rhs )
 std::ostream&			operator<<( std::ostream & o, Server const& i )
 {
 	o	<< "\n\t** Server **" << std::endl
-		<<  "worker_connection: " << i.getWorkCont() << std::endl
-		<<  "client_max_body_size: " << i.getClientMaxBody() << std::endl
+		<<  "worker connection: " << i.getWorkCont() << std::endl
+		<<  "client max body size: " << i.getClientMaxBody() << std::endl
 		<< "host: " << i.getHost() << std::endl
 		<< "port: " << i.getPort() << std::endl
 		<< "root: " << i.getRoot() << std::endl;
@@ -103,8 +103,8 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 
 void		Server::defaultServer( void )
 {
-	setHost("localhost");
-	setPort(4243); // ?
+	setHost("0.0.0.0");
+	setPort(8080); // ?
 	setRoot("var/www/html");
 	setIndex("index.42webserver.html");
 }

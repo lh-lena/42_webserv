@@ -417,8 +417,8 @@ void	ServerControler::startServing()
 							res = send(pfds[i].fd, str.c_str(), str.size(), 0);
 							if (res < 0)
 								throw std::runtime_error("Error: send() failed");
-							std::cout <<"[LOG] : Transmitted Data Size "<< res <<" Bytes."  << std::endl;
-							std::cout <<"[LOG] : File Transfer Complete." << std::endl;
+							std::cout << "[INFO] : "  << utils::getFormattedDateTime() << " Transmitted Data Size "<< res <<" Bytes."  << std::endl;
+							std::cout << "[INFO] : "  << utils::getFormattedDateTime() << "  File Transfer Complete." << std::endl;
 						}
 					}
 					//conn_active = false;
@@ -468,7 +468,7 @@ void	ServerControler::handleInEvent(int fd)
 	int res = recv(fd, buf, BUFF_SIZE - 1, 0);
 	if (res < 0)
 	{
-		std::cout << "Error: recv() failed" << std::endl;
+		std::cout << RED << "[ERROR] : "  << utils::getFormattedDateTime() << " recv() failed" << RESET << std::endl;
 		removeConnection(fd);
 		return;
 	}
@@ -509,8 +509,8 @@ void	ServerControler::handleOutEvent(int fd)
 	int res = send(fd, str.c_str(), str.size(), 0);
 	if (res < 0)
 		throw std::runtime_error("Error: send() failed");
-	std::cout <<"[LOG] : Transmitted Data Size "<< res <<" Bytes."  << std::endl;
-	std::cout <<"[LOG] : File Transfer Complete." << std::endl;
+	std::cout <<"[INFO] : "  << utils::getFormattedDateTime() <<  " Transmitted Data Size "<< res <<" Bytes."  << std::endl;
+	std::cout <<"[INFO] : "  << utils::getFormattedDateTime() <<  " File Transfer Complete." << std::endl;
 
 }
 
@@ -537,11 +537,10 @@ void	ServerControler::createListeningSockets()
 			server_fd = create_tcp_server_socket(port);
 			//std::cout << "Port " << i << " :" << ports[i] << std::endl;
 			_socketFds.push_back(server_fd);
-			std::cout << "Server " << i << " listening on port: " << port << std::endl;
+			std::cout << "[INFO] : " << utils::getFormattedDateTime() << " Server " << i << " listening on port: " << port << std::endl;
 			temp = port;
 		}
 	}
-
 }
 
 Server & ServerControler::chooseServBlock(const std::string & host)
@@ -559,7 +558,7 @@ std::string	ServerControler::processRequest(std::string & data)
 	Request		request;
 	Response	response;
 	Server		serv;
-	// std::cerr <<RED<< data << std::endl;
+
 	if (!request.parse(data))
 	{
 		response.setErrorResponse(BAD_REQUEST, std::string());
@@ -573,19 +572,15 @@ std::string	ServerControler::processRequest(std::string & data)
 
 	// std::cerr << GREEN << response.getResponse() << RESET << std::endl;
 
-	std::ostringstream ss;
-	std::cout << request.getHeader("Host") << std::endl;
+	// std::ostringstream ss;
 	// ne prazuie // did'ko
-	std::string referer = (!request.getHeader("Referer").empty()) ? request.getHeader("Referer") : "-";
-	ss << " - - "
-	<< "[" << utils::getFormattedDateTime() << "]"
+	std::cout << MAGENTA << "[TRACE] "
+	<< utils::getFormattedDateTime()
 	<< "\"" << request.start_line << "\" "
 	<< response.getStatusCode() << " "
-	<< response.getHeader("Content-Length") << " "
-	<< "\"" << referer << "\"" << " "
-	<< request.getHeader("User-Agent") + " ";
+	<< response.getHeader("Content-Length")  << RESET << std::endl;
 
-	std::cout << ss.str() << std::endl;
+	// std::cout << MAGENTA << ss.str() << RESET << std::endl;
 
 	return response.getResponse();
 }
