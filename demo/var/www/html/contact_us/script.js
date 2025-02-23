@@ -45,9 +45,9 @@ form.addEventListener('submit', async (e) => {
     try {
         const response = await fetch(req_url, {
             method: 'POST',
-            body: formData,
-            // headers: { 'Content-Type': 'application/json' },
-            // body: JSON.stringify({ name, email, message }),
+            // body: formData,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, message }),
         });
         if (!response.ok) {
             throw new Error(`Response status: ${response.status}`);

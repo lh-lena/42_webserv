@@ -26,6 +26,10 @@ def val(_string):
   except:
     return 0
 
+# cookies are deleted after the date specified in the Expires or after the period specified in the Max-Age attribute:
+# Expires=Thu, 31 Oct 2021 07:28:00 GMT;
+# Max-Age=2592000
+
 print ('Content-Type: text/html;charset=utf-8')
 if not get_cookie('first'): # Don't redefine value if aleady defined.
   print ('Set-Cookie: First=' + time.asctime(time.localtime()))

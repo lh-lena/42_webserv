@@ -42,8 +42,7 @@ else if ($request_method === 'POST') {
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
     if ($data === null) {
-        header('HTTP/1.1 400 Bad Request');
-        http_response_code(400);
+        echo ('Status: 400 Bad Request');
         echo json_encode(['success' => false, 'error' => 'Invalid JSON input.']);
         exit;
     }

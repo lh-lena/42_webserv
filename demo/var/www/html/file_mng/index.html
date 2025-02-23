@@ -12,15 +12,16 @@
         <div class="subtitle">
             <h1>File uploading</h1>
         </div>
-        <div class="contact_form_wrapper">
-            <form id="contact-form" method="post" enctype="multipart/form-data">
-                <input placeholder="File" type="file" id="file" name="file" required>
-                <div class="message"></div>
-                <button type="submit">Send</button>
-            </form>
+        <div class="file_upload_wrapper">
+            <!-- hidden file input -->
+            <input placeholder="File" type="file" id="file" name="file" required>
+            <!-- custom button -->
+            <img src="upload_icon.png" id="uploadBtm" alt="Upload Icon">
+            <span id="fileName">No File Selected</span>
         </div>
     </div>
 
-    <!-- <script src="script.js"></script> -->
+    <script src="script.js"></script>
+    <!-- https://www.youtube.com/watch?v=tFaIFb3CI6U -->
 </body>
 </html>
