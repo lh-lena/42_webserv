@@ -66,7 +66,5 @@ namespace utils
 	std::vector<std::string>	ft_split(std::string& s, std::string delimeter);
 	int							get_dir_entries(const std::string& dirp, std::vector<std::string>& content);
 	bool						is_matching_ext(const std::string& s, const std::vector<std::string>& exts);
-	std::string					generate_html_error_page(int status_code);
-	std::string					generate_html_directory_listing(const std::string& dir_path);
 }
 #endif /** UTILS_HPP */

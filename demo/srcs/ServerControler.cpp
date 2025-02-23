@@ -576,11 +576,13 @@ std::string	ServerControler::processRequest(std::string & data)
 	std::ostringstream ss;
 	std::cout << request.getHeader("Host") << std::endl;
 	// ne prazuie // did'ko
-	ss << request.getHeader("Host") + " -- "
+	std::string referer = (!request.getHeader("Referer").empty()) ? request.getHeader("Referer") : "-";
+	ss << " - - "
 	<< "[" << utils::getFormattedDateTime() << "]"
 	<< "\"" << request.start_line << "\" "
 	<< response.getStatusCode() << " "
 	<< response.getHeader("Content-Length") << " "
+	<< "\"" << referer << "\"" << " "
 	<< request.getHeader("User-Agent") + " ";
 
 	std::cout << ss.str() << std::endl;

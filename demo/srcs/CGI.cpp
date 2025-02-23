@@ -80,8 +80,6 @@ void CGI::setEnvironment(const Request& request)
 		envp.push_back(cStr);
 	}
 	envp.push_back(NULL);
-	request.printHeaders();
-	std::cout << request.getHeader("Host") << std::endl;
 }
 
 void	CGI::cleanEnvironment()

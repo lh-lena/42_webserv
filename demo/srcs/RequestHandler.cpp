@@ -78,15 +78,22 @@ void	RequestHandler::setCustomErrorResponse(int status_code, const std::string& 
 
 	if (custom_error_path.empty())
 	{
-		body = utils::generate_html_error_page(status_code);
+		body = generateHtmlErrorPage(status_code);
 	}
-	else if (isExternalRedirect(custom_error_path) || status_code == MOVED_PERMANENTLY || status_code == MOVED_TEMPORARY)
+	else if (isExternalRedirect(custom_error_path) 
+		|| status_code == MOVED_PERMANENTLY 
+		|| status_code == MOVED_TEMPORARY)
 	{
-		status_code = MOVED_TEMPORARY;
+		status_code = (status_code == MOVED_TEMPORARY || status_code == MOVED_PERMANENTLY) ? status_code : MOVED_TEMPORARY;
 		location = custom_error_path;
 	}
 	else
 	{
+		if (!findRequestedLocation(custom_error_path))
+		{
+			setCustomErrorResponse(NOT_FOUND, "");
+			return;
+		}
 		new_path = determineFilePath(custom_error_path);
 		if (utils::is_directory(new_path))
 		{
@@ -98,11 +105,12 @@ void	RequestHandler::setCustomErrorResponse(int status_code, const std::string& 
 		}
 		else if (_location.getAutoindex())
 		{
-			body = utils::generate_html_directory_listing(new_path);
+			body = generateHtmlDirectoryListing(new_path);
+			// body = utils::generate_html_directory_listing(new_path);
 		}
 		else
 		{
-			body = utils::generate_html_error_page(status_code);
+			body = generateHtmlErrorPage(status_code);
 		}
 		last_modified = utils::formatDate(utils::get_timestamp(new_path));
 	}
@@ -368,7 +376,7 @@ void	RequestHandler::handleGetDirectoryResponse( void )
 
 void	RequestHandler::setDirectoryListingResponse(int status_code)
 {
-	std::string	body = utils::generate_html_directory_listing(_request.getFullPath());
+	std::string	body = generateHtmlDirectoryListing(_request.getFullPath());
 	unsigned long long con_len = body.length();
 
 	_response.setStatusCode(status_code);
@@ -697,6 +705,12 @@ std::string			RequestHandler::decodeURI(const std::string& path)
 	return decoded.str();
 }
 
+/** TODO: */
+/** http://localhost:8080//////test/  */
+std::string			RequestHandler::normalizePath(const std::string& path)
+{
+	return path;
+}
 
 std::string			RequestHandler::canonicalizePath(const std::string& path)
 {
@@ -706,5 +720,102 @@ std::string			RequestHandler::canonicalizePath(const std::string& path)
 	std::string new_path = path;
 
 	new_path = decodeURI(new_path);
+	new_path = normalizePath(new_path);
 	return new_path;
+}
+
+std::string	RequestHandler::generateHtmlDirectoryListing( const std::string& path)
+{
+	std::stringstream html;
+
+	html << "<!DOCTYPE html>\n"
+			"<html lang=\"en\">\n"
+			"<head>\n"
+			"    <meta charset=\"UTF-8\">\n"
+			"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+			"    <title>Directory Listing</title>\n"
+			"</head>\n"
+			"<body>\n"
+			"<h1>Index of "
+			<< _location.getPath()
+			<< "</h1>"
+			"    <ul>\n";
+
+	std::vector<std::string> dir_content;
+
+	if (utils::get_dir_entries(path, dir_content) == 0)
+	{
+		for (size_t i = 0; i < dir_content.size(); i++)
+		{
+			std::string	d_name = dir_content[i];
+			if (d_name != ".")
+			{
+				html << "        <li><a href=\"" << d_name << "\">" << d_name << "</a></li>\n";
+			}
+		}
+	}
+	else
+	{
+		html << "       <p>Error: Could not open directory.</p>\n";
+	}
+
+	html << "    </ul>\n"
+			"</body\n>"
+			"</html>\n";
+
+	return html.str();
+}
+
+std::string	RequestHandler::generateHtmlErrorPage( int status_code )
+{
+	std::stringstream	html;
+
+	html << "<!DOCTYPE html>\n"
+			"<html lang=\"en\">\n"
+			"<head>\n"
+			"    <meta charset=\"UTF-8\">\n"
+			"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+			"    <title>"
+			<< status_code
+			<< " "
+			<< utils::get_reason_phrase(status_code)
+			<< "</title>\n"
+			"    <style>\n"
+			"        body {\n"
+			"            display: flex;\n"
+			"            justify-content: center;\n"
+			"            align-items: center;\n"
+			"            height: 100vh;\n"
+			"            margin: 0;\n"
+			"            font-family: Arial, sans-serif;\n"
+			"        }\n"
+			"        .error-container {\n"
+			"            text-align: center;\n"
+			"            background: #fff;\n"
+			"            padding: 20px;\n"
+			"        }\n"
+			"        .error-container h1 {\n"
+			"            font-size: 3em;\n"
+			"            margin: 0 0 10px;\n"
+			"        }\n"
+			"        .error-container p {\n"
+			"            font-size: 1.2em;\n"
+			"            margin: 0 0 15px;\n"
+			"        }\n"
+			"    </style>"
+			"</head>\n"
+			"<body>\n"
+			"    <div class=\"error-container\">"
+			"        <h1>"
+			<< status_code
+			<< " "
+			<< utils::get_reason_phrase(status_code)
+			<<"</h1>\n"
+			"        <p>"
+			<< utils::get_status_message(status_code)
+			<< "</p>\n"
+			"</body>\n"
+			"</html>\n";
+
+	return html.str();
 }

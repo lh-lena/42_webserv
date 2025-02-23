@@ -30,10 +30,11 @@ public:
 	void processRequest();
 
 	static std::string		canonicalizePath(const std::string& path);
+	static std::string		normalizePath(const std::string& path);
 	static std::string		decodeURI(const std::string& path);
+	static std::string		generateHtmlErrorPage( int status_code);
 
-	// std::string				_path;
-
+private:
 	const Server&			_server;
 	Request&				_request;
 	Response&				_response;
@@ -54,7 +55,6 @@ public:
 	std::string				getCustomErrorPath(int status_code);
 	std::string				determineFilePath(const std::string& requested_path);
 	void					handleStaticRequest( void );
-	void					handleGET( void );
 	void					setDirectoryListingResponse(int status_code);
 	void					handleGetDirectoryResponse( void );
 	std::string				appendIndexFile( const std::string& path );
@@ -64,7 +64,7 @@ public:
 	int						remove_file(const std::string& path);
 	int						remove_directory_recursively(const std::string& path);
 	int						handleDeleteDirectoryResponse( void );
-private:
+	std::string				generateHtmlDirectoryListing(const std::string& path);
 };
 
 #endif /** REQUESTHANDLER_HPP */

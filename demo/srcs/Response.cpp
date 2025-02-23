@@ -1,4 +1,5 @@
 # include "../includes/Response.hpp"
+# include "../includes/RequestHandler.hpp"
 # include "../includes/utils.hpp"
 
 Response::Response() :_server_name("42_webserv/1.0") {}
@@ -66,7 +67,7 @@ void	Response::setErrorResponse(int code, std::string path)
 
 	if (path.empty())
 	{
-		body = utils::generate_html_error_page(code);
+		body = RequestHandler::generateHtmlErrorPage(code);
 		last_modified = utils::formatDate(utils::get_timestamp(path));
 		setHeader("Content-Type", utils::get_MIME_type(body));
 	}
