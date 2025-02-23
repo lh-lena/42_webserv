@@ -124,6 +124,33 @@ double		utils::stod(const std::string& s)
 	return val;
 }
 
+int		utils::stoi(const std::string& s)
+{
+	int	val;
+	std::stringstream ss(s);
+	ss >> val;
+
+	if(ss.fail())
+	{
+		return -1;
+	}
+	return val;
+}
+
+unsigned long long			utils::stoull(const std::string& s)
+{
+	unsigned long long val;
+
+	std::stringstream ss(s);
+	ss >> val;
+
+	if(ss.fail())
+	{
+		return 0;
+	}
+	return val;
+}
+
 std::string		utils::itos(int i)
 {
 	std::stringstream ss;

@@ -123,7 +123,7 @@ void Server::addLocationNbr(int value)
 	_location_nbr += value;
 }
 
-void	Server::setClientMaxBody(unsigned long long value)
+void	Server::setClientMaxBody(size_t value)
 {
 	_client_max_body_size = value;
 }
@@ -189,7 +189,7 @@ int Server::getLocationNbr( void ) const
 	return (_location_nbr);
 }
 
-unsigned long long	Server::getClientMaxBody( void ) const
+size_t	Server::getClientMaxBody( void ) const
 {
 	return (_client_max_body_size);
 }

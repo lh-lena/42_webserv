@@ -316,7 +316,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 
 	if (!utils::get_value("Status", headers).empty())
 	{
-		int st = utils::stod(utils::get_value("Status", headers));
+		int st = utils::stoi(utils::get_value("Status", headers));
 		_response.setStatusCode(st);
 	}
 	else
@@ -424,11 +424,12 @@ std::string generateRawDataFilename()
 
 	char buf[20];
 
-	std::strftime(buf, sizeof(buf), "%Y/%m/%d_%H%M%S", localTime);
+	std::strftime(buf, sizeof(buf), "%Y%m%d_%H%M%S", localTime);
 
     return "raw_data_" + std::string(buf);
 }
 
+/** TODO:  */
 void		RequestHandler::handlePOST( void )
 {
 	std::string uploadDir = searchingUploadPath();
@@ -436,15 +437,15 @@ void		RequestHandler::handlePOST( void )
 	{
 		uploadDir = uploadDir + "/";
 	}
+
 	std::string filename = generateRawDataFilename();
 	std::string body = _request.getBody();
-	// std::cerr << RED << "loc " << _location.getClientMaxBody() << "\n"
-	//  << "serv "<< _server.getClientMaxBody() << RESET << std::endl;
-	// if (body.size() > _location.getClientMaxBody() && body.size() > _server.getClientMaxBody())
-	// {
-	//		setCustomErrorResponse(REQUEST_ENTITY_TOO_LARGE, getCustomErrorPath(REQUEST_ENTITY_TOO_LARGE));
-	//		return;
-	// }
+	size_t max_size = (_location.getClientMaxBody() != 0) ? _location.getClientMaxBody() : _server.getClientMaxBody();
+	if (body.size() > max_size)
+	{
+		setCustomErrorResponse(REQUEST_ENTITY_TOO_LARGE, getCustomErrorPath(REQUEST_ENTITY_TOO_LARGE));
+		return;
+	}
 	std::string filepath = uploadDir + filename;
 
 	std::ofstream outfile(filepath.c_str(), std::ios::binary);
@@ -463,7 +464,7 @@ void		RequestHandler::handlePOST( void )
 		}
 		return;
 	}
-	// std::copy(body.begin(), body.end(), std::ostream_iterator<char>(outfile));
+
 	outfile.write(body.c_str(), body.length());
 	if (outfile.fail())
 	{

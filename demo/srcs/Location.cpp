@@ -5,7 +5,8 @@
 */
 
 Location::Location()
-	:	_autoindex(false)
+	:	_autoindex(false),
+		_client_max_body_size(0)
 {
 }
 
@@ -153,12 +154,12 @@ void	Location::setCGIExtension( const std::string &arg )
 	_cgi_extension.push_back(arg);
 }
 
-void		Location::setClientMaxBody(unsigned long long value)
+void		Location::setClientMaxBody(size_t value)
 {
 	_client_max_body_size = value;
 }
 
-unsigned long long			Location::getClientMaxBody( void ) const
+size_t			Location::getClientMaxBody( void ) const
 {
 	return(_client_max_body_size);
 }

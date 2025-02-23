@@ -366,7 +366,7 @@ void		ParseConfig::handleWorkCont(const std::pair<std::string, int>& value, Serv
 
 	if (!utils::is_digits(s))
 		throw ParseConfig::ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"worker_connections\" required only digits in " + _conf_file_path + ":" + utils::itos(value.second));
-	val = utils::stod(s);
+	val = utils::stoi(s);
 	if (val <= 0)
 		throw ParseConfig::ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"worker_connections\" required a positive number in " + _conf_file_path + ":" + utils::itos(value.second));
 
@@ -400,25 +400,26 @@ void		ParseConfig::handleAlias(const std::pair<std::string, int>& value, Locatio
 
 template<typename T> void	ParseConfig::handleClientBodySize(const std::pair<std::string, int>& value, T* instance)
 {
-	double val = 0;
+	int val = 0;
+	size_t res;
 	std::string s = value.first;
 
 	std::string unit = s.substr(s.length() - 1);
 	std::string nbr = s.substr(0, s.length() - 1);
 	if (!utils::is_digits(nbr))
 		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"client_max_body_size\" required only digits in " + _conf_file_path + ":" + utils::itos(value.second));
-	val = utils::stod(nbr);
-	if (val <= 0)
+	val = utils::stoi(nbr);
+	if (val < 0)
 		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"client_max_body_size\" required a positive number in " + _conf_file_path + ":" + utils::itos(value.second));
 	if (val > 100)
 		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"client_max_body_size\" limited size up to 100 Megabytes in " + _conf_file_path + ":" + utils::itos(value.second));
 	if (unit != "M")
 		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"client_max_body_size\" required a number's unit in Megabytes in " + _conf_file_path + ":" + utils::itos(value.second));
 	std::cerr << "val " << val << std::endl;
-	val = val * 1024 * 1024;
-	std::cerr << "val " << val << std::endl;
+	res = val * 1024 * 1024;
+	std::cerr << "val " << res << std::endl;
 
-	instance->setClientMaxBody(val);
+	instance->setClientMaxBody(res);
 }
 
 template<typename T> void	ParseConfig::handleIndex(const std::pair<std::string, int>& value, T* instance)
@@ -434,7 +435,7 @@ void		ParseConfig::handleListen(const std::pair<std::string, int>& value, Server
 
 	if (pos == std::string::npos)
 	{
-		port_val = utils::stod(s);
+		port_val = utils::stoi(s);
 		if(port_val <= 0)
 		{
 			throw  ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + utils::itos(value.second));
@@ -451,7 +452,7 @@ void		ParseConfig::handleListen(const std::pair<std::string, int>& value, Server
 		port = processEnvVar(port);
 	if (host.empty() || port.empty())
 		throw ParseException(utils::getFormattedDateTime() + " [emerg] \"" + value.first + "\" invalid input in " + _conf_file_path + ":" + utils::itos(value.second));
-	port_val = utils::stod(port);
+	port_val = utils::stoi(port);
 	if(port_val <= 0)
 	{
 		throw  ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + utils::itos(value.second));
@@ -511,7 +512,7 @@ void	ParseConfig::handleRedirect(const std::pair<std::string, int>& value, Locat
 		return;
 	}
 
-	code = utils::stod(vals[0]);
+	code = utils::stoi(vals[0]);
 	if (code <= 0)
 	{
 		throw ParseException(utils::getFormattedDateTime() + " [emerg] : invalid return code \"" + vals[0] + "\" in " + _conf_file_path + ":" + utils::itos(value.second));
@@ -543,12 +544,12 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 
 	for (int i = 0; i < size; i++)
 	{
-		tmp = utils::stod(vals[size - 1]);
+		tmp = utils::stoi(vals[size - 1]);
 		if (!utils::is_digits(vals[size - 1]) || !utils::is_status_code(tmp))
 			path = vals[size - 1];
-		if (i == (size - 1) && utils::stod(vals[size - 1]) == -1)
+		if (i == (size - 1) && utils::stoi(vals[size - 1]) == -1)
 			break;
-		errorCode = utils::stod(vals[i]);
+		errorCode = utils::stoi(vals[i]);
 		if (errorCode <= 0 || !utils::is_status_code(errorCode))
 		{
 			throw ParseException(utils::getFormattedDateTime() + " [emerg] : invalid status code in \"error_page\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
