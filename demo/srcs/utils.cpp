@@ -27,6 +27,11 @@ std::string		utils::getFormattedDateTime( void )
 
 std::string		utils::get_value(const std::string& key, const std::map<std::string, std::string>& src)
 {
+	if (src.empty())
+	{
+		return "";
+	}
+
 	if (src.find(key) == src.end())
 	{
 		return "";
@@ -38,6 +43,11 @@ std::string		utils::get_value(const std::string& key, const std::map<std::string
 
 void	utils::parse_header_field(const std::string& header_line, std::vector<std::pair<std::string, std::string> >& headers)
 {
+	if (header_line.empty() || headers.empty())
+	{
+		return;
+	}
+
 	size_t pos = header_line.find(":");
 	if (pos == std::string::npos)
 	{
@@ -60,6 +70,11 @@ void	utils::parse_header_field(const std::string& header_line, std::vector<std::
 
 std::string		utils::get_value(const std::string& key, const std::vector<std::pair<std::string, std::string> >& headers)
 {
+	if (key.empty() || headers.empty())
+	{
+		return "";
+	}
+
 	std::vector<std::pair<std::string, std::string> >::const_iterator it = headers.begin();
 
 	for (; it != headers.end(); ++it)
@@ -78,8 +93,11 @@ std::vector<std::string>	utils::ft_split(std::string& s, std::string delimeter)
 	size_t pos = 0;
 	std::vector<std::string> parts;
 
-	if (delimeter.empty())
+	if (delimeter.empty() || s.empty())
+	{
 		return parts;
+	}
+
 	while ((pos = s.find(delimeter)) != std::string::npos)
 	{
 		std::string part = s.substr(0, pos);
@@ -129,6 +147,11 @@ std::string		utils::vector_tostr(const std::vector<std::string>& vec)
 	std::string s = "";
 	std::vector<std::string>::const_iterator cit;
 	size_t i = 0;
+
+	if (vec.empty())
+	{
+		return "";
+	}
 
 	for (cit = vec.begin(); cit != vec.end(); ++cit, ++i)
 	{
@@ -214,6 +237,11 @@ time_t		utils::get_timestamp(std::string path)
 std::string		utils::get_env_value(char **envp, const std::string &variable)
 {
 	std::string value = "";
+	if (variable.empty())
+	{
+		return "";
+	}
+
 	size_t var_len = variable.length();
 	for (int i = 0; envp[i] != NULL; i++)
 	{
@@ -267,6 +295,7 @@ std::string		utils::substr_before_rdel(const std::string& path, const std::strin
 
 	return path.substr(0, pos);
 }
+
 /** Limit length to 255 characters */
 std::string		utils::sanitize_file_name(const std::string& filename)
 {
@@ -290,19 +319,6 @@ bool		utils::is_path_exists(const std::string& path)
 	std::ifstream file(path.c_str());
 	return file.is_open();
 }
-
-std::string		utils::generate_path(const std::string& base_path, const std::string& status_code)
-{
-	std::string p = base_path;
-	size_t pos = p.find('x');
-	if (pos != std::string::npos)
-	{
-		p.replace(pos, 1, status_code);
-	}
-
-	return p;
-}
-
 
 bool		utils::is_status_code(int code)
 {
@@ -469,6 +485,11 @@ bool	utils::has_executable_permissions(const std::string& path)
 
 bool	utils::parse_query(const std::string& uri, std::string& new_uri, std::string& query)
 {
+	if (uri.empty())
+	{
+		return false;
+	}
+
 	if (uri.rfind('?') != std::string::npos)
 	{
 		query = utils::substr_after_rdel(uri, "?");
@@ -481,6 +502,11 @@ bool	utils::parse_query(const std::string& uri, std::string& new_uri, std::strin
 
 std::string			utils::get_file_extension(const std::string& path)
 {
+	if (path.empty())
+	{
+		return std::string();
+	}
+
 	size_t pos = path.find_last_of('.');
 	if (pos == std::string::npos)
 	{
@@ -498,6 +524,12 @@ std::string			utils::get_file_extension(const std::string& path)
 
 std::string		utils::extract_path_info(const std::string& path)
 {
+
+	if (path.empty())
+	{
+		return "/";
+	}
+
 	size_t pos = path.find_last_of('.');
 	if (pos == std::string::npos)
 	{
@@ -635,7 +667,7 @@ std::string		utils::get_status_message(int code)
 
 bool	utils::is_html_genereted_page(const std::string& path)
 {
-	return (std::strncmp(path.c_str(), "<!DOCTYPE html>", 15) == 0);
+	return (std::strncmp(path.c_str(), "<!DOCTYPE html>", 15) == 0 || std::strncmp(path.c_str(), "<html>", 6) == 0);
 }
 
 std::string		utils::get_MIME_type(std::string path)

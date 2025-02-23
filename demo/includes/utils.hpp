@@ -60,7 +60,6 @@ namespace utils
 	std::string					get_status_message(int code);
 	std::string					get_MIME_type(std::string path);
 	std::string					get_env_value(char **envp, const std::string &variable);
-	std::string					generate_path(const std::string& base_path, const std::string& status_code);
 	std::string					substr_after_rdel(const std::string& path, const std::string& del);
 	std::string					substr_before_rdel(const std::string& path, const std::string& del);
 	std::string					sanitize_file_name(const std::string& filename);
