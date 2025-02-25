@@ -12,16 +12,20 @@
         <div class="subtitle">
             <h1>File uploading</h1>
         </div>
-        <div class="file_upload_wrapper">
+        <!-- action="upload.php" -->
+        <form class="file_upload_wrapper"  method="post" enctype="multipart/form-data">
+            <span id="fileName">No File Selected</span>
             <!-- hidden file input -->
+            <span id="name_error" class="error"></span>
             <input placeholder="File" type="file" id="file" name="file" required>
             <!-- custom button -->
             <img src="upload_icon.png" id="uploadBtm" alt="Upload Icon">
-            <span id="fileName">No File Selected</span>
-        </div>
+            <!-- submit button -->
+            <button type="submit" id="submitBtn">Upload</button>
+        </form>
     </div>
 
-    <script src="script.js"></script>
+    <script type="text/javascript" src="script.js"></script>
     <!-- https://www.youtube.com/watch?v=tFaIFb3CI6U -->
 </body>
 </html>

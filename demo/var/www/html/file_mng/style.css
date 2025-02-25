@@ -35,20 +35,35 @@ body {
     width: 90%;
     max-width: 300px;
     cursor: pointer;
+    transition: 0.4s;
 }
 
 #uploadBtm:hover {
     transform: scale(1.2);
-    /* opacity: 0.9; */
-    transition: 0.4s;
+    opacity: 1.2;
 }
 
-#fileName {
+#fileName, #submitBtn {
+    border: none;
     font-size: 16px;
     font-style: italic;
     color: #9027f3;
     padding: 12px;
     border-radius: 15px;
     background-color: #e7e7e7e1;
-    margin-bottom: -22px;
+    margin-top: -20px;
+}
+
+#submitBtn {
+    font-size: 20px;
+    padding: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: -26px;
+}
+
+#submitBtn:hover {
+    cursor: pointer;
+    color: #7216c8;
+    background-color: #e7e7e7;
 }
