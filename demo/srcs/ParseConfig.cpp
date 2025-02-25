@@ -9,11 +9,15 @@ template void	ParseConfig::handleErrorPage<Server>(const std::pair<std::string, 
 template void	ParseConfig::handleIndex<Server>(const std::pair<std::string, int>&, Server*);
 template void	ParseConfig::handleRoot<Server>(const std::pair<std::string, int>&, Server*);
 template void	ParseConfig::handleUploadDir<Server>(const std::pair<std::string, int>&, Server*);
+template void	ParseConfig::handleCGIExecutable<Server>(const std::pair<std::string, int>&, Server*);
+template void	ParseConfig::handleCGIExtension<Server>(const std::pair<std::string, int>&, Server*);
 template void	ParseConfig::handleClientBodySize<Location>(const std::pair<std::string, int>&, Location*);
 template void	ParseConfig::handleErrorPage<Location>(const std::pair<std::string, int>&, Location*);
 template void	ParseConfig::handleIndex<Location>(const std::pair<std::string, int>&, Location*);
 template void	ParseConfig::handleRoot<Location>(const std::pair<std::string, int>&, Location*);
 template void	ParseConfig::handleUploadDir<Location>(const std::pair<std::string, int>&, Location*);
+template void	ParseConfig::handleCGIExecutable<Location>(const std::pair<std::string, int>&, Location*);
+template void	ParseConfig::handleCGIExtension<Location>(const std::pair<std::string, int>&, Location*);
 
 /*
 ** ------------------------------- CONSTRUCTOR --------------------------------
@@ -33,6 +37,7 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 	allowed_methods["DELETE"] = true;
 	map_template_dir["error_page"] = true;
 	map_template_dir["return"] = true;
+	map_template_dir["cgi_executable"] = true;
 	this->setGlobalDirective("worker_connections", &ParseConfig::handleWorkCont);
 	this->setGlobalDirective("http", &ParseConfig::handleHttpBlock);
 	this->setHttpDirective("server", &ParseConfig::handleServerBlock);
@@ -47,6 +52,7 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 	this->setServerDirective("location", &ParseConfig::handleServerBlock);
 	this->setServerDirective("server_name", &ParseConfig::handleServerName);
 	this->setServerDirective("client_max_body_size", &ParseConfig::handleClientBodySize);
+	this->setServerDirective("cgi_executable", &ParseConfig::handleCGIExecutable);
 	this->setLocationDirective("root", &ParseConfig::handleRoot);
 	this->setLocationDirective("path", &ParseConfig::handlePath);
 	this->setLocationDirective("index", &ParseConfig::handleIndex);
@@ -57,6 +63,7 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 	this->setLocationDirective("allowed_methods", &ParseConfig::handleAllowedMethods);
 	this->setLocationDirective("upload", &ParseConfig::handleUploadDir);
 	this->setLocationDirective("cgi_extension", &ParseConfig::handleCGIExtension);
+	this->setLocationDirective("cgi_executable", &ParseConfig::handleCGIExecutable);
 	this->setLocationDirective("client_max_body_size", &ParseConfig::handleClientBodySize);
 }
 
@@ -420,6 +427,23 @@ template<typename T> void	ParseConfig::handleClientBodySize(const std::pair<std:
 	instance->setClientMaxBody(res);
 }
 
+template<typename T> void	ParseConfig::handleCGIExecutable(const std::pair<std::string, int>& value, T* instance)
+{
+	std::string					s = value.first;
+	std::vector<std::string>	vals;
+
+	vals = utils::ft_split(s, " ");
+	int size = vals.size();
+
+	if (size != 2)
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"cgi_executable\" required a file extention and an executable in " + _conf_file_path + ":" + utils::itos(value.second));
+	if (!(utils::starts_with(vals[0], ".")))
+		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"cgi_executable\" required a file extention " + _conf_file_path + ":" + utils::itos(value.second));
+	instance->setCgiExecutable(vals[0], vals[1]);
+}
+
+
+
 template<typename T> void	ParseConfig::handleIndex(const std::pair<std::string, int>& value, T* instance)
 {
 	instance->setIndex(value.first);
@@ -578,7 +602,7 @@ template<typename T> void	ParseConfig::handleErrorPage(const std::pair<std::stri
 	}
 }
 
-void		ParseConfig::handleCGIExtension(const std::pair<std::string, int>& value, Location* instance)
+template<typename T> void	ParseConfig::handleCGIExtension(const std::pair<std::string, int>& value, T* instance)
 {
 	instance->setCGIExtension(value.first);
 }

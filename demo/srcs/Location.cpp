@@ -154,6 +154,11 @@ void	Location::setCGIExtension( const std::string &arg )
 	_cgi_extension.push_back(arg);
 }
 
+void	Location::setCgiExecutable( const std::string &key, const std::string& val)
+{
+	_cgi_executable[key] = val;
+}
+
 void		Location::setClientMaxBody(size_t value)
 {
 	_client_max_body_size = value;
@@ -213,6 +218,11 @@ const std::map<int, std::string>&	Location::getRedirect( void ) const
 const std::vector<std::string>&		Location::getCGIExtension( void ) const
 {
 	return (_cgi_extension);
+}
+
+const std::map<std::string, std::string>&		Location::getCgiExecutable( void ) const
+{
+	return (_cgi_executable);
 }
 
 /* ************************************************************************** */
