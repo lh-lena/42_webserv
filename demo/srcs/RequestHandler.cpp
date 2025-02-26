@@ -705,12 +705,33 @@ std::string			RequestHandler::decodeURI(const std::string& path)
 	}
 	return decoded.str();
 }
-
-/** TODO: */
-/** http://localhost:8080//////test/  */
-std::string			RequestHandler::normalizePath(const std::string& path)
+std::string RequestHandler::normalizePath(const std::string& path)
 {
-	return path;
+	std::vector<std::string> stack;
+	std::stringstream ss(path);
+	std::string segment;
+
+	while (std::getline(ss, segment, '/'))
+	{
+		if (segment == "..")
+		{
+			if (!stack.empty())
+				stack.pop_back();
+		}
+		else if (!segment.empty() && segment != ".")
+		{
+			stack.push_back(segment);
+		}
+	}
+
+	std::string normalizedPath = "/";
+	for (size_t i = 0; i < stack.size(); ++i)
+	{
+		normalizedPath += stack[i];
+		if (i < stack.size() - 1)
+			normalizedPath += "/";
+	}
+	return normalizedPath;
 }
 
 std::string			RequestHandler::canonicalizePath(const std::string& path)

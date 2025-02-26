@@ -37,7 +37,6 @@ class ParseConfig
 		void							handleAlias(const std::pair<std::string, int>& value, Location* instance);
 		void							handlePath(const std::pair<std::string, int>& value, Location* instance);
 		void							handleRedirect(const std::pair<std::string, int>& value, Location* instance);
-		void							handleCGIExtension(const std::pair<std::string, int>& value, Location* instance);
 		void							setGlobalDirective(const std::string &directive, DirectiveServerHandler handler);
 		void							setHttpDirective(const std::string &directive, DirectiveServerHandler handler);
 		void							setServerDirective(const std::string &directive, DirectiveServerHandler handler);
@@ -79,6 +78,8 @@ class ParseConfig
 		template<typename T> void	handleIndex(const std::pair<std::string, int>& value, T* instance);
 		template<typename T> void	handleErrorPage(const std::pair<std::string, int>& value, T* instance);
 		template<typename T> void	handleUploadDir(const std::pair<std::string, int>& value, T* instance);
+		template<typename T> void	handleCGIExecutable(const std::pair<std::string, int>& value, T* instance);
+		template<typename T> void	handleCGIExtension(const std::pair<std::string, int>& value, T* instance);
 		template<typename T> void	handleClientBodySize(const std::pair<std::string, int>& value, T* instance);
 };
 

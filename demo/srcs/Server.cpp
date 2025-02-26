@@ -179,6 +179,16 @@ void	Server::setImplementedMethods(const std::string &str)
 	_implemented_methods.push_back(str);
 }
 
+void	Server::setCGIExtension( const std::string &arg )
+{
+	_cgi_extension.push_back(arg);
+}
+
+void	Server::setCgiExecutable( const std::string &key, const std::string& val)
+{
+	_cgi_executable[key] = val;
+}
+
 int Server::getWorkCont( void ) const
 {
 	return (_worker_connections);
@@ -242,6 +252,17 @@ const std::vector<Location>&	Server::getLocations( void ) const
 const std::vector<std::string>&	Server::getImplementedMethods( void ) const
 {
 	return (_implemented_methods);
+}
+
+
+const std::map<std::string, std::string>&	Server::getCgiExecutable( void ) const
+{
+	return (_cgi_executable);
+}
+
+const std::vector<std::string>&		Server::getCGIExtension( void ) const
+{
+	return (_cgi_extension);
 }
 
 /* ************************************************************************** */
