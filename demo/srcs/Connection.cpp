@@ -15,39 +15,59 @@ Connection::Connection(int fd): _fd(fd)
 Connection::~Connection()
 {}
 
-void	Connection::unchunkRequest()
+bool	Connection::unchunkRequest() // return 1 if the last chunk received
 {
-	return;
-}
-
-static bool isChunked(std::string & str)
-{
-	size_t res = str.find("Transfer-Encoding:");
-	if (res == std::string::npos)
-		return false;
-	if (str[res + 18] == ' ')
-		res++;
-	res = res + 18;
-	if (str.compare(res, 7, "chunked"))
-		return true;
-	return false;
-}
-
-void	Connection::checkRequest() // what's happening in case of incomplete headers?
-{
-	if (_request.empty())
-		return;
-
 	size_t	res;
 
-	res = _request.find("\r\n\r\n");
+	res = _request.find("\r\n0\r\n");
 	if (res != std::string::npos)
-		_req_head_len = res + 4;
-	else
-		_req_head_len = _request.size();
+		return 1;
+	return 0;
+}
 
-	if (isChunked(_request))
-		_req_chuncked = true;
+size_t	Connection::getReqBodyLen()
+{
+	if (_req_body_len != 0)
+		return _req_body_len;
+
+	std::string s;
+	size_t j = 0;
+
+	size_t i = _request.find("Content-Length:");
+	if (i == std::string::npos)
+		return 0;
+	if (_request[i + 15] == ' ')
+		i++;
+	i = i + 15;
+	while (_request[i] != '\r')
+		j++;
+	if (j > 0)
+	{
+		s = _request.substr(i, j);
+		_req_body_len = atol(s.c_str());
+	}
+	return _req_body_len;
+}
+
+bool	Connection::checkRequest() // return 1 if request fully received
+{
+	if (_request.empty())
+		return 1;
+
+	if (_req_head_len == 0)
+	{
+		if (getReqHeadLen() == 0)
+			return 0;
+	}
+	if (isReqChuncked())
+		return unchunkRequest();
+	else if (getReqBodyLen() != 0)
+	{
+		if (_request.size() < _req_body_len + _req_head_len)
+			return 0;
+	}
+
+	return 1;
 }
 
 int		Connection::getFd() const
@@ -86,7 +106,6 @@ std::string	Connection::getRequest() const
 
 void	Connection::setRequest(const std::string & s)
 {
-	if (!s.empty())
 		_request = s;
 }
 
@@ -96,14 +115,20 @@ void	Connection::appendRequest(const char * s)
 		_request.append(s);
 }
 
-bool	Connection::isReqChuncked() const
+bool	Connection::isReqChuncked()
 {
-	return _req_chuncked;
-}
+	if (_req_chuncked)
+		return true;
 
-void	Connection::setReqChuncked()
-{
-	_req_chuncked = true;
+	size_t res = _request.find("Transfer-Encoding:");
+	if (res == std::string::npos)
+		return false;
+	if (_request[res + 18] == ' ')
+		res++;
+	res = res + 18;
+	if (_request.compare(res, 7, "chunked"))
+		_req_chuncked = true;
+	return _req_chuncked;
 }
 
 void	Connection::resetRequest()
@@ -115,14 +140,20 @@ void	Connection::resetRequest()
 	_next_req_chunk = 0;
 }
 
-size_t	Connection::getNextReqChunkSize() const
+size_t	Connection::getReqHeadLen()
 {
-	return _next_req_chunk;
+	size_t	res;
+
+	res = _request.find("\r\n\r\n");
+	if (res != std::string::npos)
+		_req_head_len = res + 4;
+
+	return _req_head_len;
 }
 
-void	Connection::setNextReqChunkSize(const size_t size)
+size_t	Connection::getChunkSize()
 {
-	_next_req_chunk = size;
+	return _next_req_chunk;
 }
 
 std::string	Connection::getResponse() const
@@ -133,9 +164,4 @@ std::string	Connection::getResponse() const
 void	Connection::setResponse(const std::string & s)
 {
 	_response = s;
-}
-
-int		Connection::getReqHeadLen() const
-{
-	return _req_head_len;
 }
