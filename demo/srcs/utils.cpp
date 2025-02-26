@@ -43,7 +43,7 @@ std::string		utils::get_value(const std::string& key, const std::map<std::string
 
 void	utils::parse_header_field(const std::string& header_line, std::vector<std::pair<std::string, std::string> >& headers)
 {
-	if (header_line.empty() || headers.empty())
+	if (header_line.empty())
 	{
 		return;
 	}
