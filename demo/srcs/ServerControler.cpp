@@ -474,26 +474,21 @@ void	ServerControler::handleInEvent(int fd)
 	}
 	if (res > 0) // what if the last read res is exactly BUFF_SIZE - 1?
 	{
-		conn->appendRequest(buf);
 		conn->setStartTime();
+		conn->appendRequest(buf);
+		if (res < BUFF_SIZE - 1 || conn->checkRequest())
+		{
+			request = conn->getRequest();
+			response = processRequest(request);
+			conn->resetRequest();
+		}
 	}
 	else if (res == 0)
 	{
-		request = conn->getRequest();
-		if (request.empty())
+		if (conn->isTimeout())
 		{
-			if (conn->isTimeout())
-				removeConnection(fd);
-			return;
-		}
-		if (conn->getReqHeadLen() == 0)
-			conn->checkRequest();
-		if (conn->isReqChuncked())
-			conn->unchunkRequest();
-		else
-		{
-			response = processRequest(request);
-			conn->resetRequest();
+			std::cout << "Connection on fd " << fd << " closed because of timeout" << std::endl;
+			removeConnection(fd);
 		}
 	}
 }
@@ -508,7 +503,14 @@ void	ServerControler::handleOutEvent(int fd)
 		return;
 	int res = send(fd, str.c_str(), str.size(), 0);
 	if (res < 0)
-		throw std::runtime_error("Error: send() failed");
+	{
+		removeConnection(fd);
+		std::cerr << "Error: send() failed on connection fd " << fd << ". Connection closed." << std::endl;
+	}
+
+	conn->setResponse("");
+	conn->setStartTime();
+
 	std::cout <<"[INFO] : "  << utils::getFormattedDateTime() <<  " Transmitted Data Size "<< res <<" Bytes."  << std::endl;
 	std::cout <<"[INFO] : "  << utils::getFormattedDateTime() <<  " File Transfer Complete." << std::endl;
 
