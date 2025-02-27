@@ -15,7 +15,7 @@ body {
     width: 100%;
     z-index: 1000;
     align-items: center;
-    background-color: #f7efef;
+    background-color: #fdf1f1;
 }
 
 .header {
@@ -38,8 +38,10 @@ body {
 /* main content */
 .main_container {
     width: 100%;
+    /* display: flex; */
     align-items: center;
     /* padding: 160px 20px 20px 20px; */
+    /* margin: 0 auto; */
     margin-top: 190px;
     flex-grow: 1; /* Pushes footer down */
 }
@@ -50,14 +52,15 @@ body {
 
 .features_container {
     display: grid;
-    flex-flow: column wrap;
     grid-template-columns: repeat(auto-fit, minmax(300px, 3fr)); /* Responsive grid */
     gap: 30px;
     max-width: 1080px;
     text-align: center;
     margin: 0 auto;
-    min-height: fit-conten;
-    padding: 40px 0;
+    min-height: fit-content;
+    padding: 40px;
+    justify-content: center;
+    text-align: center;
 }
 
 .feature_card {
@@ -106,9 +109,9 @@ a:hover {
 
 /* footer */
 .footer_container {
-    background: #222;
-    color: white;
-    text-align: center;
-    padding: 15px;
+    /* color: white; */
+    text-align: left;
+    padding: 40px;
+    margin: 40px;
     margin-top: auto; /* Pushes footer to the bottom */
 }
