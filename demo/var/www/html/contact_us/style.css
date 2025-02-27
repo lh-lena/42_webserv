@@ -3,7 +3,15 @@ body {
     margin: 20px;
 }
 
+.home_bnt {
+    text-transform: uppercase;
+    font-size: 20px;
+    padding: 10px;
+    max-width: fit-content;
+}
+
 .container {
+    margin-top: 160px;
     display: flex; /* Make the container a flex container */
     flex-flow: column wrap; /*direction "row" and wrap the items.*/
     align-items: center; /* Center wrapper-form horizontally */
@@ -17,17 +25,12 @@ body {
     width: 500px;
 }
 
-.message {
-    display: none;
-    width: 100%;
-    height: 50px;
-}
 
 input, textarea, button {
     width: 100%;
     max-width: 500px;
     height: 50px;
-    padding: 16px;
+    padding: 20px 16px;
     margin: 10px 0;
     box-sizing: border-box;
     border: none;
@@ -35,12 +38,18 @@ input, textarea, button {
     border-radius: 3px;
 }
 
+.message {
+    display: block;
+    width: 100%;
+    height: 50px;
+}
 
 input[type="text"], input[type="email"] {
     width: 49%;
 }
 
 button {
+    margin-top: 36px;
     width: 200px;
     background-color: #bc3997;
     color: white;
@@ -51,9 +60,4 @@ button {
 }
 button:hover {
     background-color: #ad3384;
-}
-
-.error {
-    color: red;
-    font-size: 0.9em;
 }

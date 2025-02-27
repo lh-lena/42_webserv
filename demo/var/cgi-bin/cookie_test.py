@@ -4,8 +4,6 @@ import os, time
 
 # curl -v --cookie "Second=Fri, 16-Feb-2025 15:16:00; Count=3; InvalidCookie" http://localhost:8080/cookie_test.py
 
-VERSION = 0.1
-
 def get_cookie(_match):
   # Returns the value from the matching cookie or '' if not defined.
   if 'HTTP_COOKIE' in os.environ:

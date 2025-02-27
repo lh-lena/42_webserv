@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 import os
-print ("Content-Type:text/html")
-print() #end of the header
+print ("Content-Type:text/html\n")
 print("<!DOCTYPE html>")
 print("<html lang=\"en\">")
 print("<head>")

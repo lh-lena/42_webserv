@@ -4,44 +4,19 @@ const form = document.getElementById('contact-form');
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // Clear previous error messages
-    const errorSpans = document.querySelectorAll('.error');
-    errorSpans.forEach(span => span.textContent = '');
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const message = document.getElementById('message').value;
 
-    // const name = document.getElementById('name').value;
-    // const email = document.getElementById('email').value;
-    // const message = document.getElementById('message').value;
+    const messageDiv = document.querySelector('.message');
+    messageDiv.textContent = "";
 
-    // const messageDiv = document.querySelector('.message');
-    // messageDiv.textContent = "";
-
-    // // Client-side validation
-    // let isValid = true;
-
-    // if (name.trim() === '') {
-    //     document.getElementById('nameError').textContent = 'Name is required.';
-    //     isValid = false;
-    // }
-
-    // if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-    //     document.getElementById('email_error').textContent = 'Invalid email address.';
-    //     isValid = false;
-    // }
-
-    // if (message.trim() === '') {
-    //     document.getElementById('message_error').textContent = 'Message is required.';
-    //     isValid = false;
-    // }
-
-    // if (!isValid)
-    //     return;
-
-    // console.log(name, email, message);
+    console.log(name, email, message); //rm
 
     const formData = new FormData(form);
     console.log(window.location);
-    const req_url = window.location.protocol + '//' + window.location.host + '/test.py';
-    // Send data to the server
+    const req_url = window.location.protocol + '//' + window.location.host + '/contact_handler.py';
+    // send data to the server
     try {
         const response = await fetch(req_url, {
             method: 'POST',
@@ -53,9 +28,15 @@ form.addEventListener('submit', async (e) => {
             throw new Error(`Response status: ${response.status}`);
         }
         const result = await response.text();
+        messageDiv.textContent = response.message;
         console.log(result.length);
+        console.log(result);
     } catch (error) {
+        messageDiv.textContent = response.message;
         console.error(error.message);
     }
-    document.getElementById('contact-form').reset();
+    setTimeout(() => {
+        document.getElementById('contact-form').reset();
+        messageDiv.textContent = "";
+    }), 200;
 });

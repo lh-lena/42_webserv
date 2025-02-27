@@ -16,10 +16,6 @@ fileInput.addEventListener('change', function () {
     }
 });
 
-// submitBtn.addEventListener('click', function () {
-//     alert(fileNameDisplay);
-// });
-
 // Fetch uploaded files and display them
 function loadUploadedFiles() {
     fetch('list_files.php')
