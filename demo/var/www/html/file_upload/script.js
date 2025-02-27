@@ -16,23 +16,19 @@ fileInput.addEventListener('change', function () {
     }
 });
 
-// submitBtn.addEventListener('click', function () {
-//     alert(fileNameDisplay);
-// });
-
 // Fetch uploaded files and display them
-function loadUploadedFiles() {
-    fetch('list_files.php')
-        .then(response => response.json())
-        .then(data => {
-            const fileList = document.getElementById('file-list');
-            fileList.innerHTML = '';
-            data.forEach(file => {
-                let li = document.createElement('li');
-                li.textContent = file;
-                fileList.appendChild(li);
-            });
-        });
-}
+// function loadUploadedFiles() {
+//     fetch('list_files.php')
+//         .then(response => response.json())
+//         .then(data => {
+//             const fileList = document.getElementById('file-list');
+//             fileList.innerHTML = '';
+//             data.forEach(file => {
+//                 let li = document.createElement('li');
+//                 li.textContent = file;
+//                 fileList.appendChild(li);
+//             });
+//         });
+// }
 
 document.addEventListener("DOMContentLoaded", loadUploadedFiles);

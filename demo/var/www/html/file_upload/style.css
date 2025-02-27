@@ -4,6 +4,13 @@ body {
     background: #ffdddd3f;
 }
 
+.home_bnt {
+    text-transform: uppercase;
+    font-size: 20px;
+    padding: 10px;
+    max-width: fit-content;
+}
+
 .container {
     display: flex; /* Make the container a flex container */
     flex-flow: column wrap; /*direction "row" and wrap the items.*/
@@ -25,6 +32,10 @@ body {
 .subtitle {
     width: 400px;
     text-align: center;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    /* text-shadow: 1px 1px 1px black; */
+    font-size: 30px;
 }
 
 #file {

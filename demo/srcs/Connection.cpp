@@ -1,4 +1,5 @@
 #include "Connection.hpp"
+#include "utils.hpp"
 
 Connection::Connection()
 {
@@ -66,7 +67,7 @@ size_t	Connection::getReqBodyLen()
 	if (j > 0)
 	{
 		s = _request.substr(i, j);
-		_req_body_len = atol(s.c_str());
+		_req_body_len = utils::stoull(s);
 	}
 	return _req_body_len;
 }

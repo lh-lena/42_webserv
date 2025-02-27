@@ -178,7 +178,7 @@ std::ostream &			operator<<( std::ostream & o, Request const & i )
 		<< "protocol = " << i.getHeader("Server-Protocol") << std::endl
 		<< "query = " << i.getHeader("Query-String") << std::endl
 		<< "upload path " << i._upload_path << std::endl
+		<< "body = " << i.getBody() << std::endl
 		;
-		/*<< "body = " << i.getBody()*/
 	return o;
 }

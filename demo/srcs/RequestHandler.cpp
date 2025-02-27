@@ -34,7 +34,7 @@ void		RequestHandler::processRequest()
 	}
 
 	// std::cerr << YELLOW << "request:\n" << _request << RESET;
-	// std::cout << YELLOW << "location: " << _location << RESET <<  std::endl;
+	// std::cout << GREEN << "location: " << _location << RESET <<  std::endl;
 
 	if (!isImplementedMethod())
 	{
@@ -283,7 +283,7 @@ void	RequestHandler::handleCgiRequest( void )
 	cgi.setUploadDir(searchingUploadPath());
 	cgi.setEnvironment(_request);
 	std::string data = cgi.executeCGI(_request);
-	std::cerr << GREEN << data << RESET << std::endl;
+	// std::cerr << GREEN << data << RESET << std::endl;
 	handleCgiResponse(data);
 }
 
@@ -297,6 +297,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 
 	while (std::getline(iss, line) && line.length() != 0 )
 	{
+		std::cerr << line << std::endl;
 		utils::parse_header_field(line, headers);
 	}
 
