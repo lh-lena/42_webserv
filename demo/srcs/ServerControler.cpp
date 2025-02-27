@@ -476,11 +476,14 @@ void	ServerControler::handleInEvent(int fd)
 	{
 		conn->setStartTime();
 		conn->appendRequest(buf);
-		if (res < BUFF_SIZE - 1 || conn->checkRequest())
+		if (res < BUFF_SIZE - 1 || recv(fd, buf, 1, MSG_PEEK) < 1)
 		{
-			request = conn->getRequest();
-			response = processRequest(request);
-			conn->resetRequest();
+			if (conn->checkRequest())
+			{
+				request = conn->getRequest();
+				response = processRequest(request);
+				conn->resetRequest();
+			}
 		}
 	}
 	else if (res == 0)

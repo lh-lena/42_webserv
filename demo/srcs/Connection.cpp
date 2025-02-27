@@ -18,10 +18,32 @@ Connection::~Connection()
 bool	Connection::unchunkRequest() // return 1 if the last chunk received
 {
 	size_t	res;
+	std::string s;
 
 	res = _request.find("\r\n0\r\n");
 	if (res != std::string::npos)
+	{
+		_request.erase(res, 3);
+		// replace "Transfer-Encoding: chunked" with "Content-Length: <_req_body_len>"
 		return 1;
+	}
+	
+	size_t i = _req_head_len + _req_body_len;
+	//while (i < _request.size() && _request[i] < 48)
+	//	i++;
+	if (i >= _request.size())
+		return 0;	
+	
+	res = _request.find("\r\n", i);
+	if (res != std::string::npos)
+		return 0;
+	s = _request.substr(i, res - i);
+	res = strtol(s.c_str(), NULL, 16);
+	if (res > 0)
+	{
+		_req_body_len = _req_body_len + res;
+		_request.erase(i, s.size() + 2); //remove chunk-size-line from request
+	}
 	return 0;
 }
 
@@ -133,7 +155,7 @@ bool	Connection::isReqChuncked()
 
 void	Connection::resetRequest()
 {
-	_request = "";
+	_request.clear();
 	_req_body_len = 0;
 	_req_head_len = 0;
 	_req_chuncked = false;
