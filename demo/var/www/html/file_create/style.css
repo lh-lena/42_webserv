@@ -1,21 +1,13 @@
 body {
-    font-family: Georgia, sans-serif;
+    font-family: times new roman;
     margin: 20px;
-    background: #ffdddd3f;
 }
 
-input, textarea, button {
-    width: 100%;
-    max-width: 500px;
-    height: 50px;
-    padding: 20px 16px;
-    margin: 10px 0;
-    box-sizing: border-box;
-    border: none;
-    border-bottom: 1px solid #313239;
-    border-radius: 3px;
+.container {
+    display: grid;
+    place-content: center;
 }
-/* 
+
 .home_bnt {
     text-transform: uppercase;
     font-size: 20px;
@@ -23,70 +15,46 @@ input, textarea, button {
     max-width: fit-content;
 }
 
-.container {
-    display: flex; /* Make the container a flex container */
-    /* flex-flow: column wrap; direction "row" and wrap the items. */
-    /* align-items: center; Center wrapper-form horizontally */
-    /* gap: 70px;
-} */
+.home_bnt:hover {
+    cursor: pointer;
+}
 
-/* .file_upload_wrapper {
-    display: flex;
-    flex-flow: column;
-    max-width: 400px;
-    align-items: center;
-    width: 90%;
-    border: 2px dotted #551051af;
-    border-radius: 15px;
-    text-align: center;
-} */
-/* 
 .subtitle {
-    width: 400px;
+    color: #313239;
     text-align: center;
     letter-spacing: 6px;
-    text-transform: uppercase; */
-    /* text-shadow: 1px 1px 1px black; */
-    /* font-size: 30px;
-} */
-
-/* #file {
-    display: none;
-}
-
-#uploadBtm {
-    width: 90%;
-    max-width: 300px;
-    cursor: pointer;
-    transition: 0.4s;
-}
-
-#uploadBtm:hover {
-    transform: scale(1.2);
-    opacity: 1.2;
-} */
-
-/* #fileName, #submitBtn {
-    border: none;
-    font-size: 16px;
-    font-style: italic;
-    color: #9027f3;
-    padding: 12px;
-    border-radius: 15px;
-    background-color: #e7e7e7e1;
-    margin-top: -20px;
-}  */
-
-/* #submitBtn {
-    font-size: 20px;
-    padding: 16px;
-    font-weight: bold;
     text-transform: uppercase;
-    margin-bottom: -26px;
+}
+
+.file_create_wrapper {
+    display: flex;
+    flex-flow: column;
+    width: 300px;
+}
+
+input, textarea, button {
+    font-family: inherit;
+    width: 100%;
+    height: 60px;
+    padding: 20px;
+    margin: 10px 0;
+    box-sizing: border-box;
+    border: none;
+    border-bottom: 1px solid #313239;
+    border-radius: 3px;
+    letter-spacing: 1px;
+}
+
+#submitBtn {
+    cursor: pointer;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 16px;
+    color: #313239;
+    border-bottom: none;
 }
 
 #submitBtn:hover {
     cursor: pointer;
-    color: #7216c8;
-    background-color: #e7e7e7;
-} */
+    background-color: #e7e7e7e1;
+}

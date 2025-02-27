@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
-    <title>Upload File</title>
+    <title>Create File</title>
 </head>
 <body>
     <div class="home_bnt">
@@ -15,12 +15,10 @@
         <div class="subtitle">
             <h2>create file</h2>
         </div>
-        <!-- action="upload.php" -->
-        <form class="file_upload_wrapper" method="post" enctype="multipart/form-data">
-            <span id="fileName">No File Selected</span>
-            <input placeholder="File Name" type="text" id="file_name" name="file_name" required>
-            <textarea placeholder="Input" id="file_body" name="file_body" rows="5" required></textarea>
-            <button type="submit" id="submitBtn">Upload</button>
+        <form class="file_create_wrapper" method="post" enctype="multipart/form-data">
+            <input placeholder="File Name" type="text" id="fileName" name="file_name" required>
+            <textarea placeholder="Input" id="fileBody" name="file_body" rows="5" required></textarea>
+            <button type="submit" id="submitBtn">create</button>
         </form>
     </div>
 
