@@ -34,7 +34,7 @@ void		RequestHandler::processRequest()
 	}
 
 	// std::cerr << YELLOW << "request:\n" << _request << RESET;
-	// std::cout << YELLOW << "location: " << _location << RESET <<  std::endl;
+	// std::cout << GREEN << "location: " << _location << RESET <<  std::endl;
 
 	if (!isImplementedMethod())
 	{

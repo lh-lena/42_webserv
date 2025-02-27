@@ -220,7 +220,7 @@ bool		utils::is_directory(const std::string& path)
 	struct stat path_stat;
 	if (stat(path.c_str(), &path_stat) != 0)
 	{
-		// std::cerr << "[ERROR]: Accessing path " << path << " failed (dir test): " << std::strerror(errno) << path << std::endl;
+		// std::cerr << "[ERROR] : Accessing path " << path << " failed (dir test): " << std::strerror(errno) << path << std::endl;
 		return false;
 	}
 	return S_ISDIR(path_stat.st_mode);
@@ -237,7 +237,7 @@ bool		utils::is_regular_file(const std::string& path)
 
 	if (stat(path.c_str(), &path_stat) != 0)
 	{
-		std::cerr << "[ERROR]: Accessing path " << path << " failed: " << std::strerror(errno) << std::endl;
+		std::cerr << "[ERROR] : Accessing path " << path << " failed: " << std::strerror(errno) << std::endl;
 		return false;
 	}
 
