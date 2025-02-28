@@ -13,6 +13,7 @@ CGI::CGI(void) :
 	required_vars.push_back("REQUEST_URI");
 	required_vars.push_back("QUERY_STRING");
 	required_vars.push_back("PATH_INFO");
+	required_vars.push_back("SCRIPT_NAME");
 	required_vars.push_back("SERVER_PROTOCOL");
 	remove_vars.push_back("Auth-Scheme");
 	remove_vars.push_back("Authorization");
@@ -49,7 +50,7 @@ void CGI::setEnvironment(const Request& request)
 	tmp_val = !request.getHeader("Auth-Scheme").empty() ? request.getHeader("Authorization") : std::string();
 	addEnvField("AUTH_TYPE", tmp_val);
 	addEnvField("GATEWAY_INTERFACE", "CGI/1.1");
-	// addEnvField("REDIRECT_STATUS", "200"); //??
+	addEnvField("REDIRECT_STATUS", "200"); //??
 	/** Filesystem- (not document root-) based path to the current script, after the server has done any virtual-to-real mapping. */
 	addEnvField("PATH_TRANSLATED", std::string());
 	/** The IP address of the server under which the current script is executing */
@@ -58,14 +59,12 @@ void CGI::setEnvironment(const Request& request)
 	addEnvField("REMOTE_IDENT", request.getHeader("Authorization"));
 	/** The authenticated user */
 	addEnvField("REMOTE_USER", request.getHeader("Authorization"));
-	/** Contains the current script's path */
-	addEnvField("SCRIPT_NAME", request.getFullPath());
 	/** The absolute pathname of the currently executing script */
 	addEnvField("SCRIPT_FILENAME", request.getFullPath());
 	addEnvField("SERVER_ROOT", std::string());
 	/** The document root directory under which the current script is executing, as defined in the server's configuration file */
 	addEnvField("DOCUMENT_ROOT", std::string());
-	addEnvField("SERVER_SOFTWARE", "42-webserv/1.0");
+	addEnvField("SERVER_SOFTWARE", "Webserv/1.0");
 	/** The name of the server host under which the current script is executing */
 	addEnvField("SERVER_NAME", utils::substr_before_rdel(request.getHeader("Host"), ":"));
 	addEnvField("SERVER_PORT", utils::substr_after_rdel(request.getHeader("Host"), ":"));
@@ -122,11 +121,13 @@ std::string		CGI::executeCGI(Request& request)
 		dup2(out_fds[1], STDOUT_FILENO);
 		close(out_fds[0]);
 		close(out_fds[1]);
-		char * const * nll = NULL;
-		char *arg = {(char *)executable.c_str()};
-		if (execve(arg, nll, envp.data()) < 0)
+		// char * const * nll = NULL;
+		// std::string intr = "php-cgi";
+		char *intr = (char*)(interpreter.c_str());
+		char *arg[] = {(char *)executable.c_str(), NULL};
+		if (execve(intr, arg, envp.data()) < 0)
 		{
-			std::cerr << RED << "Error: execve() failed\n" << RESET;
+			std::cerr << RED << "[ERROR] : execve() failed\n" << RESET;
 			write(STDOUT_FILENO, "Status: 500\n\n", 15);
 			exit(0);
 		}

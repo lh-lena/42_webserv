@@ -33,8 +33,8 @@ void		RequestHandler::processRequest()
 		return;
 	}
 
-	// std::cerr << YELLOW << "request:\n" << _request << RESET;
-	// std::cout << GREEN << "location: " << _location << RESET <<  std::endl;
+	std::cerr << YELLOW << "request:\n" << _request << RESET;
+	std::cout << GREEN << "location: " << _location << RESET <<  std::endl;
 
 	if (!isImplementedMethod())
 	{
@@ -174,6 +174,7 @@ std::string			RequestHandler::determineFilePath(const std::string& requested_pat
 	}
 
 	std::string full_path = root + path;
+	std::cerr << RED << "path " << full_path << RESET << std::endl;
 	return full_path;
 }
 
@@ -256,14 +257,21 @@ void		RequestHandler::handleStaticRequest( void )
 
 bool	RequestHandler::isCGIRequest( void ) const
 {
-	std::string path_info = utils::extract_path_info(_request.getHeader("Request-URI"));
-	std::string ext = utils::get_file_extension(_request.getHeader("Request-URI"));
+	std::string req_uri = _request.getHeader("Request-URI");
+	std::string path_info = utils::extract_path_info(req_uri);
+	std::string ext = utils::get_file_extension(req_uri);
 
 	if (!utils::is_str_in_vector(ext, _location.getCGIExtension()))
 	{
 		return false;
 	}
+
+	std::string script_name = utils::extract_script_name(req_uri, ext);
+	std::cerr << MAGENTA << "req_uri " << req_uri << RESET << std::endl;
+	std::cerr << MAGENTA << "ext " << ext << RESET << std::endl;
+	std::cerr << MAGENTA << "script_name " << script_name << RESET << std::endl;
 	_request.setHeader("Path-Info", path_info);
+	_request.setHeader("Script-Name", script_name);
 	return true;
 }
 
@@ -271,19 +279,19 @@ void	RequestHandler::handleCgiRequest( void )
 {
 	CGI cgi;
 
-	_request.setFullPath(determineFilePath(_request.getHeader("Request-URI")));
+	_request.setFullPath(determineFilePath(_request.getHeader("Script-Name")));
 
 	if (!utils::has_executable_permissions(_request.getFullPath()))
 	{
 		setCustomErrorResponse(FORBIDDEN, getCustomErrorPath(FORBIDDEN));
 		return;
 	}
-
+	std::cerr << RED << _request.getFullPath() << RESET << std::endl;
 	cgi.setExecutable(_request.getFullPath());
 	cgi.setUploadDir(searchingUploadPath());
 	cgi.setEnvironment(_request);
 	std::string data = cgi.executeCGI(_request);
-	// std::cerr << GREEN << data << RESET << std::endl;
+	std::cerr << GREEN << data << RESET << std::endl;
 	handleCgiResponse(data);
 }
 
@@ -297,7 +305,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 
 	while (std::getline(iss, line) && line.length() != 0 )
 	{
-		std::cerr << line << std::endl;
+		std::cerr << BLUE << line << RESET << std::endl;
 		utils::parse_header_field(line, headers);
 	}
 
@@ -307,6 +315,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 
 	if (utils::get_value("Content-Type", headers).empty())
 	{
+		std::cerr <<  BLUE << "utils::get_value(Content-Type, headers).empty()" << RESET << std::endl;
 		setCustomErrorResponse(INTERNAL_SERVER_ERROR, getCustomErrorPath(INTERNAL_SERVER_ERROR));
 		return;
 	}
@@ -353,6 +362,8 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 void	RequestHandler::handleGetDirectoryResponse( void )
 {
 	std::string	new_path;
+
+	std::cerr << RED << "_request.getFullPath() " << _request.getFullPath() << RESET << std::endl;
 
 	if (!utils::ends_with(_request.getFullPath(), "/"))
 	{
@@ -448,12 +459,17 @@ void		RequestHandler::handlePOST( void )
 		setCustomErrorResponse(REQUEST_ENTITY_TOO_LARGE, getCustomErrorPath(REQUEST_ENTITY_TOO_LARGE));
 		return;
 	}
-	std::string filepath = uploadDir + filename;
+	else if (body.size() < max_size)
+	{
+		setCustomErrorResponse(BAD_REQUEST, getCustomErrorPath(BAD_REQUEST));
+		return;
+	}
 
+	std::string filepath = uploadDir + filename;
 	std::ofstream outfile(filepath.c_str(), std::ios::binary);
 	if (!outfile.is_open())
 	{
-		std::cerr	<< "Failed to open file: " << filepath
+		std::cerr	<< "[ERROR] : Failed to open file: " << filepath
 					<< " (" << strerror(errno) << ")" << std::endl;
 
 		if (errno == EACCES || errno == EROFS || errno == ENOENT)
@@ -470,7 +486,7 @@ void		RequestHandler::handlePOST( void )
 	outfile.write(body.c_str(), body.length());
 	if (outfile.fail())
 	{
-		std::cerr << "Error writing to file: " << filepath << std::endl;
+		std::cerr << "[ERROR] : Failed writing to file: " << filepath << std::endl;
 		setCustomErrorResponse(INTERNAL_SERVER_ERROR, getCustomErrorPath(INTERNAL_SERVER_ERROR));
 		outfile.close();
 		return;

@@ -44,6 +44,7 @@ namespace utils
 	bool						is_digits(const std::string& str);
 	bool						is_path_exists(const std::string& path);
 	bool						is_html_genereted_page(const std::string& path);
+	bool						is_host(const std::string& s);
 	bool						ends_with(const std::string& str, const std::string& suffix);
 	bool						starts_with(const std::string& str, const std::string& prefix);
 	bool						is_str_in_vector(const std::string& s, const std::vector<std::string>& content);
@@ -57,6 +58,7 @@ namespace utils
 	std::string					get_value(const std::string& key, const std::map<std::string, std::string>& src);
 	std::string					get_file_extension(const std::string& path);
 	std::string					extract_path_info(const std::string& path);
+	std::string					extract_script_name(const std::string& path, const std::string& ext);
 	std::string					load_file_content(const std::string& path);
 	std::string					itos(int i);
 	std::string					to_string(unsigned long long i);
@@ -70,7 +72,7 @@ namespace utils
 	std::string					substr_after_rdel(const std::string& path, const std::string& del);
 	std::string					substr_before_rdel(const std::string& path, const std::string& del);
 	std::string					sanitize_file_name(const std::string& filename);
-	std::vector<std::string>	ft_split(std::string& s, std::string delimeter);
+	std::vector<std::string>	ft_split(const std::string& s, std::string delimeter);
 	int							get_dir_entries(const std::string& dirp, std::vector<std::string>& content);
 	bool						is_matching_ext(const std::string& s, const std::vector<std::string>& exts);
 }

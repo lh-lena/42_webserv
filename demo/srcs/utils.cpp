@@ -88,8 +88,9 @@ std::string		utils::get_value(const std::string& key, const std::vector<std::pai
 	return "";
 }
 
-std::vector<std::string>	utils::ft_split(std::string& s, std::string delimeter)
+std::vector<std::string>	utils::ft_split(const std::string& s, std::string delimeter)
 {
+	std::string el = s;
 	size_t pos = 0;
 	std::vector<std::string> parts;
 
@@ -98,16 +99,16 @@ std::vector<std::string>	utils::ft_split(std::string& s, std::string delimeter)
 		return parts;
 	}
 
-	while ((pos = s.find(delimeter)) != std::string::npos)
+	while ((pos = el.find(delimeter)) != std::string::npos)
 	{
-		std::string part = s.substr(0, pos);
+		std::string part = el.substr(0, pos);
 		if (part.size() > 0)
 		{
 			parts.push_back(part);
-			s.erase(0, pos + delimeter.length());
+			el.erase(0, pos + delimeter.length());
 		}
 	}
-	parts.push_back(s);
+	parts.push_back(el);
 	return parts;
 }
 
@@ -547,7 +548,6 @@ std::string			utils::get_file_extension(const std::string& path)
 
 std::string		utils::extract_path_info(const std::string& path)
 {
-
 	if (path.empty())
 	{
 		return "/";
@@ -566,6 +566,28 @@ std::string		utils::extract_path_info(const std::string& path)
 	}
 
 	return path.substr(pos2);
+}
+
+std::string	utils::extract_script_name(const std::string& path, const std::string& ext)
+{
+	if (path.empty() || ext.empty())
+	{
+		return "";
+	}
+
+	size_t pos = path.find(ext);
+	if (pos == std::string::npos)
+	{
+		return "";
+	}
+
+	size_t pos2 = path.find_last_of('/', pos);
+	if (pos2 == std::string::npos)
+	{
+		return "";
+	}
+
+	return path.substr(pos2, pos + ext.length());
 }
 
 std::string		utils::get_reason_phrase(int code)
@@ -691,6 +713,27 @@ std::string		utils::get_status_message(int code)
 bool	utils::is_html_genereted_page(const std::string& path)
 {
 	return (std::strncmp(path.c_str(), "<!DOCTYPE html>", 15) == 0 || std::strncmp(path.c_str(), "<html>", 6) == 0);
+}
+
+bool	utils::is_host(const std::string& s)
+{
+	if (s == "localhost")
+	{
+		return true;
+	}
+	std::vector<std::string> els = utils::ft_split(s, ".");
+	if (els.size() != 4)
+	{
+		return false;
+	}
+
+	for (size_t i = 0; i < els.size(); ++i)
+	{
+		int i_val = utils::stoi(els[i]);
+		if (!utils::is_digits(els[i]) || (i_val > 255 || i_val < 0))
+			return false;
+	}
+	return true;
 }
 
 std::string		utils::get_MIME_type(std::string path)

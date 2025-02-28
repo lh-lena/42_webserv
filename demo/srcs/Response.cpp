@@ -43,12 +43,6 @@ void	Response::setStaticPageResponse(int code, const std::string& path)
 {
 	std::string	body = utils::load_file_content(path);
 	unsigned long long con_len = body.length();
-
-	/* if (con_len <= 0)
-	{
-		status_code = NO_CONTENT;
-	} */
-
 	setStatusCode(code);
 	setBody(body);
 	setHeader("Date", utils::formatDate(utils::get_timestamp("")));

@@ -9,14 +9,14 @@
 </head>
 <body>
     <div class="home_bnt">
-        <a href="../main/index.html">home</a>
+        <a href="/index.html">home</a>
     </div>
     <div class="container">
         <div class="subtitle">
             <h2>Upload File</h2>
         </div>
         <!-- action="upload.php" -->
-        <form class="file_upload_wrapper"  method="post" enctype="multipart/form-data">
+        <form class="file_upload_wrapper" action="file_upload.php"  method="POST" enctype="multipart/form-data">
             <span id="fileName">No File Selected</span>
             <!-- hidden file input -->
             <span id="name_error" class="error"></span>

@@ -8,7 +8,7 @@
 
 Server::Server()
 	:
-		server_name("42_webserv/1.0"),
+		server_name("Webserv/1.0"),
 		_client_max_body_size(1 * 1024 * 1024), //1M
 		_location_nbr(0),
 		_worker_connections(1024)
@@ -103,8 +103,8 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 
 void		Server::defaultServer( void )
 {
-	setHost("0.0.0.0");
-	setPort(8080); // ?
+	setHost("127.0.0.1");
+	setPort(8000);
 	setRoot("var/www/html");
 	setIndex("index.42webserver.html");
 }

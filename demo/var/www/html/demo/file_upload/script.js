@@ -31,4 +31,4 @@ fileInput.addEventListener('change', function () {
 //         });
 // }
 
-document.addEventListener("DOMContentLoaded", loadUploadedFiles);
+// document.addEventListener("DOMContentLoaded", loadUploadedFiles);

@@ -1,5 +1,5 @@
 body {
-    font-family: Georgia, sans-serif;
+    font-family: times new roman;
     margin: 20px;
     background: #ffdddd3f;
 }
@@ -30,6 +30,7 @@ body {
 }
 
 .subtitle {
+    font-family: times new roman;
     width: 400px;
     text-align: center;
     letter-spacing: 6px;

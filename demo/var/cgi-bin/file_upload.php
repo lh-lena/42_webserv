@@ -14,9 +14,11 @@ if (!file_exists($upload_dir)) {
     mkdir($upload_dir, 0777, true);
 }
 
+echo('Content-Type: application/json');
+
 // Check if a file was uploaded
 if (!isset($_FILES['file'])) {
-    header('HTTP/1.1 400 Bad Request');
+    echo('Status: 400 Bad Request');
     echo json_encode(['success' => false, 'error' => 'No file uploaded.']);
     exit;
 }
@@ -30,10 +32,10 @@ if (move_uploaded_file($_FILES['file']['tmp_name'], $file_path)) {
     file_put_contents($files_list, $file_name . "\n", FILE_APPEND);
 
     // Redirect back to index.html after successful upload
-    header("Location: /index.html");
+    echo ("Location: /index.html");
     exit;
 } else {
-    header('HTTP/1.1 500 Internal Server Error');
+    echo ('Status: 500 Internal Server Error');
     echo json_encode(['success' => false, 'error' => 'File upload failed.']);
 }
 ?>

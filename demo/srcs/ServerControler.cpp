@@ -602,7 +602,10 @@ std::string	ServerControler::processRequest(std::string & data)
 
 	if (!request.parse(data))
 	{
-		response.setErrorResponse(BAD_REQUEST, std::string());
+		if (request.getHeader("Server-Protocol") != "HTTP/1.1")
+			response.setErrorResponse(505, std::string());
+		else
+			response.setErrorResponse(BAD_REQUEST, std::string());
 		return response.getResponse();
 	}
 
@@ -615,13 +618,17 @@ std::string	ServerControler::processRequest(std::string & data)
 
 	// std::ostringstream ss;
 	// ne prazuie // did'ko
-	std::cout << MAGENTA << "[TRACE] "
-	<< utils::getFormattedDateTime()
-	<< "\"" << request.start_line << "\" "
-	<< response.getStatusCode() << " "
-	<< response.getHeader("Content-Length")  << RESET << std::endl;
+	std::string ss;
+	// std::cout << MAGENTA << "[TRACE] "
+	// << utils::getFormattedDateTime()
+	// << "\"" << request.start_line << "\" "
+	// << response.getStatusCode() << " "
+	// << response.getHeader("Content-Length")  << RESET << std::endl;
 
-	// std::cout << MAGENTA << ss.str() << RESET << std::endl;
+	ss = "[TRACE] " + utils::getFormattedDateTime() + " \"" + request.start_line + "\" " +\
+	 utils::itos(response.getStatusCode()) + " " + response.getHeader("Content-Length");
+
+	std::cout << MAGENTA << ss << RESET << std::endl;
 
 	return response.getResponse();
 }

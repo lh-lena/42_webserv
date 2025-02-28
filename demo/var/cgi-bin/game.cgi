@@ -2,7 +2,7 @@
 
 echo "Working dir: $(pwd)"
 echo "Content-Type: text/html"
-echo "Location: /main/index.html"
+echo "Location: /index.html"
 echo "Status: 302 Found"
 echo ""
 

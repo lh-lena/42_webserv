@@ -457,28 +457,47 @@ void		ParseConfig::handleListen(const std::pair<std::string, int>& value, Server
 
 	if (pos == std::string::npos)
 	{
+		if (utils::is_host(s))
+		{
+			instance->setPort(8000);
+			instance->setHost(s);
+			return;
+		}
 		port_val = utils::stoi(s);
 		if(port_val <= 0)
 		{
-			throw  ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + utils::itos(value.second));
+			throw  ParseException(utils::getFormattedDateTime() + " [emerg] : \"port\" required positive numbers only in " + _conf_file_path + ":" + utils::itos(value.second));
+		}
+		if (instance->getPort() != 0)
+		{
+			throw  ParseException(utils::getFormattedDateTime() + " [emerg] : a duplicate \"listen\" " + utils::itos(port_val) + "in " + _conf_file_path + ":" + utils::itos(value.second));
 		}
 		instance->setPort(port_val);
+		instance->setHost("127.0.0.1");
 		return;
 	}
 	std::string host = s.substr(0, pos);
 	if	(host[0] == '$')
 		host = processEnvVar(host);
-	instance->setHost(host);
 	std::string port = s.substr(pos + 1);
 	if (port[0] == '$')
-		port = processEnvVar(port);
+	port = processEnvVar(port);
 	if (host.empty() || port.empty())
 		throw ParseException(utils::getFormattedDateTime() + " [emerg] \"" + value.first + "\" invalid input in " + _conf_file_path + ":" + utils::itos(value.second));
+	if (!utils::is_host(host))
+	{
+		throw  ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"listen\" containes an invalid host " + host + " in " + _conf_file_path + ":" + utils::itos(value.second));
+	}
 	port_val = utils::stoi(port);
 	if(port_val <= 0)
 	{
-		throw  ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"port\" required positive numbers only in " + _conf_file_path + ":" + utils::itos(value.second));
+		throw  ParseException(utils::getFormattedDateTime() + " [emerg] : \"port\" required positive numbers only in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
+	if (!instance->getHost().empty() || instance->getPort() != 0)
+	{
+		throw  ParseException(utils::getFormattedDateTime() + " [emerg] : a duplicate \"listen\" " + host + ":" + utils::itos(port_val) + "in " + _conf_file_path + ":" + utils::itos(value.second));
+	}
+	instance->setHost(host);
 	instance->setPort(port_val);
 }
 
