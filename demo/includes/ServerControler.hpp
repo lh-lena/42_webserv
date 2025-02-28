@@ -20,7 +20,7 @@ class ServerControler
 
 	public:
 
-		ServerControler();
+		ServerControler(); // set pfds_limit in constructor
 		ServerControler( ServerControler const & src );
 		~ServerControler();
 
@@ -51,7 +51,7 @@ class ServerControler
 		std::vector<Server>	_servBlocks;
 		std::vector<int>	_socketFds; // array of listening sockets identifiers (server_fds)
 		std::vector<Connection>	_conns;
-		struct pollfd _pfds[100000];
+		struct pollfd _pfds[100000]; // size of pfds_limit
 		int	_nfds;
 
 		void	createListeningSockets(); // fill _socketFds

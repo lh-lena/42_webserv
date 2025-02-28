@@ -200,7 +200,7 @@ void	ServerControler::polling()
 	int	res;
 	int	new_fd;
 	int timeout = 5 * 60000;
-	Connection *connection;
+	Connection *connection = NULL;
 
 	std::cout << "Waiting on poll" << std::endl;
 	while (!g_serv_end)
@@ -243,7 +243,7 @@ void	ServerControler::polling()
 			{
 				if (isInPollfds(_pfds[i].fd, _socketFds))
 				{
-					new_fd = accept(res, NULL, NULL);
+					new_fd = accept(_pfds[i].fd, NULL, NULL);
 					if (new_fd < 0 && errno != EWOULDBLOCK)
 						throw std::runtime_error("Error: accept() failed");
 					if (new_fd > 0)
@@ -255,12 +255,39 @@ void	ServerControler::polling()
 				else
 					handleInEvent(_pfds[i].fd);
 			}
-			else if (_pfds[i].revents & POLLOUT)
+			if (_pfds[i].revents & POLLOUT)
 				handleOutEvent(_pfds[i].fd);
 		}
 	}
 	closeFds();
 }
+/*
+void	ServerControler::startServing()
+{
+	// signal(SIGINT, ServerControler::sig_handler);
+
+	try
+	{
+		this->createListeningSockets();
+	}
+	catch(const std::exception& e)
+	{
+		closeFds();
+		std::cerr << e.what() << '\n';
+		throw std::runtime_error("Error: socket setup failed");
+	}
+
+	memset(_pfds, 0, sizeof(_pfds));
+	size_t size = _socketFds.size();
+	for (size_t i = 0; i < size; i++)
+	{
+		_pfds[i].fd = _socketFds[i];
+		_pfds[i].events = POLLIN;
+		_nfds++;
+	}
+
+	polling();
+}*/
 
 void	ServerControler::startServing()
 {
@@ -457,12 +484,15 @@ void	ServerControler::startServing()
 
 void	ServerControler::handleInEvent(int fd)
 {
+	std::cout << "Handle POLLIN event on fd " << fd << std::endl;
+
 	Connection *conn = getConnection(fd);
 	if (conn == NULL)
+	{
+		std::cout << "handleInEvent: no such connection in conns" << std::endl;
 		return;
+	}
 
-	std::string request;
-	std::string response;
 	char buf[BUFF_SIZE];
 	memset(buf, 0, sizeof(buf));
 	int res = recv(fd, buf, BUFF_SIZE - 1, 0);
@@ -474,14 +504,17 @@ void	ServerControler::handleInEvent(int fd)
 	}
 	if (res > 0) // what if the last read res is exactly BUFF_SIZE - 1?
 	{
+		std::cout << "Data received on connection " << fd << ": " << buf << std::endl;
 		conn->setStartTime();
 		conn->appendRequest(buf);
 		if (res < BUFF_SIZE - 1 || recv(fd, buf, 1, MSG_PEEK) < 1)
 		{
+			//std::cout << "Request: " << conn->getRequest() << std::endl;
 			if (conn->checkRequest())
 			{
-				request = conn->getRequest();
-				response = processRequest(request);
+				std::string request = conn->getRequest();
+				std::cout << "Request: " << request << ", size = " << request.size() << std::endl;
+				conn->setResponse(processRequest(request));
 				conn->resetRequest();
 			}
 		}
@@ -500,7 +533,10 @@ void	ServerControler::handleOutEvent(int fd)
 {
 	Connection *conn = getConnection(fd);
 	if (conn == NULL)
+	{
+		std::cout << "handleOutEvent: no such connection in conns" << std::endl;
 		return;
+	}
 	std::string str = conn->getResponse();
 	if (str.empty())
 		return;
@@ -651,7 +687,7 @@ void	ServerControler::addPfd(int fd)
 	if (i < pfds_limit)
 	{
 		_pfds[i].fd = fd;
-		_pfds[i].events = POLLIN;
+		_pfds[i].events = POLLIN | POLLOUT;
 		_nfds++;
 	}
 }
