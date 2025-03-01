@@ -286,7 +286,7 @@ void	RequestHandler::handleCgiRequest( void )
 		setCustomErrorResponse(FORBIDDEN, getCustomErrorPath(FORBIDDEN));
 		return;
 	}
-	std::cerr << GREEN << _request.getFullPath() << RESET << std::endl;
+	//std::cerr << GREEN << _request.getFullPath() << RESET << std::endl;
 	cgi.setExecutable(_request.getFullPath());
 	cgi.setUploadDir(searchingUploadPath());
 	cgi.setEnvironment(_request);
@@ -338,7 +338,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	_response.setHeader("Server", _server.server_name);
 	_response.setHeader("Content-Type", utils::get_value("content-type", headers));
 	_response.setHeader("Content-Length", con_len);
-	if (!utils::get_value("Location", headers).empty())
+	if (!utils::get_value("location", headers).empty())
 	{
 		_response.setStatusCode(302);
 		_response.setHeader("Location", utils::get_value("location", headers));
@@ -348,7 +348,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	std::vector<std::string> cookies_val;
 	for (; it != headers.end(); ++it)
 	{
-		if (it->first == "set-cookie" && !utils::is_str_in_vector(it->first, cookies_val))
+		if (it->first == "set-cookie" && !utils::is_str_in_vector(it->second, cookies_val))
 		{
 			cookies_val.push_back(it->second);
 			_response.setHeader("Set-Cookie", it->second);
@@ -366,7 +366,7 @@ void	RequestHandler::handleGetDirectoryResponse( void )
 {
 	std::string	new_path;
 
-	std::cerr << RED << "_request.getFullPath() " << _request.getFullPath() << RESET << std::endl;
+	//std::cerr << RED << "_request.getFullPath() " << _request.getFullPath() << RESET << std::endl;
 
 	if (!utils::ends_with(_request.getFullPath(), "/"))
 	{

@@ -51,6 +51,8 @@ void CGI::setEnvironment(const Request& request)
 	addEnvField("AUTH_TYPE", tmp_val);
 	addEnvField("GATEWAY_INTERFACE", "CGI/1.1");
 	addEnvField("REDIRECT_STATUS", "200");
+	addEnvField("DISPLAY", ":0");
+	addEnvField("DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/101457/bus");
 	/** Filesystem- (not document root-) based path to the current script, after the server has done any virtual-to-real mapping. */
 	addEnvField("PATH_TRANSLATED", std::string());
 	/** The IP address of the server under which the current script is executing */
