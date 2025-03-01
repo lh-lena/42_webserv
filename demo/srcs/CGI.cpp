@@ -50,7 +50,7 @@ void CGI::setEnvironment(const Request& request)
 	tmp_val = !request.getHeader("Auth-Scheme").empty() ? request.getHeader("Authorization") : std::string();
 	addEnvField("AUTH_TYPE", tmp_val);
 	addEnvField("GATEWAY_INTERFACE", "CGI/1.1");
-	addEnvField("REDIRECT_STATUS", "200"); //??
+	addEnvField("REDIRECT_STATUS", "200");
 	/** Filesystem- (not document root-) based path to the current script, after the server has done any virtual-to-real mapping. */
 	addEnvField("PATH_TRANSLATED", std::string());
 	/** The IP address of the server under which the current script is executing */
@@ -121,11 +121,14 @@ std::string		CGI::executeCGI(Request& request)
 		dup2(out_fds[1], STDOUT_FILENO);
 		close(out_fds[0]);
 		close(out_fds[1]);
-		// char * const * nll = NULL;
+		char * const * nll = NULL;
 		// std::string intr = "php-cgi";
-		char *intr = (char*)(interpreter.c_str());
-		char *arg[] = {(char *)executable.c_str(), NULL};
-		if (execve(intr, arg, envp.data()) < 0)
+		// char *intr = (char*)(interpreter.c_str());
+		// char *arg[] = {(char*)(interpreter.c_str()), (char *)executable.c_str(), NULL};
+		char *arg = {(char *)executable.c_str()};
+
+		// if (execve(arg[0], arg, envp.data()) < 0)
+		if (execve(arg, nll, envp.data()) < 0)
 		{
 			std::cerr << RED << "[ERROR] : execve() failed\n" << RESET;
 			write(STDOUT_FILENO, "Status: 500\n\n", 15);

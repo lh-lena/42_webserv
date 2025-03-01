@@ -26,7 +26,7 @@ public:
 	void										setIndex(const std::string &arg);
 	void										setUploadDir(const std::string &arg);
 	void										setCGIExtension(const std::string &arg);
-	void										setCgiExecutable(const std::string &key, const std::string& val);
+	void										setCgiInterpreter(const std::string &key, const std::string& val);
 	void										setAllowedMethod(const std::string &arg);
 	void										addErrorPage(int key, const std::string &val);
 	void										setRedirect( int key, const std::string &val );
@@ -36,7 +36,7 @@ public:
 	const std::string&							getRoot( void ) const;
 	const std::string&							getAlias( void ) const;
 	const std::string&							getUploadDir( void ) const;
-	const std::map<std::string, std::string>&	getCgiExecutable( void ) const;
+	const std::map<std::string, std::string>&	getCgiInterpreter( void ) const;
 	const std::vector<std::string>&				getCGIExtension( void ) const;
 	const std::vector<std::string>&				getIndexes( void ) const;
 	const std::vector<std::string>&				getAllowedMethods( void ) const;
@@ -52,9 +52,9 @@ private:
 	std::string									_alias;
 	std::string									_upload_dir;
 	std::vector<std::string>					_indexes;
-	std::vector<std::string>					_allowed_methods;
+	std::vector<std::string>					_method;
 	std::vector<std::string>					_cgi_extension;
-	std::map<std::string, std::string>			_cgi_executable;
+	std::map<std::string, std::string>			_cgi_interpreter;
 	std::map<int, std::string>					_error_pages;
 	std::map<int, std::string>					_return;
 };

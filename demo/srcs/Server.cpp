@@ -184,9 +184,9 @@ void	Server::setCGIExtension( const std::string &arg )
 	_cgi_extension.push_back(arg);
 }
 
-void	Server::setCgiExecutable( const std::string &key, const std::string& val)
+void	Server::setCgiInterpreter( const std::string &key, const std::string& val)
 {
-	_cgi_executable[key] = val;
+	_cgi_interpreter[key] = val;
 }
 
 int Server::getWorkCont( void ) const
@@ -255,9 +255,9 @@ const std::vector<std::string>&	Server::getImplementedMethods( void ) const
 }
 
 
-const std::map<std::string, std::string>&	Server::getCgiExecutable( void ) const
+const std::map<std::string, std::string>&	Server::getCgiInterpreter( void ) const
 {
-	return (_cgi_executable);
+	return (_cgi_interpreter);
 }
 
 const std::vector<std::string>&		Server::getCGIExtension( void ) const

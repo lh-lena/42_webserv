@@ -27,7 +27,7 @@ std::string		utils::getFormattedDateTime( void )
 
 std::string		utils::get_value(const std::string& key, const std::map<std::string, std::string>& src)
 {
-	if (src.empty())
+	if (src.empty() || key.empty())
 	{
 		return "";
 	}

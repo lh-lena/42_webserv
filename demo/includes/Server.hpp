@@ -34,7 +34,7 @@ class Server
 		void								setServerName(const std::string &arg);
 		void								setLocation(const Location &src);
 		void								setImplementedMethods(const std::string& str);
-		void								setCgiExecutable(const std::string &key, const std::string& val);
+		void								setCgiInterpreter(const std::string &key, const std::string& val);
 		void								setCGIExtension( const std::string &arg );
 		void								setUploadDir(const std::string &str);
 		int									getLocationNbr( void ) const;
@@ -51,7 +51,7 @@ class Server
 		const std::map<int, std::string>&	getErrorPages( void ) const;
 		const std::vector<std::string>&		getImplementedMethods( void ) const;
 		const std::vector<std::string>&		getCGIExtension( void ) const;
-		const std::map<std::string, std::string>&	getCgiExecutable( void ) const;
+		const std::map<std::string, std::string>&	getCgiInterpreter( void ) const;
 
 		std::string							server_name;
 
@@ -70,7 +70,7 @@ class Server
 		std::vector<std::string>			_server_names;
 		std::map<int, std::string>			_error_pages;
 		std::vector<std::string>			_cgi_extension;
-		std::map<std::string, std::string>	_cgi_executable;
+		std::map<std::string, std::string>	_cgi_interpreter;
 };
 
 std::ostream &			operator<<( std::ostream & o, Server const & i );

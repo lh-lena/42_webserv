@@ -258,20 +258,12 @@ void		RequestHandler::handleStaticRequest( void )
 bool	RequestHandler::isCGIRequest( void ) const
 {
 	std::string req_uri = _request.getHeader("Request-URI");
-	std::string path_info = utils::extract_path_info(req_uri);
 	std::string ext = utils::get_file_extension(req_uri);
 
 	if (!utils::is_str_in_vector(ext, _location.getCGIExtension()))
 	{
 		return false;
 	}
-
-	std::string script_name = utils::extract_script_name(req_uri, ext);
-	std::cerr << MAGENTA << "req_uri " << req_uri << RESET << std::endl;
-	std::cerr << MAGENTA << "ext " << ext << RESET << std::endl;
-	std::cerr << MAGENTA << "script_name " << script_name << RESET << std::endl;
-	_request.setHeader("Path-Info", path_info);
-	_request.setHeader("Script-Name", script_name);
 	return true;
 }
 
@@ -279,6 +271,17 @@ void	RequestHandler::handleCgiRequest( void )
 {
 	CGI cgi;
 
+	std::string req_uri = _request.getHeader("Request-URI");
+	std::string ext = utils::get_file_extension(req_uri);
+	std::string path_info = utils::extract_path_info(req_uri);
+	std::string script_name = utils::extract_script_name(req_uri, ext);
+	// std::cerr << MAGENTA << "req_uri " << req_uri << RESET << std::endl; //rm
+	// std::cerr << MAGENTA << "ext " << ext << RESET << std::endl;
+	// std::cerr << MAGENTA << "script_name " << script_name << RESET << std::endl;
+	if (!_location.getIndexes().empty())
+		script_name = _location.getIndexes()[0];
+	_request.setHeader("Path-Info", path_info);
+	_request.setHeader("Script-Name", script_name);
 	_request.setFullPath(determineFilePath(_request.getHeader("Script-Name")));
 
 	if (!utils::has_executable_permissions(_request.getFullPath()))
@@ -286,12 +289,12 @@ void	RequestHandler::handleCgiRequest( void )
 		setCustomErrorResponse(FORBIDDEN, getCustomErrorPath(FORBIDDEN));
 		return;
 	}
-	std::cerr << RED << _request.getFullPath() << RESET << std::endl;
+	std::cerr << GREEN << _request.getFullPath() << RESET << std::endl;
 	cgi.setExecutable(_request.getFullPath());
 	cgi.setUploadDir(searchingUploadPath());
 	cgi.setEnvironment(_request);
 	std::string data = cgi.executeCGI(_request);
-	std::cerr << GREEN << data << RESET << std::endl;
+	// std::cerr << GREEN << data << RESET << std::endl;
 	handleCgiResponse(data);
 }
 

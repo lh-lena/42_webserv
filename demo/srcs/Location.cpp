@@ -42,7 +42,7 @@ Location &				Location::operator=( Location const & rhs )
 		this->_upload_dir = rhs.getUploadDir();
 		this->_error_pages = rhs.getErrorPages();
 		this->_cgi_extension = rhs.getCGIExtension();
-		this->_allowed_methods = rhs.getAllowedMethods();
+		this->_method = rhs.getAllowedMethods();
 	}
 	return *this;
 }
@@ -131,7 +131,7 @@ void	Location::setAutoindex(bool arg)
 
 void	Location::setAllowedMethod(const std::string &arg)
 {
-	_allowed_methods.push_back(arg);
+	_method.push_back(arg);
 }
 
 void	Location::setUploadDir(const std::string &arg)
@@ -154,9 +154,9 @@ void	Location::setCGIExtension( const std::string &arg )
 	_cgi_extension.push_back(arg);
 }
 
-void	Location::setCgiExecutable( const std::string &key, const std::string& val)
+void	Location::setCgiInterpreter( const std::string &key, const std::string& val)
 {
-	_cgi_executable[key] = val;
+	_cgi_interpreter[key] = val;
 }
 
 void		Location::setClientMaxBody(size_t value)
@@ -196,7 +196,7 @@ bool	Location::getAutoindex( void ) const
 
 const std::vector<std::string>&	Location::getAllowedMethods( void ) const
 {
-	return (_allowed_methods);
+	return (_method);
 }
 
 const std::string&	Location::getUploadDir( void ) const
@@ -220,9 +220,9 @@ const std::vector<std::string>&		Location::getCGIExtension( void ) const
 	return (_cgi_extension);
 }
 
-const std::map<std::string, std::string>&		Location::getCgiExecutable( void ) const
+const std::map<std::string, std::string>&		Location::getCgiInterpreter( void ) const
 {
-	return (_cgi_executable);
+	return (_cgi_interpreter);
 }
 
 /* ************************************************************************** */
