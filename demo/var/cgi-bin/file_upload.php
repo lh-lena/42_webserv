@@ -5,14 +5,22 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-// Set the upload directory
-$upload_dir = "/var/www/html/uploads/";
-$files_list = "/var/www/html/uploads/files.txt";
-
-// Ensure the directory exists
-if (!file_exists($upload_dir)) {
-    mkdir($upload_dir, 0777, true);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo('Status: 504 Method Not Allowed');
+    echo json_encode(['success' => false, 'error' => 'No file uploaded.']);
+    exit;
 }
+
+// Set the upload directory
+$upload_dir = $_SERVER['UPLOAD_PATH']; // use the path from server config.
+if (!is_dir($upload_dir)) {
+    if (!mkdir($upload_dir, 0755, true)) { //create the directory if it does not exists
+        header ('Status: 400 Bad request');
+        echo json_encode(['success' => false, 'message' => 'Failed to create directory.']);
+        exit;
+    }
+}
+$files_list = "/var/www/html/uploads/files.txt";
 
 echo('Content-Type: application/json');
 

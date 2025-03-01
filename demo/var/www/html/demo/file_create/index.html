@@ -15,11 +15,12 @@
         <div class="subtitle">
             <h2>create file</h2>
         </div>
-        <form class="file_create_wrapper" method="post" enctype="multipart/form-data">
+        <form id="file-form" class="file_create_form" method="post" enctype="multipart/form-data">
             <input placeholder="File Name" type="text" id="fileName" name="file_name" required>
             <textarea placeholder="Input" id="fileBody" name="file_body" rows="5" required></textarea>
             <button type="submit" id="submitBtn">create</button>
         </form>
+        <h3 id="message"></h3>
     </div>
 
     <script type="text/javascript" src="script.js"></script>

@@ -47,7 +47,7 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 	this->setServerDirective("index", &ParseConfig::handleIndex);
 	this->setServerDirective("listen", &ParseConfig::handleListen);
 	this->setServerDirective("error_page", &ParseConfig::handleErrorPage);
-	this->setServerDirective("upload", &ParseConfig::handleUploadDir);
+	this->setServerDirective("upload_dir", &ParseConfig::handleUploadDir);
 	this->setLocationDirective("location", &ParseConfig::handleLocationBlock);
 	this->setServerDirective("location", &ParseConfig::handleServerBlock);
 	this->setServerDirective("server_name", &ParseConfig::handleServerName);
@@ -61,7 +61,7 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 	this->setLocationDirective("autoindex", &ParseConfig::handleAutoindex);
 	this->setLocationDirective("error_page", &ParseConfig::handleErrorPage);
 	this->setLocationDirective("method", &ParseConfig::handleAllowedMethods);
-	this->setLocationDirective("upload", &ParseConfig::handleUploadDir);
+	this->setLocationDirective("upload_dir", &ParseConfig::handleUploadDir);
 	this->setLocationDirective("cgi_extension", &ParseConfig::handleCGIExtension);
 	this->setLocationDirective("cgi_interpreter", &ParseConfig::handleCgiInterpreter);
 	this->setLocationDirective("client_max_body_size", &ParseConfig::handleClientBodySize);

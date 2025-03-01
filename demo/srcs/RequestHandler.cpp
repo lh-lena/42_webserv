@@ -275,9 +275,6 @@ void	RequestHandler::handleCgiRequest( void )
 	std::string ext = utils::get_file_extension(req_uri);
 	std::string path_info = utils::extract_path_info(req_uri);
 	std::string script_name = utils::extract_script_name(req_uri, ext);
-	// std::cerr << MAGENTA << "req_uri " << req_uri << RESET << std::endl; //rm
-	// std::cerr << MAGENTA << "ext " << ext << RESET << std::endl;
-	// std::cerr << MAGENTA << "script_name " << script_name << RESET << std::endl;
 	if (!_location.getIndexes().empty())
 		script_name = _location.getIndexes()[0];
 	_request.setHeader("Path-Info", path_info);
@@ -294,7 +291,7 @@ void	RequestHandler::handleCgiRequest( void )
 	cgi.setUploadDir(searchingUploadPath());
 	cgi.setEnvironment(_request);
 	std::string data = cgi.executeCGI(_request);
-	// std::cerr << GREEN << data << RESET << std::endl;
+	std::cerr << GREEN << data << RESET << std::endl;
 	handleCgiResponse(data);
 }
 
@@ -308,7 +305,6 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 
 	while (std::getline(iss, line) && line.length() != 0 )
 	{
-		std::cerr << BLUE << line << RESET << std::endl;
 		utils::parse_header_field(line, headers);
 	}
 
@@ -316,7 +312,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	oss << iss.rdbuf();
 	body = oss.str();
 
-	if (utils::get_value("Content-Type", headers).empty())
+	if (utils::get_value("content-type", headers).empty())
 	{
 		std::cerr <<  BLUE << "utils::get_value(Content-Type, headers).empty()" << RESET << std::endl;
 		setCustomErrorResponse(INTERNAL_SERVER_ERROR, getCustomErrorPath(INTERNAL_SERVER_ERROR));
@@ -329,9 +325,9 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 		con_len = utils::to_string(body.length());
 	}
 
-	if (!utils::get_value("Status", headers).empty())
+	if (!utils::get_value("status", headers).empty())
 	{
-		int st = utils::stoi(utils::get_value("Status", headers));
+		int st = utils::stoi(utils::get_value("status", headers));
 		_response.setStatusCode(st);
 	}
 	else
@@ -340,22 +336,26 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	_response.setBody(body);
 	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
 	_response.setHeader("Server", _server.server_name);
-	_response.setHeader("Content-Type", utils::get_value("Content-Type", headers));
+	_response.setHeader("Content-Type", utils::get_value("content-type", headers));
 	_response.setHeader("Content-Length", con_len);
 	if (!utils::get_value("Location", headers).empty())
 	{
 		_response.setStatusCode(302);
-		_response.setHeader("Location", utils::get_value("Location", headers));
+		_response.setHeader("Location", utils::get_value("location", headers));
 	}
 
 	std::vector<std::pair<std::string, std::string> >::const_iterator it = headers.begin();
 	std::vector<std::string> cookies_val;
 	for (; it != headers.end(); ++it)
 	{
-		if (it->first == "Set-Cookie" && !utils::is_str_in_vector(it->first, cookies_val))
+		if (it->first == "set-cookie" && !utils::is_str_in_vector(it->first, cookies_val))
 		{
 			cookies_val.push_back(it->second);
 			_response.setHeader("Set-Cookie", it->second);
+		}
+		else if (it->first == "expires" && !utils::is_str_in_vector(it->first, cookies_val))
+		{
+			std::cerr << BLUE << "Expires " << it->second << RESET << std::endl; 
 		}
 	}
 }
@@ -516,10 +516,10 @@ std::string		RequestHandler::searchingUploadPath( void )
 		fullPath = determineFilePath(uploadDir);
 	}
 
-	// std::cerr << YELLOW << _location << RESET << std::endl;
-	// std::cerr << GREEN << "_server.getUploadDir() " << _server.getUploadDir() << "\n" <<
-	// " _location.getUploadDir() " << _location.getUploadDir() << " \fullPath  "<<
-	// fullPath << RESET << std::endl; //rm
+	std::cerr << YELLOW << _location << RESET << std::endl;
+	std::cerr << GREEN << "_server.getUploadDir() " << _server.getUploadDir() << "\n" <<
+	" _location.getUploadDir() " << _location.getUploadDir() << " \fullPath  "<<
+	fullPath << RESET << std::endl; //rm
 
 	return fullPath;
 }
@@ -748,7 +748,7 @@ std::string RequestHandler::normalizePath(const std::string& path)
 	for (size_t i = 0; i < stack.size(); ++i)
 	{
 		normalizedPath += stack[i];
-		if (i < stack.size() - 1)
+		if (i < stack.size() - 1 && !utils::ends_with(path, "/"))
 			normalizedPath += "/";
 	}
 	return normalizedPath;

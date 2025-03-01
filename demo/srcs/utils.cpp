@@ -65,7 +65,7 @@ void	utils::parse_header_field(const std::string& header_line, std::vector<std::
 		value.erase(0, 1);
 	}
 
-	headers.push_back(std::make_pair(key, value));
+	headers.push_back(std::make_pair(utils::str_tolower(key), value));
 }
 
 std::string		utils::get_value(const std::string& key, const std::vector<std::pair<std::string, std::string> >& headers)

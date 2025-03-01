@@ -59,8 +59,8 @@ if get_cookie('first'): # Only dispay value if cookie is defined.
   print ('<tr><td>Time First Visit</td><td>:</td><td>' + get_cookie('first') + '</tr>')
 if get_cookie('last'): # Only dispay value if cookie is defined.
   print ('<tr><td>Time Last Visit</td><td>:</td><td>' + get_cookie('last') + '</tr>')
-if get_cookie('Expires'): # Only dispay value if cookie is defined.
-  print ('<tr><td>Cookies will be expired </td><td>:</td><td>' + get_cookie('Expires') + '</tr>')
+# if get_cookie('Expires'): # Only dispay value if cookie is defined.
+#   print ('<tr><td>Cookies will be expired </td><td>:</td><td>' + get_cookie('Expires') + '</tr>')
 print ('<tr><td>Counter</td><td>:</td><td>' + str(val(get_cookie('count'))) + '</tr>')
 print ('</table>')
 print('</body>')

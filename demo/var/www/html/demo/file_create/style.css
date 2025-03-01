@@ -26,8 +26,9 @@ body {
     text-transform: uppercase;
 }
 
-.file_create_wrapper {
+.file_create_form {
     display: flex;
+    justify-content: center;
     flex-flow: column;
     width: 300px;
 }
@@ -45,7 +46,7 @@ input, textarea, button {
     letter-spacing: 1px;
 }
 
-#submitBtn {
+#submitBtn, #message {
     cursor: pointer;
     text-transform: uppercase;
     font-weight: 700;
@@ -58,3 +59,4 @@ input, textarea, button {
     cursor: pointer;
     background-color: #e7e7e7e1;
 }
+

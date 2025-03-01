@@ -79,6 +79,7 @@ void CGI::setEnvironment(const Request& request)
 		envp.push_back(cStr);
 	}
 	envp.push_back(NULL);
+	printEnvironment();
 }
 
 void	CGI::cleanEnvironment()
