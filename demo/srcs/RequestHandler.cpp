@@ -348,7 +348,8 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	std::vector<std::string> cookies_val;
 	for (; it != headers.end(); ++it)
 	{
-		if (it->first == "set-cookie" && !utils::is_str_in_vector(it->second, cookies_val))
+		//std::cerr << RED << it->first << ":" << it->second << RESET << std::endl;
+		if (it->first == "set-cookie") //&& !utils::is_str_in_vector(it->second, cookies_val)
 		{
 			cookies_val.push_back(it->second);
 			_response.setHeader("Set-Cookie", it->second);
@@ -356,6 +357,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 		else if (it->first == "expires" && !utils::is_str_in_vector(it->first, cookies_val))
 		{
 			std::cerr << BLUE << "Expires " << it->second << RESET << std::endl; 
+			_response.setHeader("Expires", it->second);
 		}
 	}
 }
