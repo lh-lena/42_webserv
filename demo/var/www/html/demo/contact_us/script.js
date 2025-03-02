@@ -38,5 +38,5 @@ form.addEventListener('submit', async (e) => {
     setTimeout(() => {
         document.getElementById('contact-form').reset();
         messageDiv.textContent = "";
-    }), 200;
+    }), 1000;
 });
