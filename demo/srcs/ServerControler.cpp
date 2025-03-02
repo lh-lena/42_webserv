@@ -625,10 +625,10 @@ std::string	ServerControler::processRequest(std::string & data)
 	// << response.getStatusCode() << " "
 	// << response.getHeader("Content-Length")  << RESET << std::endl;
 
-	ss = "[TRACE] " + utils::getFormattedDateTime() + " \"" + request.start_line + "\" " +\
+	ss = "[TRACE] " + utils::getFormattedDateTime() + " \"" + request.start_line + "\"\n" +\
 	 utils::itos(response.getStatusCode()) + " " + response.getHeader("Content-Length");
 
-	// std::cout << MAGENTA << ss << RESET << std::endl; //rm
+	std::cout << MAGENTA << ss << RESET << std::endl;
 	return response.getResponse();
 }
 

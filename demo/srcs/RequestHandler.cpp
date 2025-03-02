@@ -303,8 +303,8 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	std::string			con_len;
 	std::vector<std::pair<std::string, std::string> >	headers;
 
-	// while (std::getline(iss, line) && line.length() != 0 )
-	while (std::getline(iss, line) && line != "\r" )
+	// while (std::getline(iss, line) && line != "\r" )
+	while (std::getline(iss, line) && line.length() != 0 )
 	{
 		// std::cerr << BLUE << "line: " << line << RESET << std::endl; //rm
 		utils::parse_header_field(line, headers);

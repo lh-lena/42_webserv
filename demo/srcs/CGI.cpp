@@ -50,7 +50,7 @@ void CGI::setEnvironment(const Request& request)
 	tmp_val = !request.getHeader("Auth-Scheme").empty() ? request.getHeader("Authorization") : std::string();
 	addEnvField("AUTH_TYPE", tmp_val);
 	addEnvField("GATEWAY_INTERFACE", "CGI/1.1");
-	addEnvField("REDIRECT_STATUS", "200");
+	addEnvField("REDIRECT_STATUS", "1");
 	addEnvField("DISPLAY", ":0");
 	addEnvField("DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/101457/bus");
 	/** Filesystem- (not document root-) based path to the current script, after the server has done any virtual-to-real mapping. */
@@ -81,7 +81,6 @@ void CGI::setEnvironment(const Request& request)
 		envp.push_back(cStr);
 	}
 	envp.push_back(NULL);
-	printEnvironment();
 }
 
 void	CGI::cleanEnvironment()
