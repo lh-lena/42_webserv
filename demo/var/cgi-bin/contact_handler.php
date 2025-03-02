@@ -1,8 +1,5 @@
 #!/usr/bin/php-cgi
 
-#$_POST = json_decode(file_get_contents("php://input"), true);
-#echo var_dump($_POST);
-
 <?php
 // enable error reporting
 ini_set('display_errors', 1);
@@ -16,15 +13,13 @@ $input = $data = $response = $name = $email = $message = $file = $timestamp = ""
 $request_method = $_SERVER['REQUEST_METHOD'];
 $uploadDir = $_SERVER['UPLOAD_PATH'];
 
-// init response
-$response = ['success' => false];
-header('Content-Type: application/json');
 
 if ($request_method === 'GET')
 {
     if (!isset($_GET['name']) || !isset($_GET['email']) || !isset($_GET['message']))
     {
-        header('HTTP/1.1 400 Bad Request');
+        header('Content-Type: application/json');
+        header('Status: 400 Bad Request');
         echo json_encode(['success' => false, 'error' => 'All fields are required.']);
         exit;
     }
@@ -42,9 +37,9 @@ else if ($request_method === 'POST') {
     $input = file_get_contents('php://input');
     $data = json_decode($input, true);
     if ($data === null) {
-        header('HTTP/1.1 400 Bad Request');
-        http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'Invalid JSON input.']);
+        header('Content-Type: application/json');
+        header('Status: 400 Bad Request');
+        echo json_encode(['success' => false, 'error' => 'Invalid input.']);
         exit;
     }
 
@@ -57,13 +52,15 @@ else if ($request_method === 'POST') {
 }
 else {
     // Unsupported request method
-    header('HTTP/1.1 405 Method Not Allowed');
+    header('Content-Type: application/json');
+    header('Status: 405 Method Not Allowed');
     echo json_encode(['success' => false, 'error' => 'Method not allowed.']);
     exit;
 }
 
 if (empty($name) || empty($email) || empty($message) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    header('HTTP/1.1 200 OK');
+    header('Content-Type: application/json');
+    header('Status: 400 Bad Request');
     echo json_encode(['success' => false, 'error' => 'All fields are required.']);
     exit;
 }
@@ -79,14 +76,27 @@ $file = __DIR__ . '/messages.log';
 file_put_contents($file, $email_content . "\n\n", FILE_APPEND);
 
 // respond with success
-$response = [
-    'success' => true,
-    'message' => htmlspecialchars("Hello $name, thank you for your message!")
-];
+$response =  "<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Message Received</title>
+    <style>
+        h1, p {  width: 50%; margin: 20px auto;}
+    </style>
+</head>
+<body>
+    <div class=\"home_bnt\">
+    <a href=\"/index.html\">H O M E</a><br />
+    <h1>Hello, $name!</h1>
+    <p>Thank you for your message.</p>
+</body>
+</html>";
 
 // return a JSON response
-header('HTTP/1.1 200 OK');
-echo json_encode($response);
+header('Status: 200 OK');
+echo $response;
 
 function test_input($data) {
     $data = trim($data);

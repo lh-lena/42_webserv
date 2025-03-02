@@ -87,7 +87,7 @@ print("    </style>")
 print("</head>")
 print("<body>")
 print("<div class=\"home_bnt\">")
-print("<a href=\"/index.html\">H O M E</a><br />") # Use <br />
+print("<a href=\"/index.html\">H O M E</a><br />")
 print("</div>")
 print("<table border=\"0\">")
 if "First" in cookies:
