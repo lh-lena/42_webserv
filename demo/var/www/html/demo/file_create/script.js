@@ -22,12 +22,14 @@ form.addEventListener('submit', async (e) => {
             throw new Error(`Response status: ${response.status}`);
         }
         const json = await response.json();
-        message.innerHTML = "File " + file_name + " saved successfully!";
+        message.style.display = "block";
+        message.innerText = "File " + file_name + " saved successfully!";
+        form.reset();
         setTimeout(() => {
-            form.reset();
-            message.innerHTML = "";
+            message.style.display = "none";
+            message.innerText = "";
             console.log(json.message);
-        }), 10000;
+        }, 2000);
     } catch (error) {
         form.reset();
         console.error(error.message);
