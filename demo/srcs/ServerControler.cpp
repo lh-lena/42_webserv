@@ -498,7 +498,7 @@ void	ServerControler::handleInEvent(int fd)
 	int res = recv(fd, buf, BUFF_SIZE - 1, 0);
 	if (res < 0)
 	{
-		std::cout << RED << "[ERROR] : "  << utils::getFormattedDateTime() << " recv() failed" << RESET << std::endl;
+		// std::cout << RED << "[ERROR] : "  << utils::getFormattedDateTime() << " recv() failed" << RESET << std::endl; //rm
 		removeConnection(fd);
 		return;
 	}
@@ -599,7 +599,7 @@ std::string	ServerControler::processRequest(std::string & data)
 	Request		request;
 	Response	response;
 	Server		serv;
-
+	// std::cerr << MAGENTA << data << RESET << std::endl; //rm
 	if (!request.parse(data))
 	{
 		if (request.getHeader("Server-Protocol") != "HTTP/1.1")
@@ -628,8 +628,7 @@ std::string	ServerControler::processRequest(std::string & data)
 	ss = "[TRACE] " + utils::getFormattedDateTime() + " \"" + request.start_line + "\" " +\
 	 utils::itos(response.getStatusCode()) + " " + response.getHeader("Content-Length");
 
-	std::cout << MAGENTA << ss << RESET << std::endl;
-
+	// std::cout << MAGENTA << ss << RESET << std::endl; //rm
 	return response.getResponse();
 }
 

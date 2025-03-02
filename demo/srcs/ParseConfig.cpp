@@ -439,7 +439,6 @@ template<typename T> void	ParseConfig::handleCgiInterpreter(const std::pair<std:
 		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"_cgi_interpreter\" required a file extention and an executable in " + _conf_file_path + ":" + utils::itos(value.second));
 	if (!(utils::starts_with(vals[0], ".")))
 		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"_cgi_interpreter\" required a file extention " + _conf_file_path + ":" + utils::itos(value.second));
-	std::cerr << YELLOW << "setCgiInterpreter " << vals[0] << " " << vals[1] << RESET << std::endl;
 	instance->setCgiInterpreter(vals[0], vals[1]);
 }
 

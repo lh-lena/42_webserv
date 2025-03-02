@@ -33,8 +33,8 @@ void		RequestHandler::processRequest()
 		return;
 	}
 
-	std::cerr << YELLOW << "request:\n" << _request << RESET;
-	std::cout << GREEN << "location: " << _location << RESET <<  std::endl;
+	// std::cerr << YELLOW << "request:\n" << _request << RESET; //rm
+	// std::cout << GREEN << "location: " << _location << RESET <<  std::endl;
 
 	if (!isImplementedMethod())
 	{
@@ -174,7 +174,7 @@ std::string			RequestHandler::determineFilePath(const std::string& requested_pat
 	}
 
 	std::string full_path = root + path;
-	std::cerr << RED << "path " << full_path << RESET << std::endl;
+	// std::cerr << RED << "path " << full_path << RESET << std::endl; //rm
 	return full_path;
 }
 
@@ -291,7 +291,7 @@ void	RequestHandler::handleCgiRequest( void )
 	cgi.setUploadDir(searchingUploadPath());
 	cgi.setEnvironment(_request);
 	std::string data = cgi.executeCGI(_request);
-	std::cerr << GREEN << data << RESET << std::endl;
+	// std::cerr << GREEN << data << RESET << std::endl; //rm
 	handleCgiResponse(data);
 }
 
@@ -303,8 +303,10 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	std::string			con_len;
 	std::vector<std::pair<std::string, std::string> >	headers;
 
-	while (std::getline(iss, line) && line.length() != 0 )
+	// while (std::getline(iss, line) && line.length() != 0 )
+	while (std::getline(iss, line) && line != "\r" )
 	{
+		// std::cerr << BLUE << "line: " << line << RESET << std::endl; //rm
 		utils::parse_header_field(line, headers);
 	}
 
@@ -312,9 +314,11 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	oss << iss.rdbuf();
 	body = oss.str();
 
+	// std::cerr << RED << "BODY CGI: \n" << body << RESET<<  std::endl; //rm
+
 	if (utils::get_value("content-type", headers).empty())
 	{
-		std::cerr <<  BLUE << "utils::get_value(Content-Type, headers).empty()" << RESET << std::endl;
+		// std::cerr <<  BLUE << "utils::get_value(Content-Type, headers).empty()" << RESET << std::endl;
 		setCustomErrorResponse(INTERNAL_SERVER_ERROR, getCustomErrorPath(INTERNAL_SERVER_ERROR));
 		return;
 	}
@@ -353,11 +357,6 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 		{
 			cookies_val.push_back(it->second);
 			_response.setHeader("Set-Cookie", it->second);
-		}
-		else if (it->first == "expires" && !utils::is_str_in_vector(it->first, cookies_val))
-		{
-			std::cerr << BLUE << "Expires " << it->second << RESET << std::endl; 
-			_response.setHeader("Expires", it->second);
 		}
 	}
 }
@@ -464,11 +463,11 @@ void		RequestHandler::handlePOST( void )
 		setCustomErrorResponse(REQUEST_ENTITY_TOO_LARGE, getCustomErrorPath(REQUEST_ENTITY_TOO_LARGE));
 		return;
 	}
-	else if (body.size() < max_size)
+	/*else if (body.size() != _request.getHeader('Content-Length'))
 	{
 		setCustomErrorResponse(BAD_REQUEST, getCustomErrorPath(BAD_REQUEST));
 		return;
-	}
+	}*/
 
 	std::string filepath = uploadDir + filename;
 	std::ofstream outfile(filepath.c_str(), std::ios::binary);
@@ -518,10 +517,10 @@ std::string		RequestHandler::searchingUploadPath( void )
 		fullPath = determineFilePath(uploadDir);
 	}
 
-	std::cerr << YELLOW << _location << RESET << std::endl;
-	std::cerr << GREEN << "_server.getUploadDir() " << _server.getUploadDir() << "\n" <<
-	" _location.getUploadDir() " << _location.getUploadDir() << " \fullPath  "<<
-	fullPath << RESET << std::endl; //rm
+	// std::cerr << YELLOW << _location << RESET << std::endl; //rm
+	// std::cerr << GREEN << "_server.getUploadDir() " << _server.getUploadDir() << "\n" <<
+	// " _location.getUploadDir() " << _location.getUploadDir() << " \fullPath  "<<
+	// fullPath << RESET << std::endl; //rm
 
 	return fullPath;
 }
