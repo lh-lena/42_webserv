@@ -306,7 +306,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	// while (std::getline(iss, line) && line != "\r" )
 	while (std::getline(iss, line) && line.length() != 0 )
 	{
-		// std::cerr << BLUE << "line: " << line << RESET << std::endl; //rm
+		// std::cerr << BLUE << "header: " << line << RESET << std::endl; //rm
 		utils::parse_header_field(line, headers);
 	}
 

@@ -9,7 +9,10 @@ error_reporting(E_ALL);
 // header ("Location: " . $_SERVER['HTTP_REFERER']);
 
 $rawData = file_get_contents("php://input");
-file_put_contents("debug.log", $rawData);
+file_put_contents("debug.log", "Attempt #1\n");
+file_put_contents("debug.log", $_SERVER["CONTENT_LENGTH"] . "\n", FILE_APPEND);
+file_put_contents("debug.log", $rawData . "\n", FILE_APPEND);
+file_put_contents("debug.log", var_export($_FILES, true) . "\n", FILE_APPEND);
 // if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 //     header('Status: 504 Method Not Allowed');
 //     echo '504 Method Not Allowed.';
@@ -23,7 +26,13 @@ file_put_contents("debug.log", $rawData);
 //     exit;
 // }
 // // Set the upload directory
-// $upload_dir = $_SERVER['UPLOAD_PATH']; // use the path from server config.
+// $upload_dir = $_SERVER['UPLOAD_PATH']; // the path from server config
+    
+//     // the full relative file path
+//     if (strrpos($upload_dir, '/') !== strlen($upload_dir) - 1)
+//         $upload_dir .= '/';
+//     $upload_dir = dirname(__DIR__, 2) . '/' . $upload_dir;
+//     $filePath = $upload_dir . $fileName;
 // if (!is_dir($upload_dir)) {
 //     if (!mkdir($upload_dir, 0755, true)) { //create the directory if it does not exists
 //         header ('Status: 400 Bad request');

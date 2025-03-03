@@ -13,32 +13,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fileName = $input['file_name'] ?? '';
     $fileBody = $input['file_body'] ?? '';
 
-    // Validate inputs (optional, but recommended)
     if (empty($fileName) || empty($fileBody)) {
         header ('Status: 400 Bad request');
         echo json_encode(['success' => false, 'message' => 'File name and body are required.']);
         exit;
     }
+    $uploadDir = $_SERVER['UPLOAD_PATH']; // the path from server config
+    
+    // the full relative file path
+    if (strrpos($uploadDir, '/') !== strlen($uploadDir) - 1)
+        $uploadDir .= '/';
+    $uploadDir = dirname(__DIR__, 2) . '/' . $uploadDir;
+    $filePath = $uploadDir . $fileName;
 
-    $uploadDir = $_SERVER['UPLOAD_PATH']; // use the path from server config.
     if (!is_dir($uploadDir)) {
         if (!mkdir($uploadDir, 0755, true)) { //create the directory if it does not exists
             header ('Status: 400 Bad request');
-            echo json_encode(['success' => false, 'message' => 'Failed to create directory.']);
+            echo json_encode(['success' => false, 'message' => 'Failed to create directory.', 'path: ' => $uploadDir]);
             exit;
         }
     }
-
-    // Create the full file path
-    $filePath = $uploadDir . '/' . $fileName;
-
     // Save the file
     if (file_put_contents($filePath, $fileBody) !== false) {
         header ('Status: 200 OK');
-        echo json_encode(['success' => true, 'message' => 'File ' . htmlspecialchars($fileName) . ' saved successfully!']);
+        echo json_encode(['success' => true, 'message' => 'File ' . htmlspecialchars($fileName) . ' saved successfully!', 'upload_path: ' => $uploadDir]);
     } else {
         header ('Status: 400 Bad request');
-        echo json_encode(['success' => false, 'message' => 'Failed to save file.']);
+        echo json_encode(['success' => false, 'message' => 'Failed to save file.', 'upload_path: ' => $uploadDir]);
     }
 } else {
     // If the request method is not POST, return an error

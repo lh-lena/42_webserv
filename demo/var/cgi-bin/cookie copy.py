@@ -3,7 +3,7 @@
 import os
 import time
 import datetime
-from http.cookies import SimpleCookie
+import http.cookies
 
 # curl -v --cookie "Second=Fri, 16-Feb-2025 15:16:00; Count=3; InvalidCookie" http://localhost:8080/cookie.py
 
@@ -32,10 +32,11 @@ def val(_string):
 cookies = parse_cookies()
 
 # Create cookies
-cookie = SimpleCookie()
+# cookie = SimpleCookie()
+cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE", ""))
 
 # First visit
-if "First" not in cookies:
+if "First" not in cookie:
     cookie["First"] = time.asctime(time.localtime())
     cookie["First"]["Path"] = os.environ["REQUEST_URI"]
     cookie["First"]["expires"] = (datetime.datetime.utcnow() + datetime.timedelta(minutes=1)).strftime("%a, %d-%b-%Y %H:%M:%S GMT")
