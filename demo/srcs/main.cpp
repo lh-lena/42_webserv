@@ -69,3 +69,6 @@ int	main(int ac, char **av, char **envp)
 // 		return (1);
 // 	}
 // }
+
+
+// curl -v -H "Transfer-Encoding: chunked" -d "4/r/nWiki/r/n7/r/npedia i/r/nB/r/nn /r/nchunks./r/n0/r/n/r/n" http://localhost:8080/

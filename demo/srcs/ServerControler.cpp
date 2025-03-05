@@ -183,18 +183,6 @@ static int	isInPollfds(int fd, const std::vector<int> & sds)
 	return 0;
 }
 
-static int	getConnIdx(int fd, std::vector<Conn> &conns)
-{
-	int size = conns.size();
-
-	for (int i = 0; i < size; i++)
-	{
-		if (conns[i].fd == fd)
-			return i;
-	}
-	return size;
-}
-
 void	ServerControler::polling()
 {
 	int	res;
@@ -250,6 +238,7 @@ void	ServerControler::polling()
 					{
 						addConnection(new_fd);
 						std::cout << "New connection on listening socket " << res << ", new_fd = " << new_fd << std::endl;
+						continue;
 					}
 				}
 				else
@@ -261,7 +250,7 @@ void	ServerControler::polling()
 	}
 	closeFds();
 }
-/*
+
 void	ServerControler::startServing()
 {
 	// signal(SIGINT, ServerControler::sig_handler);
@@ -287,7 +276,20 @@ void	ServerControler::startServing()
 	}
 
 	polling();
-}*/
+}
+
+/*----------------------------old working code----------------------------
+static int	getConnIdx(int fd, std::vector<Conn> &conns)
+{
+	int size = conns.size();
+
+	for (int i = 0; i < size; i++)
+	{
+		if (conns[i].fd == fd)
+			return i;
+	}
+	return size;
+}
 
 void	ServerControler::startServing()
 {
@@ -481,10 +483,11 @@ void	ServerControler::startServing()
 	}
 	return;
 }
+----------------------------------------------------------------------------------*/
 
 void	ServerControler::handleInEvent(int fd)
 {
-	std::cout << "Handle POLLIN event on fd " << fd << std::endl;
+	//std::cout << "Handle POLLIN event on fd " << fd << std::endl;
 
 	Connection *conn = getConnection(fd);
 	if (conn == NULL)
