@@ -9,10 +9,10 @@ error_reporting(E_ALL);
 // header ("Location: " . $_SERVER['HTTP_REFERER']);
 
 $rawData = file_get_contents("php://input");
-file_put_contents("debug.log", "Attempt #1\n");
-file_put_contents("debug.log", $_SERVER["CONTENT_LENGTH"] . "\n", FILE_APPEND);
-file_put_contents("debug.log", $rawData . "\n", FILE_APPEND);
-file_put_contents("debug.log", var_export($_FILES, true) . "\n", FILE_APPEND);
+file_put_contents("logs/debug.log", "Attempt #1\n");
+file_put_contents("logs/debug.log", $_SERVER["CONTENT_LENGTH"] . "\n", FILE_APPEND);
+file_put_contents("logs/debug.log", $rawData . "\n", FILE_APPEND);
+file_put_contents("logs/debug.log", var_export($_FILES, true) . "\n", FILE_APPEND);
 // if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 //     header('Status: 504 Method Not Allowed');
 //     echo '504 Method Not Allowed.';

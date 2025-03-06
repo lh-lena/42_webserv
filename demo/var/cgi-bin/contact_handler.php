@@ -3,7 +3,7 @@
 <?php
 // enable error reporting
 ini_set('display_errors', 1);
-ini_set('error_log', __DIR__ . '/php_errors.log');
+ini_set('error_log', __DIR__ . 'logs/php_errors.log');
 error_reporting(E_ALL);
 
 // define variables and set to empty values
@@ -72,7 +72,7 @@ $email_content .= "Message: $message\n";
 $email_content .= "Submitted on: $timestamp\n";
 
 // save to a file
-$file = __DIR__ . '/messages.log';
+$file = __DIR__ . '/logs' . '/messages.log';
 file_put_contents($file, $email_content . "\n\n", FILE_APPEND);
 
 // respond with success

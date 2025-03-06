@@ -19,7 +19,6 @@ cookie_expiration = 60
 if "First" not in cookie:
     cookie["First"] = time.asctime(time.localtime())
     cookie["First"]["Path"] = os.environ["REQUEST_URI"]
-    cookie["First"]["Max-Age"] = str(cookie_expiration)
     # seconds_to_add = 60 * 1
     # current_time_tuple = time.localtime()
     # future_time_seconds = time.mktime(current_time_tuple) + seconds_to_add
@@ -29,7 +28,9 @@ if "First" not in cookie:
 cookie["Last"] = time.asctime(time.localtime())
 cookie["Last"]["Path"] = os.environ["REQUEST_URI"]
 cookie["Last"]["Max-Age"] = str(cookie_expiration)
+cookie["First"]["Max-Age"] = str(cookie_expiration)
 
+count = 0;
 if "Count" in cookie:
     count = int(cookie.get("Count", "0").value) + 1
 else:

@@ -3,7 +3,7 @@
 <?php
 // enable error reporting
 ini_set('display_errors', 1);
-ini_set('error_log', __DIR__ . '/php_errors.log');
+ini_set('error_log', __DIR__ . '/logs/php_errors.log');
 error_reporting(E_ALL);
 
 // Check if the form was submitted
