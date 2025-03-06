@@ -10,3 +10,6 @@ webserv
 # VSCode
 *.vscode/
 .vscode
+
+# from MacOS
+.DS_Store
