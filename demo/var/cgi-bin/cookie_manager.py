@@ -33,7 +33,8 @@ elif action == "delete":
     # Delete a cookie
     if cookie_name in cookie:
         cookie[cookie_name] = ""
-        cookie[cookie_name]["expires"] = "Thu, 01 Jan 1970 00:00:00 GMT"
+        cookie[cookie_name]["Expires"] = "Thu, 01 Jan 1970 00:00:00 GMT"
+        cookie[cookie_name]["Max-Age"] = 0
         print(f"Set-Cookie: {cookie.output(header='', sep='')}")
         print("\nCookie deleted successfully.")
     else:

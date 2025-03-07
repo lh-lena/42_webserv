@@ -4,6 +4,7 @@ const selectBtm = document.getElementById('uploadBtm');
 const fileNameDisplay = document.getElementById('fileName');
 const submitBtn = document.getElementById('submitBtn');
 const message = document.getElementById('message');
+const form = document.getElementById('file_upload_form');
 
 selectBtm.addEventListener('click', function () {
     fileInput.click();
@@ -17,9 +18,9 @@ fileInput.addEventListener('change', function () {
     }
 });
 
-submitBtn.addEventListener('click', function (e) {
+submitBtn.addEventListener('click', (e) => {
+    e.preventDefault();
     if (fileInput.files.length === 0) {
-        e.preventDefault();
         message.style.display = 'block';
         message.innerHTML = "Please select a file before uploading";
         setTimeout( () => {
@@ -27,9 +28,48 @@ submitBtn.addEventListener('click', function (e) {
             message.innerHTML = "";
         }, 3000);
     }
-    // else {
-    //     window.location.reload();
-    // }
+    else {
+        try {
+            const name = fileInput.files[0].name;
+            const file = fileInput.files[0];
+            const form_data = new FormData();
+            form_data.append("name", name);
+            form_data.append("file", "TEST_FILE_INPUT");
+            // console.log(e);
+            // const form_data = e.currentTarget;
+            // if (form_data === null) {
+            //     throw new Error(`Invalid input`);
+            // }
+            // const url = new URL(form_data.action);
+            // console.log(e.currentTarget);
+            // console.log(new FormData(form_data));
+            // console.log(e.currentTarget.action);
+            const response = fetch("/file_upload.php", {
+                method: "POST",
+                body: form_data
+                // body: JSON.stringify({ name,  file})
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(response => {
+                message.style.display = "block";
+                message.innerHTML = "File " + file_name + " saved successfully!";
+                // form.reset();
+                setTimeout(() => {
+                    message.style.display = "none";
+                    message.innerHTML = "";
+                    console.log(json.message);
+                }, 2000);
+            });
+        } catch (error) {
+            // form.reset();
+            console.error(error.message);
+        }
+    }
 });
 
 // Fetch uploaded files and display them

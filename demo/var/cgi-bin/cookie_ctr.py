@@ -9,7 +9,7 @@ import http.cookies
 
 # cookies are deleted after the date specified in the Expires or after the period specified in the Max-Age attribute:
 # Expires=Thu, 31 Oct 2021 07:28:00 GMT;
-# Max-Age=2592000
+# Max-Age=60 (in sec)
 
 # Create cookies
 cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE", ""))
@@ -19,18 +19,13 @@ cookie_expiration = 60
 if "First" not in cookie:
     cookie["First"] = time.asctime(time.localtime())
     cookie["First"]["Path"] = os.environ["REQUEST_URI"]
-    # seconds_to_add = 60 * 1
-    # current_time_tuple = time.localtime()
-    # future_time_seconds = time.mktime(current_time_tuple) + seconds_to_add
-    # future_time_tuple = time.localtime(future_time_seconds)
-    # cookie["First"]["Expires"] = time.asctime(future_time_tuple)
 
 cookie["Last"] = time.asctime(time.localtime())
 cookie["Last"]["Path"] = os.environ["REQUEST_URI"]
 cookie["Last"]["Max-Age"] = str(cookie_expiration)
 cookie["First"]["Max-Age"] = str(cookie_expiration)
 
-count = 0;
+count = 0
 if "Count" in cookie:
     count = int(cookie.get("Count", "0").value) + 1
 else:
@@ -65,12 +60,9 @@ print("<div class=\"home_bnt\">")
 print("<a href=\"/index.html\">H O M E</a><br />")
 print("<br><br><br>")
 print("</div>")
-print("<div>")
-print(cookie.output())
-print("</div>")
 print("<table border=\"0\">")
 if "First" in cookie:
-    print(f"<tr><td>Time First Visit : {cookie['First']} </td></tr>")
+    print(f"<tr><td>Time First Visit : {cookie['First'].value} </td></tr>")
 if "Last" in cookie:
     print(f"<tr><td>Time Last Visit : \"{cookie['Last'].value}\" </td></tr>")
     print(f"<tr><td>Cookies will be expired in : {cookie_expiration} sec</td></tr>")

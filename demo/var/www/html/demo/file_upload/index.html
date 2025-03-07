@@ -16,14 +16,15 @@
             <h2>Upload File</h2>
         </div>
         <div id="message"></div>
-        <form class="file_upload_wrapper" action="/file_upload.php"  method="POST" enctype="multipart/form-data">
-            <span id="fileName">No File Selected</span>
+        <form id="file_upload_form" action="/file_upload.php"  method="POST" enctype="multipart/form-data">
+            <!-- <span id="fileName">No File Selected</span> -->
+            <label id="fileName" for="file">No File Selected</label>
             <!-- hidden file input -->
-            <input placeholder="file" type="file" id="file" name="file">
+            <input type="file" id="file" name="file">
             <!-- custom button -->
             <img src="../images/upload_icon.png" id="uploadBtm" alt="Upload Icon">
             <!-- submit button -->
-            <button type="submit" id="submitBtn">Upload</button>
+            <input type="submit" id="submitBtn"></input>
         </form>
     </div>
 

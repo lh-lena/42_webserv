@@ -17,7 +17,7 @@ body {
     align-items: center; /* Center wrapper-form horizontally */
 }
 
-.file_upload_wrapper {
+#file_upload_form {
     display: flex;
     flex-flow: column;
     margin-top: 60px;

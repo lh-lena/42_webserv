@@ -13,7 +13,6 @@ $input = $data = $response = $name = $email = $message = $file = $timestamp = ""
 $request_method = $_SERVER['REQUEST_METHOD'];
 $uploadDir = $_SERVER['UPLOAD_PATH'];
 
-
 if ($request_method === 'GET')
 {
     if (!isset($_GET['name']) || !isset($_GET['email']) || !isset($_GET['message']))
@@ -35,6 +34,7 @@ else if ($request_method === 'POST') {
 
     // read input data from POST
     $input = file_get_contents('php://input');
+    file_put_contents("logs/debug.log", "Data:\n" . $input, FILE_APPEND);
     $data = json_decode($input, true);
     if ($data === null) {
         header('Content-Type: application/json');
