@@ -13,6 +13,7 @@ file_put_contents("logs/debug.log", "Attempt #1\n");
 file_put_contents("logs/debug.log", $_SERVER["CONTENT_LENGTH"] . "\n", FILE_APPEND);
 file_put_contents("logs/debug.log", $rawData . "\n", FILE_APPEND);
 file_put_contents("logs/debug.log", var_export($_FILES, true) . "\n", FILE_APPEND);
+file_put_contents("logs/debug.log", $_FILES["file"]["name"] . "\n", FILE_APPEND);
 // if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 //     header('Status: 504 Method Not Allowed');
 //     echo '504 Method Not Allowed.';

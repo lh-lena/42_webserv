@@ -3,7 +3,6 @@ import os
 import http.cookies
 import cgi
 
-# Parse CGI input
 form = cgi.FieldStorage()
 action = form.getvalue("action", "")
 cookie_name = form.getvalue("name", "")

@@ -2,7 +2,6 @@
 
 import os
 import time
-import datetime
 import http.cookies
 
 # curl -v --cookie "Second=Fri, 16-Feb-2025 15:16:00; Count=3; InvalidCookie" http://localhost:8080/cookie.py
