@@ -62,6 +62,10 @@ bool		Request::isBodyExpected()
 void	Request::parseStartLine(const std::string& str)
 {
 	start_line = str;
+	if (utils::ends_with(start_line, "\r"))
+	{
+		start_line.erase(start_line.size() - 1);
+	}
 	std::istringstream iss(str);
 	std::string	method, reqURI, protocol, query;
 

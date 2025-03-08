@@ -18,6 +18,7 @@ public:
 
 	Location &		operator=( Location const & rhs );
 
+	void										defaultRootLocation( void );
 	void										setAutoindex(bool arg);
 	void										setClientMaxBody(size_t value);
 	void										setPath(const std::string &arg);

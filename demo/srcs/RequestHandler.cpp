@@ -281,12 +281,18 @@ void	RequestHandler::handleCgiRequest( void )
 	_request.setHeader("Script-Name", script_name);
 	_request.setFullPath(determineFilePath(_request.getHeader("Script-Name")));
 
+	if (!utils::is_regular_file(_request.getFullPath()))
+	{
+		setCustomErrorResponse(NOT_FOUND, getCustomErrorPath(NOT_FOUND));
+		return;
+	}
+
 	if (!utils::has_executable_permissions(_request.getFullPath()))
 	{
 		setCustomErrorResponse(FORBIDDEN, getCustomErrorPath(FORBIDDEN));
 		return;
 	}
-	//std::cerr << GREEN << _request.getFullPath() << RESET << std::endl;
+	std::cerr << GREEN << _request.getBody() << RESET << std::endl;
 	cgi.setExecutable(_request.getFullPath());
 	cgi.setUploadDir(searchingUploadPath());
 	cgi.setEnvironment(_request);

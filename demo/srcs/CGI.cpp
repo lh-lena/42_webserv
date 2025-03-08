@@ -140,6 +140,7 @@ std::string		CGI::executeCGI(Request& request)
 	close(in_fds[0]);
 	close(out_fds[1]);
 	std::string b = request.getBody();
+	// std::cerr << BLUE << b << RESET << std::endl;
 	char *str = (char *)b.c_str();
 	if (str[0] != '\0')
 		write(in_fds[1], str, b.length());

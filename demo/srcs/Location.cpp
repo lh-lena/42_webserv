@@ -100,6 +100,13 @@ std::ostream&			operator<<( std::ostream & o, Location const& i )
 ** --------------------------------- METHODS ----------------------------------
 */
 
+void	Location::defaultRootLocation( void )
+{
+	setPath("/");
+	setRoot("var/www/html");
+	setIndex("index.42webserver.html");
+}
+
 /*
 ** --------------------------------- ACCESSOR ---------------------------------
 */
