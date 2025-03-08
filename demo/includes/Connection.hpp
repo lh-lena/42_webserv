@@ -16,6 +16,8 @@ class Connection
 
 	int		getFd() const;
 	void	setFd(const int fd);
+	int		getPort() const;
+	void	setPort(int p);
 	time_t	getStartTime() const;
 	void	setStartTime();
 	bool	isTimeout();
@@ -32,6 +34,7 @@ class Connection
 	private:
 
 	int	_fd;
+	int	_port;
 	time_t _start;
 	std::string _request;
 	size_t	_req_body_len;

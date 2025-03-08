@@ -36,12 +36,12 @@ ServerControler::ServerControler()
 		throw std::runtime_error("Error: setrlimit() failed");
 	if (getrlimit(RLIMIT_NOFILE, &lim) == -1)
 		throw std::runtime_error("Error: getrlimit() failed");
-	pfds_limit = lim.rlim_cur;
+	_pfds_limit = lim.rlim_cur;
 
 	memset(_pfds, 0, sizeof(_pfds));
 
 	std::cout << "Limit for the number of opened file descriptors: soft = "
-				<< pfds_limit << " hard = " << lim.rlim_max << std::endl;
+				<< _pfds_limit << " hard = " << lim.rlim_max << std::endl;
 }
 
 ServerControler::ServerControler( const ServerControler& src )
@@ -172,20 +172,21 @@ static int	create_tcp_server_socket(int port)
 /*
 ** --------------------------------- METHODS ----------------------------------
 */
-static int	isInPollfds(int fd, const std::vector<int> & sds)
+
+int		ServerControler::isSocketFd(int fd)
 {
-	int	ss = sds.size();
-	for (int i = 0; i < ss; i++)
+	int size = _socketFds.size();
+	for (int i = 0; i < size; i++)
 	{
-		if (fd == sds[i])
-			return sds[i];
+		if (_socketFds[i] == fd)
+			return i;
 	}
-	return 0;
+	return -1;
 }
 
 void	ServerControler::polling()
 {
-	int	res;
+	int	res, indx;
 	int	new_fd;
 	int timeout = 5 * 60000;
 	Connection *connection = NULL;
@@ -207,9 +208,9 @@ void	ServerControler::polling()
 		}
 		for (int i = 0; i < _nfds; i++)
 		{
+			connection = getConnection(_pfds[i].fd);
 			if (_pfds[i].revents == 0)
 			{
-				connection = getConnection(_pfds[i].fd);
 				if (connection && connection->isTimeout())
 				{
 					removeConnection(_pfds[i].fd);
@@ -218,7 +219,6 @@ void	ServerControler::polling()
 			}
 			else if ((_pfds[i].revents & POLLHUP) || (_pfds[i].revents & POLLERR))
 			{
-				connection = getConnection(_pfds[i].fd);
 				if (connection)
 				{
 					removeConnection(_pfds[i].fd);
@@ -229,22 +229,22 @@ void	ServerControler::polling()
 			}
 			else if (_pfds[i].revents & POLLIN)
 			{
-				if (isInPollfds(_pfds[i].fd, _socketFds))
+				indx = isSocketFd(_pfds[i].fd);
+				if (indx != -1)
 				{
 					new_fd = accept(_pfds[i].fd, NULL, NULL);
 					if (new_fd < 0 && errno != EWOULDBLOCK)
-						throw std::runtime_error("Error: accept() failed");
+					throw std::runtime_error("Error: accept() failed");
 					if (new_fd > 0)
 					{
-						addConnection(new_fd);
-						std::cout << "New connection on listening socket " << res << ", new_fd = " << new_fd << std::endl;
-						continue;
+						addConnection(new_fd, _ports[indx]);
+						std::cout << "New connection on listening socket " << indx << ", new_fd = " << new_fd << std::endl;
 					}
 				}
 				else
-					handleInEvent(_pfds[i].fd);
+				handleInEvent(_pfds[i].fd);
 			}
-			if (_pfds[i].revents & POLLOUT)
+			if (connection && _pfds[i].revents & POLLOUT)
 				handleOutEvent(_pfds[i].fd);
 		}
 	}
@@ -257,7 +257,7 @@ void	ServerControler::startServing()
 
 	try
 	{
-		this->createListeningSockets();
+		createListeningSockets();
 	}
 	catch(const std::exception& e)
 	{
@@ -277,213 +277,6 @@ void	ServerControler::startServing()
 
 	polling();
 }
-
-/*----------------------------old working code----------------------------
-static int	getConnIdx(int fd, std::vector<Conn> &conns)
-{
-	int size = conns.size();
-
-	for (int i = 0; i < size; i++)
-	{
-		if (conns[i].fd == fd)
-			return i;
-	}
-	return size;
-}
-
-void	ServerControler::startServing()
-{
-	int timeout, size, res, temp;
-	std::string str;
-	std::string request;
-	struct pollfd pfds[MAX_CONN_NUM]; //max number of connections
-	int nfds = 0;
-	int new_fd = -1;
-	char buf[1500];
-	//bool conn_active = false;
-	std::vector<Conn> conns;
-
-	// signal(SIGINT, ServerControler::sig_handler);
-
-	try
-	{
-		this->createListeningSockets();
-	}
-	catch(const std::exception& e)
-	{
-		// close all sockets;
-		std::cerr << e.what() << '\n';
-		throw std::runtime_error("Error: socket setup failed");
-	}
-
-	memset(pfds, 0, sizeof(pfds));
-	size = _socketFds.size();
-	for (int i = 0; i < size; i++)
-	{
-		pfds[i].fd = _socketFds[i];
-		pfds[i].events = POLLIN;
-		nfds++;
-	}
-
-	// polling();
-
-	timeout = 2 * 60000;
-
-	std::cout << "Waiting on poll" << std::endl;
-	while (!g_serv_end)
-	{
-		res = poll(pfds, nfds, timeout);
-		if (res < 0)
-		{
-			throw std::runtime_error(strerror(errno));
-			//close(_socketFds);
-			// std::cerr << "Error on poll: " << strerror(errno) << std::endl;
-			// return;
-		}
-		if (res == 0)
-		{
-			std::cout << "Timeout" << std::endl;
-			g_serv_end = true;
-			//close(_socketFds);
-			break;
-		}
-		//std::cout << "nfds = " << nfds << std::endl;
-		for (int i = 0; i < nfds; i++)
-		{
-			if (pfds[i].revents == 0)
-			{
-				res = getConnIdx(pfds[i].fd, conns);
-				if (res != static_cast<int>(conns.size()))
-				{
-					time_t t = time(NULL);
-					temp = difftime(t, conns[res].start);
-					if (temp > 5)
-					{
-						std::cout << "Timeout on connection " << res << " : " << temp << " sec" << std::endl;
-						conns.erase(conns.begin() + res);
-						close(pfds[i].fd);
-						pfds[i].fd = -1;
-					}
-				}
-			}
-			else if ((pfds[i].revents & POLLHUP) || (pfds[i].revents & POLLERR))
-			{
-				res = getConnIdx(pfds[i].fd, conns);
-				if (res != static_cast<int>(conns.size()))
-					conns.erase(conns.begin() + res);
-				close(pfds[i].fd);
-				pfds[i].fd = -1;
-				std::cout << "Connection " << res << " closed because of error or client disconnect" << std::endl;
-			}
-			else if (pfds[i].revents & POLLIN)
-			{
-				//std::cout << "POLLIN on poll_fd " << i << std::endl;
-				res = isInPollfds(pfds[i].fd, _socketFds);
-				if (res)
-				{
-					do
-					{
-						new_fd = accept(res, NULL, NULL);
-						if (new_fd < 0 && errno != EWOULDBLOCK)
-							throw std::runtime_error("Error: accept() failed");
-						if (new_fd > 0)
-						{
-							std::cout << "New connection on listening socket " << res << ", new_fd = " << new_fd << std::endl;
-							pfds[nfds].fd = new_fd;
-							pfds[nfds].events = POLLIN;
-							nfds++;
-							Conn c;
-							c.fd = new_fd;
-							c.active = true;
-							c.start = time(NULL);
-							conns.push_back(c);
-						}
-					} while (new_fd != -1);
-				}
-				else
-				{
-					//conn_active = true;
-					temp = getConnIdx(pfds[i].fd, conns);
-
-					request = "";
-					str = "";
-					do
-					{
-						memset(buf, 0, sizeof(buf));
-						res = recv(pfds[i].fd, buf, sizeof(buf), 0);
-						if (res < 0)
-						{
-							std::cout << "Error: recv() failed" << std::endl;
-							break;
-						}
-						if (res > 0)
-						{
-							request.append(buf);
-						}
-						if (res == 0)
-						{
-							if (temp != static_cast<int>(conns.size()))
-							{
-								time_t t = time(NULL);
-								if (difftime(t, conns[res].start) > 5)
-								{
-									conns.erase(conns.begin() + temp);
-									close(pfds[i].fd);
-									pfds[i].fd = -1;
-									std::cout << "Connection " << temp << " closed because of timeout" << std::endl;
-								}
-							}
-						}
-					} while (res == 1500);
-					if (!request.empty())
-					{
-						conns[temp].start = time(NULL);
-						std::cout << "Processing request..." << std::endl;
-						str = processRequest(request);
-
-						if (!str.empty())
-						{
-							res = send(pfds[i].fd, str.c_str(), str.size(), 0);
-							if (res < 0)
-								throw std::runtime_error("Error: send() failed");
-							std::cout << "[INFO] : "  << utils::getFormattedDateTime() << " Transmitted Data Size "<< res <<" Bytes."  << std::endl;
-							std::cout << "[INFO] : "  << utils::getFormattedDateTime() << "  File Transfer Complete." << std::endl;
-						}
-					}
-					//conn_active = false;
-				}
-			}
-			// else
-			// {
-			// 	std::cout << "Poll_fd " << i << " revents = " << pfds[i].revents << std::endl;
-			// 	//if (i == nfds - 1)
-			// 	//	servEnd = true;
-			// }
-			for (int n = 0; n < nfds; n++)
-			{
-				if (pfds[n].fd == -1)
-				{
-					for(int j = n; j < nfds - 1; j++)
-					{
-						pfds[j].fd = pfds[j + 1].fd;
-						pfds[j].events =pfds[j + 1].events;
-						pfds[j].revents =pfds[j + 1].revents;
-					}
-					n--;
-					nfds--;
-				}
-			}
-		}
-	}
-	//close sockets;
-	for (int i = 0; i < nfds; i++)
-	{
-		if(pfds[i].fd >= 0)
-		close(pfds[i].fd);
-	}
-	return;
-}
-----------------------------------------------------------------------------------*/
 
 void	ServerControler::handleInEvent(int fd)
 {
@@ -507,8 +300,7 @@ void	ServerControler::handleInEvent(int fd)
 	}
 	if (res > 0) // what if the last read res is exactly BUFF_SIZE - 1?
 	{
-		std::cout << "Data received on connection " << fd << ": " << buf << std::endl;
-		conn->setStartTime();
+		//std::cout << "Data received on connection " << fd << ": " << buf << std::endl;
 		conn->appendRequest(buf);
 		if (res < BUFF_SIZE - 1 || recv(fd, buf, 1, MSG_PEEK) < 1)
 		{
@@ -516,10 +308,12 @@ void	ServerControler::handleInEvent(int fd)
 			if (conn->checkRequest())
 			{
 				std::string request = conn->getRequest();
-				std::cout << "Request: " << request << ", size = " << request.size() << std::endl;
-				conn->setResponse(processRequest(request));
+				std::cout << "Request on connection " << conn->getFd() << ":\n" << request << "size = " << request.size() << std::endl;
+				conn->setResponse(processRequest(request, conn->getPort()));
 				conn->resetRequest();
 			}
+			else
+				conn->setStartTime();
 		}
 	}
 	else if (res == 0)
@@ -568,7 +362,6 @@ void	ServerControler::sig_handler(int sig_num)
 void	ServerControler::createListeningSockets()
 {
 	int server_fd;
-	//std::vector<int> ports;
 	int	temp = 0;
 	int port;
 	int	size = _servBlocks.size();
@@ -581,23 +374,42 @@ void	ServerControler::createListeningSockets()
 			server_fd = create_tcp_server_socket(port);
 			//std::cout << "Port " << i << " :" << ports[i] << std::endl;
 			_socketFds.push_back(server_fd);
+			_ports.push_back(port);
 			std::cout << "[INFO] : " << utils::getFormattedDateTime() << " Server " << i << " listening on port: " << port << std::endl;
 			temp = port;
 		}
 	}
+
+	std::cout << "Number of listening sokets created: " << _socketFds.size() << std::endl;
 }
 
-Server & ServerControler::chooseServBlock(const std::string & host)
+Server & ServerControler::chooseServBlock(const std::string & host, int port)
 {
-	for (size_t i = 0; i < _servBlocks.size(); i++)
+	int	res = 0;
+	int size = _servBlocks.size();
+	int i = 0;
+
+	while (i < size && _servBlocks[i].getPort() != port)
+		i++;
+
+	res = i;
+
+	while (i < size)
 	{
-		if (host == _servBlocks[i].getHost())
+		if (_servBlocks[i].getPort() != port && _servBlocks[i].getHost() == host)
 			return _servBlocks[i];
+		i++;
 	}
-	return _servBlocks[0];
+
+	// for (size_t i = 0; i < _servBlocks.size(); i++)
+	// {
+	// 	if (host == _servBlocks[i].getHost())
+	// 		return _servBlocks[i];
+	// }
+	return _servBlocks[res];
 }
 
-std::string	ServerControler::processRequest(std::string & data)
+std::string	ServerControler::processRequest(std::string & data, int port)
 {
 	Request		request;
 	Response	response;
@@ -612,7 +424,7 @@ std::string	ServerControler::processRequest(std::string & data)
 		return response.getResponse();
 	}
 
-	serv = chooseServBlock(request.getHeader("Host"));
+	serv = chooseServBlock(request.getHeader("Host"), port);
 	RequestHandler reqHandler(serv, request, response);
 
 	reqHandler.processRequest();
@@ -665,15 +477,18 @@ Connection	*	ServerControler::getConnection(int fd)
 	return NULL;
 }
 
-void	ServerControler::addConnection(int fd)
+void	ServerControler::addConnection(int fd, int port)
 {
-	if (_conns.size() < (pfds_limit - _socketFds.size()))
+	if (_conns.size() == _work_conn_num)
 	{
-		Connection c(fd);
-		_conns.push_back(c);
-
-		addPfd(fd);
+		std::cerr << "New connection not accepted. Maximum number of working connections (" << _work_conn_num <<") is reached" << std::endl;
+		return;
 	}
+
+		Connection c(fd);
+		c.setPort(port);
+		_conns.push_back(c);
+		addPfd(fd);
 }
 
 void	ServerControler::removeConnection(int fd)
@@ -693,12 +508,16 @@ void	ServerControler::removeConnection(int fd)
 void	ServerControler::addPfd(int fd)
 {
 	unsigned int i = _nfds;
-	if (i < pfds_limit)
+	if (i == _pfds_limit)
 	{
-		_pfds[i].fd = fd;
-		_pfds[i].events = POLLIN | POLLOUT;
-		_nfds++;
+		std::cout << "The limit for opened file descriptors (" << _pfds_limit << ") is reached" << std::endl;
+		return;
 	}
+
+	_pfds[i].fd = fd;
+	_pfds[i].events = POLLIN | POLLOUT;
+	_nfds++;
+
 }
 
 void	ServerControler::removePfd(int fd)
@@ -720,6 +539,7 @@ void	ServerControler::removePfd(int fd)
 		_pfds[j].revents = _pfds[j + 1].revents;
 	}
 	_nfds--;
+	std::cout << "fd " << fd << " deleted from poll. Size of pollFd array is " << _nfds << std::endl;
 }
 
 void	ServerControler::setPfdEvent(int fd, char e)
@@ -744,6 +564,12 @@ void	ServerControler::closeFds()
 	}
 }
 
+void	ServerControler::setWorkConnNum(size_t n)
+{
+	_work_conn_num = n;
+}
+
+
 int	ServerControler::getNfds(void)
 {
 	return _nfds;
@@ -751,10 +577,9 @@ int	ServerControler::getNfds(void)
 
 int	ServerControler::incrementNfds(void)
 {
-	if (_nfds < static_cast<int>(pfds_limit))
+	if (_nfds < static_cast<int>(_pfds_limit))
 		_nfds++;
-	else
-		std::cerr << "Error: maximum limit of pollfd set size reached";
+
 	return _nfds;
 }
 

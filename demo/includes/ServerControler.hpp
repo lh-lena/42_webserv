@@ -29,7 +29,7 @@ class ServerControler
 		const std::vector<Server>	&	getServers( void ) const;
 		size_t							getServBlockNbr( void );
 		Connection					*	getConnection(int fd);
-		void							addConnection(int fd);
+		void							addConnection(int fd, int port);
 		void							removeConnection(int fd);
 		void							addPfd(int fd);
 		void							setPfdEvent(int fd, char e);
@@ -38,17 +38,21 @@ class ServerControler
 		int								incrementNfds(void);
 		int								decrementNfds(void);
 		void							closeFds(void);
+		void							setWorkConnNum(size_t n);
 
 		static void						sig_handler(int sig_num);
 
 		void							startServing();
 		//bool	servEnd;
 
-		unsigned int				pfds_limit;
 
 		private:
 
+		unsigned int					_pfds_limit;
+		unsigned int					_work_conn_num;
+
 		std::vector<Server>	_servBlocks;
+		std::vector<int>	_ports;
 		std::vector<int>	_socketFds; // array of listening sockets identifiers (server_fds)
 		std::vector<Connection>	_conns;
 		struct pollfd _pfds[100000]; // size of pfds_limit
@@ -58,8 +62,9 @@ class ServerControler
 		void	polling();
 		void	handleInEvent(int fd);
 		void	handleOutEvent(int fd);
-		std::string	processRequest(std::string & request); // parse request and pass it to the rigth server block to get response
-		Server & chooseServBlock(const std::string & host);
+		int		isSocketFd(int fd);
+		std::string	processRequest(std::string & request, int port); // parse request and pass it to the rigth server block to get response
+		Server & chooseServBlock(const std::string & host, int port);
 };
 
 std::ostream &			operator<<( std::ostream & o, ServerControler const & i );

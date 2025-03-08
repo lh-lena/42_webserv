@@ -113,6 +113,16 @@ void	Connection::setFd(const int fd)
 	_fd = fd;
 }
 
+int		Connection::getPort() const
+{
+	return _port;
+}
+
+void	Connection::setPort(int p)
+{
+	_port = p;
+}
+
 time_t	Connection::getStartTime() const
 {
 	return _start;

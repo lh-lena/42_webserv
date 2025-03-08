@@ -183,6 +183,7 @@ void 		ParseConfig::parseConfigContent( void )
 		server.defaultServer();
 		_serverControler.setServer(server);
 	}
+	_serverControler.setWorkConnNum(server.getWorkCont());
 	// std::cout << _serverControler << std::endl;
 }
 
@@ -422,7 +423,7 @@ template<typename T> void	ParseConfig::handleClientBodySize(const std::pair<std:
 		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"client_max_body_size\" limited size up to 100 Megabytes in " + _conf_file_path + ":" + utils::itos(value.second));
 	if (unit != "M")
 		throw ParseException(utils::getFormattedDateTime() + " [emerg] : directive \"client_max_body_size\" required a number's unit in Megabytes in " + _conf_file_path + ":" + utils::itos(value.second));
-	
+
 	res = val * 1024 * 1024;
 	instance->setClientMaxBody(res);
 }
@@ -544,8 +545,8 @@ void	ParseConfig::handleRedirect(const std::pair<std::string, int>& value, Locat
 		throw ParseException(utils::getFormattedDateTime() + " [emerg] : invalid number of arguments in \"return\" directive in " + _conf_file_path + ":" + utils::itos(value.second));
 	}
 
-	if (vals.size() == 1 && 
-		(utils::starts_with(vals[0], "http://") || 
+	if (vals.size() == 1 &&
+		(utils::starts_with(vals[0], "http://") ||
 		utils::starts_with(vals[0], "https://")))
 	{
 		path = vals[0];
