@@ -18,7 +18,7 @@ fileInput.addEventListener('change', function () {
     }
 });
 
-submitBtn.addEventListener('click', (e) => {
+submitBtn.addEventListener('click', async (e) => {
     e.preventDefault();
     if (fileInput.files.length === 0) {
         message.style.display = 'block';
@@ -34,8 +34,8 @@ submitBtn.addEventListener('click', (e) => {
             const file = fileInput.files[0];
             const form_data = new FormData();
             form_data.append("name", name);
-            form_data.append("file", "TEST_FILE_INPUT");
-            // console.log(e);
+            form_data.append("file", file);
+            console.log(e);
             // const form_data = e.currentTarget;
             // if (form_data === null) {
             //     throw new Error(`Invalid input`);
@@ -44,10 +44,9 @@ submitBtn.addEventListener('click', (e) => {
             // console.log(e.currentTarget);
             // console.log(new FormData(form_data));
             // console.log(e.currentTarget.action);
-            const response = fetch("/file_upload.php", {
+            const response = await fetch("/file_upload.php", {
                 method: "POST",
                 body: form_data
-                // body: JSON.stringify({ name,  file})
             })
             .then(response => {
                 if (!response.ok) {
