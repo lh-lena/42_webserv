@@ -174,7 +174,7 @@ std::string			RequestHandler::determineFilePath(const std::string& requested_pat
 	}
 
 	std::string full_path = root + path;
-	// std::cerr << RED << "path " << full_path << RESET << std::endl; //rm
+	// std::cerr << RED << "determineFilePath: " << full_path << " \nrequested_path: " << requested_path << RESET << std::endl; //rm
 	return full_path;
 }
 
@@ -297,7 +297,7 @@ void	RequestHandler::handleCgiRequest( void )
 	cgi.setUploadDir(searchingUploadPath());
 	cgi.setEnvironment(_request);
 	std::string data = cgi.executeCGI(_request);
-	// std::cerr << GREEN << data << RESET << std::endl; //rm
+	std::cerr << GREEN << data << RESET << std::endl; //rm
 	handleCgiResponse(data);
 }
 
@@ -755,7 +755,7 @@ std::string RequestHandler::normalizePath(const std::string& path)
 	for (size_t i = 0; i < stack.size(); ++i)
 	{
 		normalizedPath += stack[i];
-		if (i < stack.size() - 1 && !utils::ends_with(path, "/"))
+		if (i < stack.size() - 1 || utils::ends_with(path, "/"))
 			normalizedPath += "/";
 	}
 	return normalizedPath;
