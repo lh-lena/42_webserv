@@ -1,24 +1,37 @@
 
+
 function setCookie() {
-    const name = document.getElementById("cookie-name").value;
-    const value = document.getElementById("cookie-value").value;
-    window.location.reload();
-    fetch(`/cgi-bin/cookie_manager.py?action=set&name=${encodeURIComponent(name)}&value=${encodeURIComponent(value)}`)
-        .then(response => response.text())
-        .then(data => alert(data));
+    const name = document.getElementById("cookie-name");
+    const value = document.getElementById("cookie-value");
+    fetch(`/cookie_manager.py?action=set&name=${encodeURIComponent(name.value)}&value=${encodeURIComponent(value.value)}`)
+    .then(response => response.text())
+    .then(data => alert(data))
+    .catch(error => {
+        console.error("Error setting cookie:", error);
+        alert("An error occurred while setting the cookie.");
+    });
+    name.value = "";
+    value.value = "";
 }
 
 function getCookies() {
-    window.location.reload();
-    fetch("/cgi-bin/cookie_manager.py?action=get")
-        .then(response => response.text())
-        .then(data => document.getElementById("cookie-display").innerText = data);
+    fetch("/cookie_manager.py?action=get")
+    .then(response => response.text())
+    .then(data => document.getElementById("cookie-display").innerText = data)
+    .catch(error => {
+        console.error("Error setting cookie:", error);
+        alert("An error occurred while getting cookies.");
+    });
 }
 
 function deleteCookie() {
-    const name = document.getElementById("cookie-name").value;
-    window.location.reload();
-    fetch(`/cgi-bin/cookie_manager.py?action=delete&name=${encodeURIComponent(name)}`)
-        .then(response => response.text())
-        .then(data => alert(data));
+    const name = document.getElementById("cookie-name");
+    fetch(`/cookie_manager.py?action=delete&name=${encodeURIComponent(name.value)}`)
+    .then(response => response.text())
+    .then(data => alert(data))
+    .catch(error => {
+        console.error("Error setting cookie:", error);
+        alert("An error occurred while deleting the cookie.");
+    });
+    name.value = "";
 }

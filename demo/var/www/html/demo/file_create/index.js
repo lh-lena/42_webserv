@@ -13,11 +13,35 @@ form.addEventListener('submit', async (e) => {
     const req_url = window.location.protocol + '//' + window.location.host + '/create_file.php';
 
     // send data to the server
-    try {
         const response = await fetch(req_url, {
             method: "POST",
             body: JSON.stringify({ file_name, file_body }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(response => {
+            message.style.display = "block";
+            message.innerHTML = "File " + file_name + " saved successfully!";
+            form.reset();
+            setTimeout(() => {
+                message.style.display = "none";
+                message.innerHTML = "";
+                console.log(json.message);
+            }, 2000);
+        })
+        .catch(error => {
+            console.error("Upload error:", error);
+            message.innerHTML = "Upload failed. Please try again.";
+            setTimeout(() => {
+                message.style.display = "none";
+                message.innerHTML = "";
+            }, 3000);
         });
+        /*
         if (!response.ok) {
             throw new Error(`Response status: ${response.status}`);
         }
@@ -29,9 +53,5 @@ form.addEventListener('submit', async (e) => {
             message.style.display = "none";
             message.innerText = "";
             console.log(json.message);
-        }, 2000);
-    } catch (error) {
-        form.reset();
-        console.error(error.message);
-    }
+        }, 2000);*/
 });

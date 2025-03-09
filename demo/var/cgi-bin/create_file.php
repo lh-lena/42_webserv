@@ -46,5 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Status: 405 Method not allowed');
     echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
 }
+echo("");
 ob_end_flush(); // End output buffering
 ?>

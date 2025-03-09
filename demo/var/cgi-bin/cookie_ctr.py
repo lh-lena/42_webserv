@@ -17,10 +17,10 @@ cookie_expiration = 60
 # First visit
 if "First" not in cookie:
     cookie["First"] = time.asctime(time.localtime())
-    cookie["First"]["Path"] = os.environ["REQUEST_URI"]
+    cookie["First"]["Path"] = "/"
 
 cookie["Last"] = time.asctime(time.localtime())
-cookie["Last"]["Path"] = os.environ["REQUEST_URI"]
+cookie["Last"]["Path"] = "/"
 cookie["Last"]["Max-Age"] = str(cookie_expiration)
 cookie["First"]["Max-Age"] = str(cookie_expiration)
 
@@ -32,7 +32,7 @@ else:
 
 cookie["Count"] = count
 cookie["Count"]["Max-Age"] = str(cookie_expiration) 
-cookie["Count"]["Path"] = os.environ["REQUEST_URI"]
+cookie["Count"]["Path"] = "/"
 
 # Send headers
 print("Content-Type: text/html")
@@ -70,45 +70,3 @@ if "Count" in cookie:
 print("</table>")
 print("</body>")
 print("</html>")
-
-#my vertion
-# print ('Content-Type: text/html')
-# if not get_cookie('first'): # Don't redefine value if aleady defined.
-#   print ('Set-Cookie: First=' + time.asctime(time.localtime()) + '; Path=' + os.environ['REQUEST_URI'])
-#   seconds_to_add = 60 * 1
-#   current_time_tuple = time.localtime()
-#   future_time_seconds = time.mktime(current_time_tuple) + seconds_to_add
-#   future_time_tuple = time.localtime(future_time_seconds)
-#   print ('Set-Cookie: Expires=' + time.asctime(future_time_tuple) + '; Path=' + os.environ['REQUEST_URI']) # Expires cookies
-# print ('Set-Cookie: Last=' + time.asctime(time.localtime()) + '; Path=' + os.environ['REQUEST_URI'])
-# print ('Set-Cookie: Count=' + str(val(get_cookie('Count')) + 1) + '; Path=' + os.environ['REQUEST_URI'] + '; Max-Age=60') # Increment counter
-# print ()# End of header
-
-# print("<!DOCTYPE html>")
-# print("<html lang=\"en\">")
-# print("<head>")
-# print("    <meta charset=\"UTF-8\">")
-# print("    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">")
-# print("</head>")
-# print('<body>')
-# print('<div class="home_bnt">')
-# print('<a href="/index.html">H O M E</a></br>')
-# print('</div>')
-# print ('<table border="0">')
-# # if get_cookie('first'): # Only dispay value if cookie is defined.
-# #   print ('<tr><td>Time First Visit</td><td>:</td><td>' + get_cookie('first') + '</tr>')
-# # if get_cookie('last'): # Only dispay value if cookie is defined.
-# #   print ('<tr><td>Time Last Visit</td><td>:</td><td>' + get_cookie('last') + '</tr>')
-# # if get_cookie('Expires'): # Only dispay value if cookie is defined.
-# #   print ('<tr><td>Cookies will be expired </td><td>:</td><td>' + get_cookie('Expires') + '</tr>')
-# # print ('<tr><td>Counter</td><td>:</td><td>' + str(val(get_cookie('count'))) + '</tr>')
-# if get_cookie('first'): # Only dispay value if cookie is defined.
-#   print (f'<tr><td>Time First Visit</td><td>:</td><td>' + get_cookie('first') + '</tr>')
-# # if get_cookie('Last'): # Only dispay value if cookie is defined.
-#   print (f'<tr><td>Time Last Visit</td><td>:</td><td>' + {cookie['Last'].value} + '</tr>')
-# if get_cookie('first'): # Only dispay value if cookie is defined.
-#   print (f'<tr><td>Cookies will be expired </td><td>:</td><td>' + val(get_cookie('expires')) + '</tr>')
-# print (f'<tr><td>Counter</td><td>:</td><td>' + {cookie['Count'].value} + '</tr>')
-# print ('</table>')
-# print('</body>')
-# print('</html>')

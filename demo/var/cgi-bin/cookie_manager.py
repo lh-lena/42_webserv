@@ -13,11 +13,14 @@ cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE", ""))
 
 print("Content-Type: text/plain")
 if action == "set":
+    if not cookie_name or not cookie_value:
+        print("\nCookie name and value are required!\n")
+        exit()
     # Set a new cookie
     cookie[cookie_name] = cookie_value
     cookie[cookie_name]["path"] = "/"  # Make it available site-wide
-    print(f"Set-Cookie: {cookie.output(header='', sep='')}")
-    print("\nCookie set successfully.")
+    print(f"{cookie.output()}")
+    print(f"\nCookie '{cookie_name}' set successfully.")
 
 elif action == "get":
     # Display all stored cookies
@@ -29,14 +32,16 @@ elif action == "get":
         print("\nNo cookies found.")
 
 elif action == "delete":
+    if not cookie_name:
+        print("\nCookie name is required!\n")
+        exit()
     # Delete a cookie
     if cookie_name in cookie:
         cookie[cookie_name] = ""
-        cookie[cookie_name]["Expires"] = "Thu, 01 Jan 1970 00:00:00 GMT"
+        cookie[cookie_name]["Expires"] = "Fri, 31 Dec 9999 23:59:59 GMT"
         cookie[cookie_name]["Max-Age"] = 0
-        print(f"Set-Cookie: {cookie.output(header='', sep='')}")
-        print("\nCookie deleted successfully.")
+        print(f"{cookie.output()}")
+        print(f"\nCookie '{cookie_name}' deleted successfully.")
     else:
         print("\nCookie not found.")
 
-print()
