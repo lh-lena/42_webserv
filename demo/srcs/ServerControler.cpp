@@ -240,12 +240,13 @@ void	ServerControler::polling()
 						addConnection(new_fd, _ports[indx]);
 						std::cout << "New connection on listening socket " << indx << ", new_fd = " << new_fd << std::endl;
 					}
+					continue;
 				}
 				else
-				handleInEvent(_pfds[i].fd);
+					handleInEvent(_pfds[i].fd);
+				if (_pfds[i].revents & POLLOUT) //&& connection
+					handleOutEvent(_pfds[i].fd);
 			}
-			if (connection && _pfds[i].revents & POLLOUT)
-				handleOutEvent(_pfds[i].fd);
 		}
 	}
 	closeFds();
@@ -304,11 +305,10 @@ void	ServerControler::handleInEvent(int fd)
 		conn->appendRequest(buf);
 		if (res < BUFF_SIZE - 1 || recv(fd, buf, 1, MSG_PEEK) < 1)
 		{
-			//std::cout << "Request: " << conn->getRequest() << std::endl;
+			std::string request = conn->getRequest();
+			std::cout << "Request on connection " << conn->getFd() << ":\n" << request << "size = " << request.size() << std::endl;
 			if (conn->checkRequest())
 			{
-				std::string request = conn->getRequest();
-				std::cout << "Request on connection " << conn->getFd() << ":\n" << request << "size = " << request.size() << std::endl;
 				conn->setResponse(processRequest(request, conn->getPort()));
 				conn->resetRequest();
 			}
@@ -342,6 +342,7 @@ void	ServerControler::handleOutEvent(int fd)
 	{
 		removeConnection(fd);
 		std::cerr << "Error: send() failed on connection fd " << fd << ". Connection closed." << std::endl;
+		return;
 	}
 
 	conn->setResponse("");
@@ -401,11 +402,6 @@ Server & ServerControler::chooseServBlock(const std::string & host, int port)
 		i++;
 	}
 
-	// for (size_t i = 0; i < _servBlocks.size(); i++)
-	// {
-	// 	if (host == _servBlocks[i].getHost())
-	// 		return _servBlocks[i];
-	// }
 	return _servBlocks[res];
 }
 
