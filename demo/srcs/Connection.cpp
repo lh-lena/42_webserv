@@ -122,6 +122,16 @@ void	Connection::setPort(int p)
 	_port = p;
 }
 
+void	Connection::setClientAddr(struct sockaddr_in & client)
+{
+	_client_addr = client;
+}
+
+struct sockaddr_in &Connection::getClientAddr()
+{
+	return _client_addr;
+}
+
 time_t	Connection::getStartTime() const
 {
 	return _start;

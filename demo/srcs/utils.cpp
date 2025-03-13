@@ -1,4 +1,5 @@
 #include "../includes/utils.hpp"
+#include <arpa/inet.h>
 
 std::string		utils::formatDate(time_t timestamp)
 {
@@ -798,4 +799,16 @@ std::string		utils::get_MIME_type(std::string path)
 	if(std::strcmp(res.c_str(), ".svgz") == 0)
 		return "image/svg+xml";
 	return "application/text";
+}
+
+int	utils::getClientPort(struct sockaddr_in & client)
+{
+	int port = ntohs(client.sin_port);
+	return port;
+}
+
+std::string	utils::getClientIP(struct sockaddr_in & client)
+{
+	std::string ip = inet_ntoa(client.sin_addr);
+	return ip;
 }

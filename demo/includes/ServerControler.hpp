@@ -25,11 +25,11 @@ class ServerControler
 		~ServerControler();
 
 		ServerControler&				operator=( ServerControler const & rhs );
-		void							setServer( const Server& instance );
+		void							setServer( const Server & instance );
 		const std::vector<Server>	&	getServers( void ) const;
 		size_t							getServBlockNbr( void );
 		Connection					*	getConnection(int fd);
-		void							addConnection(int fd, int port);
+		void							addConnection(int fd, int port, struct sockaddr_in & client);
 		void							removeConnection(int fd);
 		void							addPfd(int fd);
 		void							setPfdEvent(int fd, char e);
@@ -63,6 +63,7 @@ class ServerControler
 		void	handleInEvent(int fd);
 		void	handleOutEvent(int fd);
 		int		isSocketFd(int fd);
+		void	processRequest(Connection & conn);
 		std::string	processRequest(std::string & request, int port); // parse request and pass it to the rigth server block to get response
 		Server & chooseServBlock(const std::string & host, int port);
 };

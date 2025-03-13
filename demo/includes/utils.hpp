@@ -15,6 +15,7 @@
 # include <algorithm>
 # include <sys/stat.h>
 # include <sys/types.h>
+# include <netinet/in.h>
 
 # define GRAY  "\033[90m"
 # define BLUE   "\033[94m"
@@ -72,7 +73,9 @@ namespace utils
 	std::string					substr_after_rdel(const std::string& path, const std::string& del);
 	std::string					substr_before_rdel(const std::string& path, const std::string& del);
 	std::string					sanitize_file_name(const std::string& filename);
+	std::string					getClientIP(struct sockaddr_in & client);
 	std::vector<std::string>	ft_split(const std::string& s, std::string delimeter);
+	int							getClientPort(struct sockaddr_in & client);
 	int							get_dir_entries(const std::string& dirp, std::vector<std::string>& content);
 	bool						is_matching_ext(const std::string& s, const std::vector<std::string>& exts);
 }

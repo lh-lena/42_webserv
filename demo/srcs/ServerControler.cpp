@@ -190,7 +190,9 @@ void	ServerControler::polling()
 	int	new_fd;
 	int timeout = 5 * 60000;
 	Connection *connection = NULL;
-
+	struct sockaddr_in client;
+	unsigned int size = sizeof(client);
+	
 	std::cout << "Waiting on poll" << std::endl;
 	while (!g_serv_end)
 	{
@@ -232,13 +234,15 @@ void	ServerControler::polling()
 				indx = isSocketFd(_pfds[i].fd);
 				if (indx != -1)
 				{
-					new_fd = accept(_pfds[i].fd, NULL, NULL);
+					memset(&client, 0, size);
+					new_fd = accept(_pfds[i].fd, (sockaddr *)&client, &size);
 					if (new_fd < 0 && errno != EWOULDBLOCK)
 					throw std::runtime_error("Error: accept() failed");
 					if (new_fd > 0)
 					{
-						addConnection(new_fd, _ports[indx]);
+						addConnection(new_fd, _ports[indx], client);
 						std::cout << "New connection on listening socket " << indx << ", new_fd = " << new_fd << std::endl;
+						std::cout << "Client: " << utils::getClientIP(client) << ":" << utils::getClientPort(client) << std::endl;
 					}
 					continue;
 				}
@@ -309,7 +313,9 @@ void	ServerControler::handleInEvent(int fd)
 			std::cout << "Request on connection " << conn->getFd() << ":\n" << request << "size = " << request.size() << std::endl;
 			if (conn->checkRequest())
 			{
-				conn->setResponse(processRequest(request, conn->getPort()));
+				processRequest(*conn);
+				//std::string response = processRequest(request, conn->getPort());
+				//conn->setResponse(response);
 				conn->resetRequest();
 			}
 			else
@@ -405,6 +411,51 @@ Server & ServerControler::chooseServBlock(const std::string & host, int port)
 	return _servBlocks[res];
 }
 
+void	ServerControler::processRequest(Connection & conn)
+{
+	Request		request;
+	Response	response;
+	Server		serv;
+
+	// client_info : client IP adress and port
+	struct sockaddr_in client_info = conn.getClientAddr();
+	std::cerr << MAGENTA << "Processing request for client: " << utils::getClientIP(client_info) << ":"
+				<< utils::getClientPort(client_info) << std::endl;
+
+	// std::cerr << MAGENTA << data << RESET << std::endl; //rm
+
+	if (!request.parse(conn.getRequest()))
+	{
+		if (request.getHeader("Server-Protocol") != "HTTP/1.1")
+			response.setErrorResponse(505, std::string());
+		else
+			response.setErrorResponse(BAD_REQUEST, std::string());
+		conn.setResponse(response.getResponse());
+	}
+
+	serv = chooseServBlock(request.getHeader("Host"), conn.getPort());
+	RequestHandler reqHandler(serv, request, response);
+
+	reqHandler.processRequest();
+
+	// std::cerr << GREEN << response.getResponse() << RESET << std::endl;
+
+	// std::ostringstream ss;
+	// ne prazuie // did'ko
+	std::string ss;
+	// std::cout << MAGENTA << "[TRACE] "
+	// << utils::getFormattedDateTime()
+	// << "\"" << request.start_line << "\" "
+	// << response.getStatusCode() << " "
+	// << response.getHeader("Content-Length")  << RESET << std::endl;
+
+	ss = "[TRACE] " + utils::getFormattedDateTime() + " \"" + request.start_line + "\"\n" +\
+	 utils::itos(response.getStatusCode()) + " " + response.getHeader("Content-Length");
+
+	std::cout << MAGENTA << ss << RESET << std::endl;
+	conn.setResponse(response.getResponse());
+}
+
 std::string	ServerControler::processRequest(std::string & data, int port)
 {
 	Request		request;
@@ -473,7 +524,7 @@ Connection	*	ServerControler::getConnection(int fd)
 	return NULL;
 }
 
-void	ServerControler::addConnection(int fd, int port)
+void	ServerControler::addConnection(int fd, int port, struct sockaddr_in & client)
 {
 	if (_conns.size() == _work_conn_num)
 	{
@@ -483,6 +534,7 @@ void	ServerControler::addConnection(int fd, int port)
 
 		Connection c(fd);
 		c.setPort(port);
+		c.setClientAddr(client);
 		_conns.push_back(c);
 		addPfd(fd);
 }
