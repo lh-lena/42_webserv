@@ -646,6 +646,12 @@ bool		RequestHandler::findRequestedLocation(const std::string& path)
 		location_found = searchingPrefixMatchLocation(path);
 	}
 
+	if (!location_found && path == "/")
+	{
+		_location.defaultRootLocation();
+		location_found = true;
+	}
+
 	return location_found;
 }
 
