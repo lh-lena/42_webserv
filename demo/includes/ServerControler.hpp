@@ -64,7 +64,7 @@ class ServerControler
 		void	handleOutEvent(int fd);
 		int		isSocketFd(int fd);
 		void	processRequest(Connection & conn);
-		std::string	processRequest(std::string & request, int port); // parse request and pass it to the rigth server block to get response
+		// std::string	processRequest(std::string & request, int port); // parse request and pass it to the rigth server block to get response
 		Server & chooseServBlock(const std::string & host, int port);
 };
 

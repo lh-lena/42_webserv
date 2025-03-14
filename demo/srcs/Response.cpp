@@ -2,7 +2,7 @@
 # include "../includes/RequestHandler.hpp"
 # include "../includes/utils.hpp"
 
-Response::Response() :_server_name("42_webserv/1.0") {}
+Response::Response() :_server_name("Webserv/1.0") {}
 
 Response::~Response() {}
 

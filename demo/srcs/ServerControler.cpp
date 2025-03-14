@@ -424,7 +424,7 @@ void	ServerControler::processRequest(Connection & conn)
 
 	// std::cerr << MAGENTA << data << RESET << std::endl; //rm
 
-	if (!request.parse(conn.getRequest()))
+	if (!request.parse(conn.getRequest(), conn.getClientAddr()))
 	{
 		if (request.getHeader("Server-Protocol") != "HTTP/1.1")
 			response.setErrorResponse(505, std::string());
@@ -455,7 +455,7 @@ void	ServerControler::processRequest(Connection & conn)
 	std::cout << MAGENTA << ss << RESET << std::endl;
 	conn.setResponse(response.getResponse());
 }
-
+/*
 std::string	ServerControler::processRequest(std::string & data, int port)
 {
 	Request		request;
@@ -492,7 +492,7 @@ std::string	ServerControler::processRequest(std::string & data, int port)
 
 	std::cout << MAGENTA << ss << RESET << std::endl;
 	return response.getResponse();
-}
+}*/
 
 /*
 ** --------------------------------- Accessors ----------------------------------

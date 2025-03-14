@@ -174,7 +174,6 @@ std::string			RequestHandler::determineFilePath(const std::string& requested_pat
 	}
 
 	std::string full_path = root + path;
-	// std::cerr << RED << "determineFilePath: " << full_path << " \nrequested_path: " << requested_path << RESET << std::endl; //rm
 	return full_path;
 }
 
@@ -259,7 +258,6 @@ bool	RequestHandler::isCGIRequest( void ) const
 {
 	std::string req_uri = _request.getHeader("Request-URI");
 	std::string ext = utils::get_file_extension(req_uri);
-
 	if (!utils::is_str_in_vector(ext, _location.getCGIExtension()))
 	{
 		return false;
@@ -273,11 +271,9 @@ void	RequestHandler::handleCgiRequest( void )
 
 	std::string req_uri = _request.getHeader("Request-URI");
 	std::string ext = utils::get_file_extension(req_uri);
-	std::string path_info = utils::extract_path_info(req_uri);
 	std::string script_name = utils::extract_script_name(req_uri, ext);
 	if (!_location.getIndexes().empty())
 		script_name = _location.getIndexes()[0];
-	_request.setHeader("Path-Info", path_info);
 	_request.setHeader("Script-Name", script_name);
 	_request.setFullPath(determineFilePath(_request.getHeader("Script-Name")));
 
@@ -292,12 +288,14 @@ void	RequestHandler::handleCgiRequest( void )
 		setCustomErrorResponse(FORBIDDEN, getCustomErrorPath(FORBIDDEN));
 		return;
 	}
-	std::cerr << GREEN << _request.getBody() << RESET << std::endl;
+	_request.setHeader("Path-Translated", utils::substr_before_rdel(_request.getFullPath(), script_name) + _request.getHeader("Path-Info"));
+
+	// std::cerr << GREEN << _request.getHeader("Path-Info") << "\n"  << _request.getHeader("Path-Translated") << RESET << std::endl; //rm
+	
 	cgi.setExecutable(_request.getFullPath());
 	cgi.setUploadDir(searchingUploadPath());
 	cgi.setEnvironment(_request);
 	std::string data = cgi.executeCGI(_request);
-	std::cerr << GREEN << data << RESET << std::endl; //rm
 	handleCgiResponse(data);
 }
 
@@ -469,11 +467,6 @@ void		RequestHandler::handlePOST( void )
 		setCustomErrorResponse(REQUEST_ENTITY_TOO_LARGE, getCustomErrorPath(REQUEST_ENTITY_TOO_LARGE));
 		return;
 	}
-	/*else if (body.size() != _request.getHeader('Content-Length'))
-	{
-		setCustomErrorResponse(BAD_REQUEST, getCustomErrorPath(BAD_REQUEST));
-		return;
-	}*/
 
 	std::string filepath = uploadDir + filename;
 	std::ofstream outfile(filepath.c_str(), std::ios::binary);

@@ -13,8 +13,13 @@ CGI::CGI(void) :
 	required_vars.push_back("REQUEST_URI");
 	required_vars.push_back("QUERY_STRING");
 	required_vars.push_back("PATH_INFO");
+	required_vars.push_back("PATH_TRANSLATED");
 	required_vars.push_back("SCRIPT_NAME");
 	required_vars.push_back("SERVER_PROTOCOL");
+	required_vars.push_back("REMOTE_PORT");
+	required_vars.push_back("REMOTE_ADDR");
+	required_vars.push_back("REMOTE_IDENT");
+	required_vars.push_back("REMOTE_USER");
 	remove_vars.push_back("Auth-Scheme");
 	remove_vars.push_back("Authorization");
 	remove_vars.push_back("Connection");
@@ -54,13 +59,7 @@ void CGI::setEnvironment(const Request& request)
 	addEnvField("DISPLAY", ":0");
 	addEnvField("DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/101457/bus");
 	/** Filesystem- (not document root-) based path to the current script, after the server has done any virtual-to-real mapping. */
-	addEnvField("PATH_TRANSLATED", std::string());
-	/** The IP address of the server under which the current script is executing */
-	addEnvField("REMOTE_ADDR", std::string()); 
 	addEnvField("REMOTE_HOST", std::string());
-	addEnvField("REMOTE_IDENT", request.getHeader("Authorization"));
-	/** The authenticated user */
-	addEnvField("REMOTE_USER", request.getHeader("Authorization"));
 	/** The absolute pathname of the currently executing script */
 	addEnvField("SCRIPT_FILENAME", request.getFullPath());
 	addEnvField("SERVER_ROOT", std::string());

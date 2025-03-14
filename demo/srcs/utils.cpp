@@ -222,7 +222,6 @@ bool		utils::is_directory(const std::string& path)
 	struct stat path_stat;
 	if (stat(path.c_str(), &path_stat) != 0)
 	{
-		// std::cerr << "[ERROR] : Accessing path " << path << " failed (dir test): " << std::strerror(errno) << path << std::endl;
 		return false;
 	}
 	return S_ISDIR(path_stat.st_mode);
@@ -541,7 +540,7 @@ std::string			utils::get_file_extension(const std::string& path)
 	size_t pos2 = path.find_first_of('/', pos);
 	if (pos2 != std::string::npos)
 	{
-		return path.substr(pos, pos2);
+		return path.substr(pos, pos2 - pos);
 	}
 
 	return path.substr(pos);
@@ -551,19 +550,25 @@ std::string		utils::extract_path_info(const std::string& path)
 {
 	if (path.empty())
 	{
-		return "/";
+		return "";
 	}
 
 	size_t pos = path.find_last_of('.');
 	if (pos == std::string::npos)
 	{
-		return "/";
+		return "";
 	}
 
 	size_t pos2 = path.find_first_of('/', pos);
 	if (pos2 == std::string::npos)
 	{
-		return "/";
+		return "";
+	}
+
+	size_t pos3 = path.find_first_of('?', pos2);
+	if (pos3 != std::string::npos)
+	{
+		return  path.substr(pos2, pos3 - pos2);
 	}
 
 	return path.substr(pos2);
@@ -801,13 +806,13 @@ std::string		utils::get_MIME_type(std::string path)
 	return "application/text";
 }
 
-int	utils::getClientPort(struct sockaddr_in & client)
+int	utils::getClientPort(const struct sockaddr_in & client)
 {
 	int port = ntohs(client.sin_port);
 	return port;
 }
 
-std::string	utils::getClientIP(struct sockaddr_in & client)
+std::string	utils::getClientIP(const struct sockaddr_in & client)
 {
 	std::string ip = inet_ntoa(client.sin_addr);
 	return ip;

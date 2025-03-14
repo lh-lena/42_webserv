@@ -24,7 +24,7 @@ bool	Request::isValid( void )
 	return _is_valid;
 }
 
-bool	Request::parse(const std::string& data)
+bool	Request::parse(const std::string& data, const struct sockaddr_in & clientInfo)
 {
 	std::istringstream	iss(data);
 	std::string			line;
@@ -50,6 +50,8 @@ bool	Request::parse(const std::string& data)
 		oss << iss.rdbuf();
 		parseBody(oss.str());
 	}
+
+	parseClientInfo(clientInfo);
 
 	return isValid();
 }
@@ -77,8 +79,8 @@ void	Request::parseStartLine(const std::string& str)
 	}
 	reqURI = RequestHandler::canonicalizePath(reqURI);
 	utils::parse_query(reqURI, reqURI, query);
+	parseReqUri(reqURI);
 	setHeader("Request-Method", method);
-	setHeader("Request-URI", reqURI);
 	setHeader("Server-Protocol", protocol);
 	setHeader("Query-String", query);
 	_is_valid = true;
@@ -110,6 +112,29 @@ void	Request::parseHeader(const std::string& header_lines)
 void	Request::parseBody(const std::string& body)
 {
 	_body = body;
+}
+
+void	Request::parseReqUri(std::string uri)
+{
+	std::string path_info = utils::extract_path_info(uri);
+
+	setHeader("Path-Info", path_info);
+	if (!path_info.empty())
+	{
+		setHeader("Request-URI", utils::substr_before_rdel(uri, path_info));
+	}
+	else
+	{
+		setHeader("Request-URI", uri);
+	}
+}
+
+void	Request::parseClientInfo(const struct sockaddr_in & clientInfo)
+{
+	setHeader("Remote-Addr", utils::getClientIP(clientInfo));
+	setHeader("Remote-Port", utils::itos(utils::getClientPort(clientInfo)));
+	setHeader("Remote-Ident", getHeader("Authorization"));
+	setHeader("Remote-User", getHeader("Authorization"));
 }
 
 std::vector<std::pair<std::string, std::string> >	Request::getHeaders() const
