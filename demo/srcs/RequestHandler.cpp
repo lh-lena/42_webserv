@@ -496,6 +496,9 @@ void		RequestHandler::handlePOST( void )
 	}
 	outfile.close();
 	_response.setStatusCode(CREATED);
+	_response.setHeader("Content-Length", 0);
+	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
+	_response.setHeader("Server", _server.server_name);
 }
 
 std::string		RequestHandler::searchingUploadPath( void )
@@ -552,6 +555,9 @@ void		RequestHandler::handleDELETE( void )
 		else
 		{
 			_response.setStatusCode(status_code);
+			_response.setHeader("Content-Length", 0);
+			_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
+			_response.setHeader("Server", _server.server_name);
 		}
 	}
 	else

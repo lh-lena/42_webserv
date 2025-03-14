@@ -26,7 +26,6 @@ private:
 	std::string							_server_name;
 	std::string							_body;
 	int									_status_code;
-	// std::map<std::string, std::string>	_header_fields;
 	std::vector<std::pair<std::string, std::string> >	_header_fields;
 };
 #endif /* RESPONSE_HPP */
