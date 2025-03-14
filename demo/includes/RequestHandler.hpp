@@ -25,8 +25,11 @@
 class RequestHandler
 {
 public:
-	RequestHandler(const Server& server, Request& request, Response& response);
+	RequestHandler(Server& server, Request& request, Response& response);
 	~RequestHandler();
+
+	RequestHandler	&	operator=(const RequestHandler& rh);
+
 	void processRequest();
 
 	static std::string		canonicalizePath(const std::string& path);

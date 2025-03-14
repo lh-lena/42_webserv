@@ -9,11 +9,19 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-RequestHandler::RequestHandler(const Server& server, Request& request, Response& response) : 
-	_server(server), 
-	_request(request), 
+RequestHandler::RequestHandler(Server& server, Request& request, Response& response) :
+	_server(server),
+	_request(request),
 	_response(response)
 {}
+
+RequestHandler	&	RequestHandler::operator=(const RequestHandler& rh)
+{
+	_server = rh._server;
+	_request = rh._request;
+	_response = rh._response;
+	_location = rh._location;
+}
 
 /*
 ** -------------------------------- DESTRUCTOR --------------------------------
@@ -78,8 +86,8 @@ void	RequestHandler::setCustomErrorResponse(int status_code, const std::string& 
 	{
 		body = generateHtmlErrorPage(status_code);
 	}
-	else if (isExternalRedirect(custom_error_path) 
-		|| status_code == MOVED_PERMANENTLY 
+	else if (isExternalRedirect(custom_error_path)
+		|| status_code == MOVED_PERMANENTLY
 		|| status_code == MOVED_TEMPORARY)
 	{
 		status_code = (status_code == MOVED_TEMPORARY || status_code == MOVED_PERMANENTLY) ? status_code : MOVED_TEMPORARY;
@@ -291,7 +299,7 @@ void	RequestHandler::handleCgiRequest( void )
 	_request.setHeader("Path-Translated", utils::substr_before_rdel(_request.getFullPath(), script_name) + _request.getHeader("Path-Info"));
 
 	// std::cerr << GREEN << _request.getHeader("Path-Info") << "\n"  << _request.getHeader("Path-Translated") << RESET << std::endl; //rm
-	
+
 	cgi.setExecutable(_request.getFullPath());
 	cgi.setUploadDir(searchingUploadPath());
 	cgi.setEnvironment(_request);

@@ -6,8 +6,8 @@ Connection::Connection()
 	_start = time(NULL);
 	_req_body_len = 0;
 	_req_head_len = 0;
-	_next_req_chunk = 0;
 	_req_chuncked = false;
+	memset(_cgi_fds, 0, sizeof(_cgi_fds));
 }
 
 Connection::Connection(int fd): _fd(fd)
@@ -15,8 +15,8 @@ Connection::Connection(int fd): _fd(fd)
 	_start = time(NULL);
 	_req_body_len = 0;
 	_req_head_len = 0;
-	_next_req_chunk = 0;
 	_req_chuncked = false;
+	memset(_cgi_fds, 0, sizeof(_cgi_fds));
 }
 
 Connection::~Connection()
@@ -189,7 +189,7 @@ void	Connection::resetRequest()
 	_req_body_len = 0;
 	_req_head_len = 0;
 	_req_chuncked = false;
-	_next_req_chunk = 0;
+
 }
 
 size_t	Connection::getReqHeadLen()
@@ -205,11 +205,6 @@ size_t	Connection::getReqHeadLen()
 	return _req_head_len;
 }
 
-size_t	Connection::getChunkSize()
-{
-	return _next_req_chunk;
-}
-
 std::string	Connection::getResponse() const
 {
 	return _response;
@@ -218,4 +213,20 @@ std::string	Connection::getResponse() const
 void	Connection::setResponse(const std::string & s)
 {
 	_response = s;
+}
+
+void	Connection::setCGIHandler(RequestHandler & handler)
+{
+	_cgi_handler = handler;
+}
+
+RequestHandler & Connection::getCGIHandler()
+{
+	return _cgi_handler;
+}
+
+void	Connection::setCGIfds(int fds[2])
+{
+	_cgi_fds[0] = fds[0];
+	_cgi_fds[1] = fds[1];
 }

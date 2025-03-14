@@ -63,7 +63,7 @@ ServerControler::~ServerControler()
 ** --------------------------------- OVERLOAD ---------------------------------
 */
 
-ServerControler&				ServerControler::operator=( ServerControler const& rhs )
+ServerControler&	ServerControler::operator=( ServerControler const& rhs )
 {
 	if ( this != &rhs )
 	{
@@ -72,7 +72,7 @@ ServerControler&				ServerControler::operator=( ServerControler const& rhs )
 	return *this;
 }
 
-std::ostream&			operator<<( std::ostream & o, ServerControler const& i )
+std::ostream&	operator<<( std::ostream & o, ServerControler const& i )
 {
 	std::vector<Server> servers = i.getServers();
 	for (size_t i = 0; i < servers.size(); i++)
@@ -192,7 +192,7 @@ void	ServerControler::polling()
 	Connection *connection = NULL;
 	struct sockaddr_in client;
 	unsigned int size = sizeof(client);
-	
+
 	std::cout << "Waiting on poll" << std::endl;
 	while (!g_serv_end)
 	{
