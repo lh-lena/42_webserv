@@ -291,7 +291,15 @@ void	RequestHandler::handleCgiRequest( void )
 	_request.setHeader("Path-Translated", utils::substr_before_rdel(_request.getFullPath(), script_name) + _request.getHeader("Path-Info"));
 
 	// std::cerr << GREEN << _request.getHeader("Path-Info") << "\n"  << _request.getHeader("Path-Translated") << RESET << std::endl; //rm
-	
+
+	std::string body = _request.getBody();
+	size_t max_size = (_location.getClientMaxBody() != 0) ? _location.getClientMaxBody() : _server.getClientMaxBody();
+	if (body.size() > max_size)
+	{
+		setCustomErrorResponse(REQUEST_ENTITY_TOO_LARGE, getCustomErrorPath(REQUEST_ENTITY_TOO_LARGE));
+		return;
+	}
+
 	cgi.setExecutable(_request.getFullPath());
 	cgi.setUploadDir(searchingUploadPath());
 	cgi.setEnvironment(_request);
@@ -318,7 +326,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	oss << iss.rdbuf();
 	body = oss.str();
 
-	// std::cerr << RED << "BODY CGI: \n" << body << RESET<<  std::endl; //rm
+	std::cerr << RED << "BODY CGI: \n" << body << RESET<<  std::endl; //rm
 
 	if (utils::get_value("content-type", headers).empty())
 	{
