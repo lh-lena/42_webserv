@@ -38,6 +38,7 @@ form.addEventListener('submit', async (e) => {
         }, 2000);
     }
     catch (error ){
+        form.reset();
         console.error("Upload error:", error);
         message.style.display = "block";
         message.innerHTML = "Upload failed. Please try again.";
