@@ -8,9 +8,11 @@ error_reporting(E_ALL);
 $rawData = file_get_contents("php://input");
 file_put_contents("logs/debug.log", "##\n");
 file_put_contents("logs/debug.log", $_SERVER["CONTENT_LENGTH"] . "\n", FILE_APPEND);
+file_put_contents("debug.log", var_export($_POST, true) . "\n", FILE_APPEND);
 file_put_contents("logs/debug.log", file_get_contents("php://input") . "\n", FILE_APPEND);
 file_put_contents("logs/debug.log", var_export($_FILES, true) . "\n", FILE_APPEND);
-file_put_contents("logs/debug.log", $_FILES["file"]["error"] . "\n", FILE_APPEND);
+file_put_contents("logs/debug.log", var_export($_SERVER, true) . "\n", FILE_APPEND);
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Status: 504 Method Not Allowed');
     echo"\n";
