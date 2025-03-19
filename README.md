@@ -28,23 +28,23 @@ http {  # The main HTTP block, containing server configurations.
       cgi_extension [.php .py];               # Specifies the file extension for CGI scripts.
 
 
-  location [path] {  # Defines specific configurations for different URL paths.
+      location [path] {  # Defines specific configurations for different URL paths.
         autoindex [on];              # Enables or disables the display of directory listings, use `on` or `off`. Default: off
         return <status code> [path]; # Returns a specific HTTP status code and URL/Path, effectively redirecting the client.
-    }
+      }
 
 
-  location /upload {
+      location /upload {
         root ./var/www/uploads;        # Root directory for upload requests.
         allow_methods GET POST DELETE; # Restricts the HTTP methods allowed for a location. Default: GET
         upload_dir /var/uploads;       # Defines the directory where uploads will be stored.
-    }
+      }
 
 
-    location \*[.php] {  # Extention search for cgi scripts.
+      location \*[.php] {  # Extention search for cgi scripts.
         root ./usr/lib/cgi-bin; # Root directory for specified location only.
         allow_methods GET POST; # Allowed HTTP methods for specified location only.
-    }
+      }
 
  }
 
