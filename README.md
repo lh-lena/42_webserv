@@ -18,6 +18,8 @@ http {  # The main HTTP block, containing server configurations.
  server {  # Defines a virtual server.
 
       listen [ip:port];                       # Binds the server to a specified IP address and port. Default: 127.0.0.1:8080
+      listen [port];
+
       server_name [hostname];                 # Defines the server name. Example: localhost
       index [index.ext];                      # Specifies the default files to serve if a directory is requested. Example: index.html
       root [relative_path];                   # Sets the root directory for serving files.
