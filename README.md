@@ -11,6 +11,8 @@ Gained experience with networking concepts like socket programming, non-blocking
 This configuration file defines the behavior of our `webserv` web server. It uses a structure similar to Nginx, allowing for flexible server and location configurations.
 
 ```
+worker_connections xxx; #
+
 http {  # The main HTTP block, containing server configurations.
 
  server {  # Defines a virtual server.
@@ -25,14 +27,15 @@ http {  # The main HTTP block, containing server configurations.
 
 
   location [path] {  # Defines specific configurations for different URL paths.
-        autoindex [on];        # Enables or disables the display of directory listings, use `on` or `off`. Default: off
+        autoindex [on];              # Enables or disables the display of directory listings, use `on` or `off`. Default: off
+        return <status code> [path]; # Returns a specific HTTP status code and URL/Path, effectively redirecting the client.
     }
 
 
   location /upload {
         root ./var/www/uploads;        # Root directory for upload requests.
         allow_methods GET POST DELETE; # Restricts the HTTP methods allowed for a location. Default: GET
-        upload_directory /var/uploads; # Defines the directory where uploads will be stored.
+        upload_dir /var/uploads;       # Defines the directory where uploads will be stored.
     }
 
 
@@ -45,3 +48,10 @@ http {  # The main HTTP block, containing server configurations.
 
 }
 ```
+
+Understanding `webserv` context:
+
+- **Global Context**: `http`,`worker_connections`
+- **HTTP Context**: Configuration related to handling HTTP requests :  `server`
+- **Server Context**: Configuration for a specific virtual server: `server_name`, `listen`, `root`,  `error_page` , `client_max_body_size` , `index`, `cgi_extension`, `upload_dir`, `allow_methods`
+- **Location Context**: Configuration for handling specific URL paths or locations within a server: `root`, `error_page`, `allowed_methods`, `autoindex`, `return`, `client_max_body_size`, `index`, `autoindex`, `allowed_methods`, `upload_dir`
