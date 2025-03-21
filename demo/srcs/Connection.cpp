@@ -1,5 +1,6 @@
 #include "Connection.hpp"
 #include "utils.hpp"
+#include "CGI.hpp"
 
 Connection::Connection()
 {
@@ -7,7 +8,8 @@ Connection::Connection()
 	_req_body_len = 0;
 	_req_head_len = 0;
 	_req_chuncked = false;
-	memset(_cgi_fds, 0, sizeof(_cgi_fds));
+	_cgi_handler = NULL;
+	//memset(_cgi_fds, 0, sizeof(_cgi_fds));
 }
 
 Connection::Connection(int fd): _fd(fd)
@@ -16,11 +18,15 @@ Connection::Connection(int fd): _fd(fd)
 	_req_body_len = 0;
 	_req_head_len = 0;
 	_req_chuncked = false;
-	memset(_cgi_fds, 0, sizeof(_cgi_fds));
+	_cgi_handler = NULL;
+	//memset(_cgi_fds, 0, sizeof(_cgi_fds));
 }
 
 Connection::~Connection()
-{}
+{
+	if (_cgi_handler != NULL)
+		delete _cgi_handler;
+}
 
 bool	Connection::unchunkRequest() // return 1 if the last chunk received
 {
@@ -192,6 +198,14 @@ void	Connection::resetRequest()
 
 }
 
+void	Connection::resetConnection()
+{
+	resetRequest();
+	_response.clear();
+	delete _cgi_handler;
+	_cgi_handler = NULL;
+}
+
 size_t	Connection::getReqHeadLen()
 {
 	size_t	res;
@@ -215,18 +229,26 @@ void	Connection::setResponse(const std::string & s)
 	_response = s;
 }
 
-void	Connection::setCGIHandler(RequestHandler & handler)
+void	Connection::setCGIHandler(RequestHandler * handler)
 {
 	_cgi_handler = handler;
 }
 
-RequestHandler & Connection::getCGIHandler()
+RequestHandler * Connection::getCGIHandler()
 {
 	return _cgi_handler;
 }
 
-void	Connection::setCGIfds(int fds[2])
+int		Connection::getCGIfdIn()
 {
-	_cgi_fds[0] = fds[0];
-	_cgi_fds[1] = fds[1];
+	if (_cgi_handler != NULL)
+		return _cgi_handler->getCGI().getIfd();
+	return -1;
+}
+
+int		Connection::getCGIfdOut()
+{
+	if (_cgi_handler != NULL)
+		return _cgi_handler->getCGI().getOfd();
+	return -1;
 }

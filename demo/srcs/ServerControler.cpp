@@ -294,6 +294,12 @@ void	ServerControler::handleInEvent(int fd)
 		return;
 	}
 
+	if (isCGIfd(fd))
+	{
+		conn->getCGIHandler()->processCGIResponse();
+		return;
+	}
+
 	char buf[BUFF_SIZE];
 	memset(buf, 0, sizeof(buf));
 	int res = recv(fd, buf, BUFF_SIZE - 1, 0);
@@ -413,8 +419,8 @@ Server & ServerControler::chooseServBlock(const std::string & host, int port)
 
 void	ServerControler::processRequest(Connection & conn)
 {
-	Request		request;
-	Response	response;
+	Request		*request = new Request();
+	Response	*response = new Response();
 	Server		serv;
 
 	// client_info : client IP adress and port
@@ -424,19 +430,26 @@ void	ServerControler::processRequest(Connection & conn)
 
 	// std::cerr << MAGENTA << data << RESET << std::endl; //rm
 
-	if (!request.parse(conn.getRequest(), conn.getClientAddr()))
+	if (!request->parse(conn.getRequest(), conn.getClientAddr()))
 	{
-		if (request.getHeader("Server-Protocol") != "HTTP/1.1")
-			response.setErrorResponse(505, std::string());
+		if (request->getHeader("Server-Protocol") != "HTTP/1.1")
+			response->setErrorResponse(505, std::string());
 		else
-			response.setErrorResponse(BAD_REQUEST, std::string());
-		conn.setResponse(response.getResponse());
+			response->setErrorResponse(BAD_REQUEST, std::string());
+		conn.setResponse(response->getResponse());
 	}
 
-	serv = chooseServBlock(request.getHeader("Host"), conn.getPort());
-	RequestHandler reqHandler(serv, request, response);
+	serv = chooseServBlock(request->getHeader("Host"), conn.getPort());
+	RequestHandler * reqHandler = new RequestHandler(serv, request, response);
 
-	reqHandler.processRequest();
+	int res = reqHandler->processRequest();
+	if (res == 1)
+	{
+		conn.setCGIHandler(reqHandler);
+		addPfd(conn.getCGIfdIn());
+		// add CGIfdOut
+		return;
+	}
 
 	// std::cerr << GREEN << response.getResponse() << RESET << std::endl;
 
@@ -449,11 +462,12 @@ void	ServerControler::processRequest(Connection & conn)
 	// << response.getStatusCode() << " "
 	// << response.getHeader("Content-Length")  << RESET << std::endl;
 
-	ss = "[TRACE] " + utils::getFormattedDateTime() + " \"" + request.start_line + "\"\n" +\
-	 utils::itos(response.getStatusCode()) + " " + response.getHeader("Content-Length");
+	ss = "[TRACE] " + utils::getFormattedDateTime() + " \"" + request->start_line + "\"\n" +\
+	 utils::itos(response->getStatusCode()) + " " + response->getHeader("Content-Length");
 
 	std::cout << MAGENTA << ss << RESET << std::endl;
-	conn.setResponse(response.getResponse());
+	conn.setResponse(response->getResponse());
+	delete reqHandler;
 }
 /*
 std::string	ServerControler::processRequest(std::string & data, int port)
@@ -520,6 +534,8 @@ Connection	*	ServerControler::getConnection(int fd)
 	{
 		if (_conns[i].getFd() == fd)
 			return &_conns[i];
+		if (_conns[i].getCGIHandler() && _conns[i].getCGIfdIn() == fd)
+			return &_conns[i];
 	}
 	return NULL;
 }
@@ -547,10 +563,14 @@ void	ServerControler::removeConnection(int fd)
 	for (int i = 0; i < size; i++)
 	{
 		if (_conns[i].getFd() == fd)
+		{
 			_conns.erase(_conns.begin() + i);
+			if (_conns[i].getCGIHandler() != NULL)
+				removeCGIfd(fd);
+			break;
+		}
 	}
 	removePfd(fd);
-	close(fd);
 }
 
 void	ServerControler::addPfd(int fd)
@@ -588,6 +608,39 @@ void	ServerControler::removePfd(int fd)
 	}
 	_nfds--;
 	std::cout << "fd " << fd << " deleted from poll. Size of pollFd array is " << _nfds << std::endl;
+}
+
+void	ServerControler::addCGIfd(int fd)
+{
+	_cgi_fds.push_back(fd);
+}
+
+void	ServerControler::removeCGIfd(int fd)
+{
+	int size = _cgi_fds.size();
+	if (size == 0)
+		return;
+	for (int i = 0; i < size; i++)
+	{
+		if (_cgi_fds[i] == fd)
+		{
+			_cgi_fds.erase(_cgi_fds.begin() + i);
+			return;
+		}
+	}
+}
+
+bool	ServerControler::isCGIfd(int fd)
+{
+	int size = _cgi_fds.size();
+	if (size == 0)
+		return 0;
+	for (int i = 0; i < size; i++)
+	{
+		if (_cgi_fds[i] == fd)
+			return 1;
+	}
+	return 0;
 }
 
 void	ServerControler::setPfdEvent(int fd, char e)

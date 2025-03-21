@@ -32,8 +32,10 @@ class ServerControler
 		void							addConnection(int fd, int port, struct sockaddr_in & client);
 		void							removeConnection(int fd);
 		void							addPfd(int fd);
-		void							setPfdEvent(int fd, char e);
 		void							removePfd(int fd);
+		void							addCGIfd(int fd);
+		void							removeCGIfd(int fd);
+		void							setPfdEvent(int fd, char e);
 		int								getNfds(void);
 		int								incrementNfds(void);
 		int								decrementNfds(void);
@@ -43,26 +45,26 @@ class ServerControler
 		static void						sig_handler(int sig_num);
 
 		void							startServing();
-		//bool	servEnd;
 
+	private:
 
-		private:
+		unsigned int			_pfds_limit;
+		unsigned int			_work_conn_num;
 
-		unsigned int					_pfds_limit;
-		unsigned int					_work_conn_num;
-
-		std::vector<Server>	_servBlocks;
-		std::vector<int>	_ports;
-		std::vector<int>	_socketFds; // array of listening sockets identifiers (server_fds)
+		std::vector<Server>		_servBlocks;
+		std::vector<int>		_ports;
+		std::vector<int>		_socketFds; // array of listening sockets identifiers (server_fds)
 		std::vector<Connection>	_conns;
-		struct pollfd _pfds[100000]; // size of pfds_limit
-		int	_nfds;
+		std::vector<int> 		_cgi_fds;
+		struct pollfd 			_pfds[100000]; // size of pfds_limit
+		int						_nfds;
 
 		void	createListeningSockets(); // fill _socketFds
 		void	polling();
 		void	handleInEvent(int fd);
 		void	handleOutEvent(int fd);
 		int		isSocketFd(int fd);
+		bool	isCGIfd(int fd);
 		void	processRequest(Connection & conn);
 		// std::string	processRequest(std::string & request, int port); // parse request and pass it to the rigth server block to get response
 		Server & chooseServBlock(const std::string & host, int port);

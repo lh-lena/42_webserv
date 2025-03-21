@@ -13,6 +13,8 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 
+# define MAX_RESP_SIZE 150000
+
 class CGI
 {
 public:
@@ -21,17 +23,25 @@ public:
 
 	void		printEnvironment();
 	void		setEnvironment(const Request & request);
+	void		setChildProcess(Request& request);
+	void		readResponse();
 	std::string	executeCGI(Request & request);
 	void		setInterpreter(const std::string& str);
 	void		setExecutable(const std::string& str);
 	void		setUploadDir(const std::string& str);
+	pid_t		getProcessId();
+	int			getIfd();
+	int			getOfd();
+	std::string getCGIResponce();
+	
+	private:
 
-	int	conn_fd;
-	int	fds[2];
+	pid_t		_pid;
+	int			_fds[2];
+	std::string	_cgi_responce; //CGI output from the pipe
 
-private:
 	std::vector<std::pair<std::string, std::string> >	_env;
-	std::vector<char*>					envp;
+	std::vector<char*>			envp;
 	std::vector<std::string>	required_vars;
 	std::vector<std::string>	remove_vars;
 	std::string					interpreter;

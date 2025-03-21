@@ -9,10 +9,11 @@
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-RequestHandler::RequestHandler(Server& server, Request& request, Response& response) :
+RequestHandler::RequestHandler(Server& server, Request* request, Response* response) :
 	_server(server),
 	_request(request),
-	_response(response)
+	_response(response),
+	_cgi(NULL)
 {}
 
 RequestHandler	&	RequestHandler::operator=(const RequestHandler& rh)
@@ -21,24 +22,34 @@ RequestHandler	&	RequestHandler::operator=(const RequestHandler& rh)
 	_request = rh._request;
 	_response = rh._response;
 	_location = rh._location;
+	_cgi = rh._cgi;
+	return *this;
 }
 
 /*
 ** -------------------------------- DESTRUCTOR --------------------------------
 */
 
-RequestHandler::~RequestHandler() {}
+RequestHandler::~RequestHandler()
+{
+	if (_request != NULL)
+		delete _request;
+	if (_response != NULL)
+		delete _response;
+	if (_cgi != NULL)
+		delete _cgi;
+}
 
 /*
 ** --------------------------------- METHODS ----------------------------------
 */
 
-void		RequestHandler::processRequest()
+int		RequestHandler::processRequest()
 {
-	if (!findRequestedLocation(_request.getHeader("Request-URI")))
+	if (!findRequestedLocation(_request->getHeader("Request-URI")))
 	{
 		setCustomErrorResponse(NOT_FOUND, getCustomErrorPath(NOT_FOUND));
-		return;
+		return -1;
 	}
 
 	// std::cerr << YELLOW << "request:\n" << _request << RESET; //rm
@@ -47,31 +58,33 @@ void		RequestHandler::processRequest()
 	if (!isImplementedMethod())
 	{
 		setCustomErrorResponse(NOT_IMPLEMENTED, getCustomErrorPath(NOT_IMPLEMENTED));
-		_response.setHeader("Allow", utils::vector_tostr(_location.getAllowedMethods()));
-		return;
+		_response->setHeader("Allow", utils::vector_tostr(_location.getAllowedMethods()));
+		return -1;
 	}
 
 	if (!isMethodAllowed())
 	{
 		setCustomErrorResponse(METHOD_NOT_ALLOWED, getCustomErrorPath(METHOD_NOT_ALLOWED));
-		_response.setHeader("Allow", utils::vector_tostr(_location.getAllowedMethods()));
-		return;
+		_response->setHeader("Allow", utils::vector_tostr(_location.getAllowedMethods()));
+		return -1;
 	}
 
 	if (isRedirection())
 	{
 		setRedirectResponse();
-		return;
+		return 0;
 	}
 
 	if (isCGIRequest())
 	{
-		handleCgiRequest();
+		handleCgiRequest(); //parse, fork and return to poll
+		return 1;
 	}
 	else
 	{
 		handleStaticRequest();
 	}
+	return 0;
 }
 
 void	RequestHandler::setCustomErrorResponse(int status_code, const std::string& custom_error_path)
@@ -120,20 +133,20 @@ void	RequestHandler::setCustomErrorResponse(int status_code, const std::string& 
 		last_modified = utils::formatDate(utils::get_timestamp(new_path));
 	}
 
-	_response.setStatusCode(status_code);
-	_response.setHeader("Date", date);
-	_response.setHeader("Server", _server.server_name);
+	_response->setStatusCode(status_code);
+	_response->setHeader("Date", date);
+	_response->setHeader("Server", _server.server_name);
 
 	if (!last_modified.empty())
-		_response.setHeader("Last-Modified", last_modified);
+		_response->setHeader("Last-Modified", last_modified);
 	if (!body.empty())
-		_response.setHeader("Content-Length", utils::itos(body.length()));
+		_response->setHeader("Content-Length", utils::itos(body.length()));
 	if (!location.empty())
-		_response.setHeader("Location", location);
+		_response->setHeader("Location", location);
 	if (!body.empty())
 	{
-		_response.setBody(body);
-		_response.setHeader("Content-Type", utils::get_MIME_type(body));
+		_response->setBody(body);
+		_response->setHeader("Content-Type", utils::get_MIME_type(body));
 	}
 }
 
@@ -187,12 +200,12 @@ std::string			RequestHandler::determineFilePath(const std::string& requested_pat
 
 bool		RequestHandler::isMethodAllowed( void ) const
 {
-	return utils::is_str_in_vector(_request.getHeader("Request-Method"), _location.getAllowedMethods());
+	return utils::is_str_in_vector(_request->getHeader("Request-Method"), _location.getAllowedMethods());
 }
 
 bool		RequestHandler::isImplementedMethod( void ) const
 {
-	return utils::is_str_in_vector(utils::str_toupper(_request.getHeader("Request-Method")), _server.getImplementedMethods());
+	return utils::is_str_in_vector(utils::str_toupper(_request->getHeader("Request-Method")), _server.getImplementedMethods());
 }
 
 bool		RequestHandler::isRedirection( void ) const
@@ -207,41 +220,41 @@ void	RequestHandler::setRedirectResponse( void )
 	std::map<int, std::string>::const_iterator reds = _location.getRedirect().begin();
 	int st_code = reds->first;
 
-	_response.setStatusCode(st_code);
-	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
+	_response->setStatusCode(st_code);
+	_response->setHeader("Date", utils::formatDate(utils::get_timestamp("")));
 	if (st_code == MOVED_PERMANENTLY || st_code == MOVED_TEMPORARY)
 	{
-		_response.setHeader("Location", reds->second);
+		_response->setHeader("Location", reds->second);
 	}
 	else if (reds->second.empty() && !(error_path = getCustomErrorPath(reds->first)).empty())
 	{
 		body = utils::load_file_content(error_path);
-		_response.setBody(body);
-		_response.setHeader("Content-Length", utils::to_string(body.size()));
-		_response.setHeader("Content-Type", utils::get_MIME_type(error_path));
+		_response->setBody(body);
+		_response->setHeader("Content-Length", utils::to_string(body.size()));
+		_response->setHeader("Content-Type", utils::get_MIME_type(error_path));
 	}
 	else
 	{
-		_response.setBody(reds->second);
-		_response.setHeader("Content-Length", utils::to_string(reds->second.size()));
-		_response.setHeader("Content-Type", "text/plain");
+		_response->setBody(reds->second);
+		_response->setHeader("Content-Length", utils::to_string(reds->second.size()));
+		_response->setHeader("Content-Type", "text/plain");
 	}
 
-	_response.setHeader("Server", _server.server_name);
+	_response->setHeader("Server", _server.server_name);
 }
 
 void		RequestHandler::handleStaticRequest( void )
 {
-	_request.setFullPath(determineFilePath(_request.getHeader("Request-URI")));
+	_request->setFullPath(determineFilePath(_request->getHeader("Request-URI")));
 
-	if (std::strcmp(_request.getHeader("Request-Method").c_str(), "GET") == 0 || \
-	std::strcmp(_request.getHeader("Request-Method").c_str(), "HEAD") == 0)
+	if (std::strcmp(_request->getHeader("Request-Method").c_str(), "GET") == 0 || \
+	std::strcmp(_request->getHeader("Request-Method").c_str(), "HEAD") == 0)
 	{
-		if (utils::is_regular_file(_request.getFullPath()))
+		if (utils::is_regular_file(_request->getFullPath()))
 		{
-			_response.setStaticPageResponse(OK, _request.getFullPath());
+			_response->setStaticPageResponse(OK, _request->getFullPath());
 		}
-		else if (utils::is_directory(_request.getFullPath()))
+		else if (utils::is_directory(_request->getFullPath()))
 		{
 			handleGetDirectoryResponse();
 		}
@@ -250,11 +263,11 @@ void		RequestHandler::handleStaticRequest( void )
 			setCustomErrorResponse(NOT_FOUND, getCustomErrorPath(NOT_FOUND));
 		}
 	}
-	else if (std::strcmp(_request.getHeader("Request-Method").c_str(), "POST") == 0)
+	else if (std::strcmp(_request->getHeader("Request-Method").c_str(), "POST") == 0)
 	{
 		handlePOST();
 	}
-	else if (std::strcmp(_request.getHeader("Request-Method").c_str(), "DELETE") == 0)
+	else if (std::strcmp(_request->getHeader("Request-Method").c_str(), "DELETE") == 0)
 	{
 		handleDELETE();
 	}
@@ -264,7 +277,7 @@ void		RequestHandler::handleStaticRequest( void )
 
 bool	RequestHandler::isCGIRequest( void ) const
 {
-	std::string req_uri = _request.getHeader("Request-URI");
+	std::string req_uri = _request->getHeader("Request-URI");
 	std::string ext = utils::get_file_extension(req_uri);
 	if (!utils::is_str_in_vector(ext, _location.getCGIExtension()))
 	{
@@ -275,36 +288,49 @@ bool	RequestHandler::isCGIRequest( void ) const
 
 void	RequestHandler::handleCgiRequest( void )
 {
-	CGI cgi;
+	_cgi = new CGI();
+	CGI & cgi = *_cgi;
 
-	std::string req_uri = _request.getHeader("Request-URI");
+	std::string req_uri = _request->getHeader("Request-URI");
 	std::string ext = utils::get_file_extension(req_uri);
 	std::string script_name = utils::extract_script_name(req_uri, ext);
 	if (!_location.getIndexes().empty())
 		script_name = _location.getIndexes()[0];
-	_request.setHeader("Script-Name", script_name);
-	_request.setFullPath(determineFilePath(_request.getHeader("Script-Name")));
+	_request->setHeader("Script-Name", script_name);
+	_request->setFullPath(determineFilePath(_request->getHeader("Script-Name")));
 
-	if (!utils::is_regular_file(_request.getFullPath()))
+	if (!utils::is_regular_file(_request->getFullPath()))
 	{
 		setCustomErrorResponse(NOT_FOUND, getCustomErrorPath(NOT_FOUND));
 		return;
 	}
 
-	if (!utils::has_executable_permissions(_request.getFullPath()))
+	if (!utils::has_executable_permissions(_request->getFullPath()))
 	{
 		setCustomErrorResponse(FORBIDDEN, getCustomErrorPath(FORBIDDEN));
 		return;
 	}
-	_request.setHeader("Path-Translated", utils::substr_before_rdel(_request.getFullPath(), script_name) + _request.getHeader("Path-Info"));
+	_request->setHeader("Path-Translated", utils::substr_before_rdel(_request->getFullPath(), script_name) + _request->getHeader("Path-Info"));
 
 	// std::cerr << GREEN << _request.getHeader("Path-Info") << "\n"  << _request.getHeader("Path-Translated") << RESET << std::endl; //rm
 
-	cgi.setExecutable(_request.getFullPath());
+	cgi.setExecutable(_request->getFullPath());
 	cgi.setUploadDir(searchingUploadPath());
-	cgi.setEnvironment(_request);
-	std::string data = cgi.executeCGI(_request);
-	handleCgiResponse(data);
+	cgi.setEnvironment(*_request);
+
+	cgi.setChildProcess(*_request);
+	//std::string data = cgi.executeCGI(*_request);
+
+	//wait for POLLIN event to read data
+	//cgi.readResponse();
+	//handleCgiResponse(cgi.getCGIResponce());
+}
+
+void	RequestHandler::processCGIResponse()
+{
+	//wait for POLLIN event to read data
+	_cgi->readResponse();
+	handleCgiResponse(_cgi->getCGIResponce());
 }
 
 void	RequestHandler::handleCgiResponse(const std::string& data)
@@ -344,20 +370,20 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	if (!utils::get_value("status", headers).empty())
 	{
 		int st = utils::stoi(utils::get_value("status", headers));
-		_response.setStatusCode(st);
+		_response->setStatusCode(st);
 	}
 	else
-		_response.setStatusCode(200);
+		_response->setStatusCode(200);
 
-	_response.setBody(body);
-	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
-	_response.setHeader("Server", _server.server_name);
-	_response.setHeader("Content-Type", utils::get_value("content-type", headers));
-	_response.setHeader("Content-Length", con_len);
+	_response->setBody(body);
+	_response->setHeader("Date", utils::formatDate(utils::get_timestamp("")));
+	_response->setHeader("Server", _server.server_name);
+	_response->setHeader("Content-Type", utils::get_value("content-type", headers));
+	_response->setHeader("Content-Length", con_len);
 	if (!utils::get_value("location", headers).empty())
 	{
-		_response.setStatusCode(302);
-		_response.setHeader("Location", utils::get_value("location", headers));
+		_response->setStatusCode(302);
+		_response->setHeader("Location", utils::get_value("location", headers));
 	}
 
 	std::vector<std::pair<std::string, std::string> >::const_iterator it = headers.begin();
@@ -368,7 +394,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 		if (it->first == "set-cookie") //&& !utils::is_str_in_vector(it->second, cookies_val)
 		{
 			cookies_val.push_back(it->second);
-			_response.setHeader("Set-Cookie", it->second);
+			_response->setHeader("Set-Cookie", it->second);
 		}
 	}
 }
@@ -381,18 +407,18 @@ void	RequestHandler::handleGetDirectoryResponse( void )
 
 	//std::cerr << RED << "_request.getFullPath() " << _request.getFullPath() << RESET << std::endl;
 
-	if (!utils::ends_with(_request.getFullPath(), "/"))
+	if (!utils::ends_with(_request->getFullPath(), "/"))
 	{
 		setCustomErrorResponse(MOVED_PERMANENTLY, "");
-		_response.setHeader("Location", _request.getHeader("Request-URI") + "/");
+		_response->setHeader("Location", _request->getHeader("Request-URI") + "/");
 		return;
 	}
 
-	new_path = appendIndexFile(_request.getFullPath());
+	new_path = appendIndexFile(_request->getFullPath());
 
-	if (new_path.compare(_request.getFullPath().c_str()) != 0)
+	if (new_path.compare(_request->getFullPath().c_str()) != 0)
 	{
-		_response.setStaticPageResponse(OK, new_path);
+		_response->setStaticPageResponse(OK, new_path);
 	}
 	else if (!_location.getAutoindex())
 	{
@@ -406,15 +432,15 @@ void	RequestHandler::handleGetDirectoryResponse( void )
 
 void	RequestHandler::setDirectoryListingResponse(int status_code)
 {
-	std::string	body = generateHtmlDirectoryListing(_request.getFullPath());
+	std::string	body = generateHtmlDirectoryListing(_request->getFullPath());
 	unsigned long long con_len = body.length();
 
-	_response.setStatusCode(status_code);
-	_response.setBody(body);
-	_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
-	_response.setHeader("Server", _server.server_name);
-	_response.setHeader("Content-Type", utils::get_MIME_type(body));
-	_response.setHeader("Content-Length", utils::to_string(con_len));
+	_response->setStatusCode(status_code);
+	_response->setBody(body);
+	_response->setHeader("Date", utils::formatDate(utils::get_timestamp("")));
+	_response->setHeader("Server", _server.server_name);
+	_response->setHeader("Content-Type", utils::get_MIME_type(body));
+	_response->setHeader("Content-Length", utils::to_string(con_len));
 }
 
 std::string		RequestHandler::appendIndexFile( const std::string& path )
@@ -468,7 +494,7 @@ void		RequestHandler::handlePOST( void )
 	}
 
 	std::string filename = generateRawDataFilename();
-	std::string body = _request.getBody();
+	std::string body = _request->getBody();
 	size_t max_size = (_location.getClientMaxBody() != 0) ? _location.getClientMaxBody() : _server.getClientMaxBody();
 	if (body.size() > max_size)
 	{
@@ -503,7 +529,7 @@ void		RequestHandler::handlePOST( void )
 		return;
 	}
 	outfile.close();
-	_response.setStatusCode(CREATED);
+	_response->setStatusCode(CREATED);
 }
 
 std::string		RequestHandler::searchingUploadPath( void )
@@ -536,9 +562,9 @@ std::string		RequestHandler::searchingUploadPath( void )
 
 void		RequestHandler::handleDELETE( void )
 {
-	if (utils::is_regular_file(_request.getFullPath()))
+	if (utils::is_regular_file(_request->getFullPath()))
 	{
-		int status_code = remove_file(_request.getFullPath());
+		int status_code = remove_file(_request->getFullPath());
 		if (utils::is_client_error(status_code) || utils::is_server_error(status_code))
 		{
 			setCustomErrorResponse(status_code, getCustomErrorPath(status_code));
@@ -546,10 +572,10 @@ void		RequestHandler::handleDELETE( void )
 		}
 		else
 		{
-			_response.setStatusCode(status_code);
+			_response->setStatusCode(status_code);
 		}
 	}
-	else if (utils::is_directory(_request.getFullPath()))
+	else if (utils::is_directory(_request->getFullPath()))
 	{
 		int status_code = handleDeleteDirectoryResponse();
 		if (utils::is_client_error(status_code) || utils::is_server_error(status_code))
@@ -559,7 +585,7 @@ void		RequestHandler::handleDELETE( void )
 		}
 		else
 		{
-			_response.setStatusCode(status_code);
+			_response->setStatusCode(status_code);
 		}
 	}
 	else
@@ -571,11 +597,11 @@ void		RequestHandler::handleDELETE( void )
 /** @return status code */
 int			RequestHandler::handleDeleteDirectoryResponse( void )
 {
-	if (!utils::ends_with(_request.getFullPath(), "/"))
+	if (!utils::ends_with(_request->getFullPath(), "/"))
 	{
 		return CONFLICT;
 	}
-	if (!utils::has_user_permissions(_request.getFullPath()))
+	if (!utils::has_user_permissions(_request->getFullPath()))
 	{
 		return FORBIDDEN;
 	}
@@ -877,4 +903,9 @@ std::string	RequestHandler::generateHtmlErrorPage( int status_code )
 			"</html>\n";
 
 	return html.str();
+}
+
+CGI	&	RequestHandler::getCGI()
+{
+	return *_cgi;
 }

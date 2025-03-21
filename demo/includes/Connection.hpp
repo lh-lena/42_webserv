@@ -31,12 +31,11 @@ class Connection
 	void	setRequest(const std::string & s);
 	void	appendRequest(const char * s);
 	void	resetRequest();
+	void	resetConnection();
 	std::string	getResponse() const;
 	void	setResponse(const std::string & s);
-	void	setCGIHandler(RequestHandler & handler);
-	RequestHandler & getCGIHandler();
-	void	setCGIfds(int fds[2]);
-	int[2]	getCGIfds();
+	void	setCGIHandler(RequestHandler * handler);
+	RequestHandler * getCGIHandler();
 	int		getCGIfdIn();
 	int		getCGIfdOut();
 
@@ -45,17 +44,17 @@ class Connection
 
 	private:
 
-	int	_fd;
-	int	_port;
-	int	_cgi_fds[2];
+	int		_fd;
+	int		_port;
+	//int		_cgi_fds[2];
 	struct sockaddr_in _client_addr;
-	time_t _start;
-	std::string _request;
-	size_t	_req_body_len;
-	size_t	_req_head_len;
-	bool _req_chuncked;
-	std::string _response;
-	RequestHandler _cgi_handler;
+	time_t 				_start;
+	std::string 		_request;
+	size_t				_req_body_len;
+	size_t				_req_head_len;
+	bool 				_req_chuncked;
+	std::string 		_response;
+	RequestHandler 	*	_cgi_handler;
 
 	size_t	getReqHeadLen();
 	size_t	getReqBodyLen();

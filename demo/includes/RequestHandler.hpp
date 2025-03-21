@@ -5,6 +5,7 @@
 # include "Response.hpp"
 # include "Server.hpp"
 # include "Location.hpp"
+# include "CGI.hpp"
 
 /** HttpStatusCode */
 # define OK 200
@@ -25,23 +26,29 @@
 class RequestHandler
 {
 public:
-	RequestHandler(Server& server, Request& request, Response& response);
+	RequestHandler(Server& server, Request* request, Response* response);
 	~RequestHandler();
 
 	RequestHandler	&	operator=(const RequestHandler& rh);
 
-	void processRequest();
+	int 	processRequest();
+	void	processCGIResponse();
 
 	static std::string		canonicalizePath(const std::string& path);
 	static std::string		normalizePath(const std::string& path);
 	static std::string		decodeURI(const std::string& path);
 	static std::string		generateHtmlErrorPage( int status_code);
 
+	void	setCGI(CGI *c);
+	CGI	&	getCGI();
+
 private:
-	const Server&			_server;
-	Request&				_request;
-	Response&				_response;
+
+	Server			&		_server;
+	Request			*		_request;
+	Response		*		_response;
 	Location				_location;
+	CGI				*		_cgi;
 
 	bool					isRedirection( void ) const;
 	void					setRedirectResponse( void );
