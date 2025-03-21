@@ -17,6 +17,7 @@ public:
 	void			setBody(const std::string& body);
 	void			setStatusCode(int code);
 	void			setErrorResponse(int code, std::string path);
+	void			setPostResponse(int code, const std::string& filename);
 	void			setStaticPageResponse(int code, const std::string& path);
 	int				getStatusCode( void );
 	std::string		getResponse( void ) const;
@@ -26,7 +27,6 @@ private:
 	std::string							_server_name;
 	std::string							_body;
 	int									_status_code;
-	// std::map<std::string, std::string>	_header_fields;
 	std::vector<std::pair<std::string, std::string> >	_header_fields;
 };
 #endif /* RESPONSE_HPP */

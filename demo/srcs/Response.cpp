@@ -79,6 +79,19 @@ void	Response::setErrorResponse(int code, std::string path)
 	setHeader("Content-Length", utils::itos(body.length()));
 }
 
+void		Response::setPostResponse(int code, const std::string& filename)
+{
+	setStatusCode(code);
+	setHeader("Date", utils::formatDate(utils::get_timestamp("")));
+	setHeader("Server", "Webserv/1.0");
+	
+	std::stringstream html;
+	html << "<!DOCTYPE html><html lang=\"en\"><head>\
+	<title>File Upload</title></head><body><ul><li>" << filename << " is successfully upload.</li></ul></body></html>";
+	setBody(html.str());
+	setHeader("Content-Length", utils::itos(html.str().length()));
+}
+
 std::string		Response::getResponse( void ) const
 {
 	std::ostringstream response;

@@ -43,7 +43,6 @@ bool	Request::parse(const std::string& data, const struct sockaddr_in & clientIn
 		parseHeader(line);
 	}
 
-	// to determine if a message body is expected
 	if (isValid() && isBodyExpected())
 	{
 		std::ostringstream oss;
@@ -157,11 +156,6 @@ void					Request::setFullPath(const std::string& path)
 	_full_path = path;
 }
 
-// void					Request::setUploadPath(const std::string& path)
-// {
-// 	_upload_path = path;
-// }
-
 const std::string		Request::getHeader(const std::string& key) const
 {
 	std::vector<std::pair<std::string, std::string> >::const_iterator it = _header_fields.begin();
@@ -193,11 +187,6 @@ const std::string&		Request::getFullPath() const
 {
 	return _full_path;
 }
-
-// const std::string&		Request::getUploadPath() const
-// {
-// 	return _upload_path;
-// }
 
 std::ostream &			operator<<( std::ostream & o, Request const & i )
 {

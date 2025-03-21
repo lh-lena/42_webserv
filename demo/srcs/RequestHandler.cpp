@@ -315,6 +315,16 @@ void	RequestHandler::handleCgiRequest( void )
 
 	// std::cerr << GREEN << _request.getHeader("Path-Info") << "\n"  << _request.getHeader("Path-Translated") << RESET << std::endl; //rm
 
+	std::string body = _request.getBody();
+	size_t max_size = (_location.getClientMaxBody() != 0) ? _location.getClientMaxBody() : _server.getClientMaxBody();
+	if (body.size() > max_size)
+	{
+		setCustomErrorResponse(REQUEST_ENTITY_TOO_LARGE, getCustomErrorPath(REQUEST_ENTITY_TOO_LARGE));
+		return;
+	}
+
+	cgi.setExecutable(_request.getFullPath());
+
 	cgi.setExecutable(_request->getFullPath());
 	cgi.setUploadDir(searchingUploadPath());
 	cgi.setEnvironment(*_request);
@@ -353,7 +363,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	oss << iss.rdbuf();
 	body = oss.str();
 
-	// std::cerr << RED << "BODY CGI: \n" << body << RESET<<  std::endl; //rm
+	std::cerr << RED << "BODY CGI: \n" << body << RESET<<  std::endl; //rm
 
 	if (utils::get_value("content-type", headers).empty())
 	{
@@ -530,6 +540,11 @@ void		RequestHandler::handlePOST( void )
 		return;
 	}
 	outfile.close();
+	_response.setPostResponse(CREATED, filename);
+	// _response.setStatusCode(CREATED);
+	// _response.setHeader("Content-Length", 0);
+	// _response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
+	// _response.setHeader("Server", _server.server_name);
 	_response->setStatusCode(CREATED);
 }
 
@@ -586,6 +601,10 @@ void		RequestHandler::handleDELETE( void )
 		}
 		else
 		{
+			_response.setStatusCode(status_code);
+			_response.setHeader("Content-Length", 0);
+			_response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
+			_response.setHeader("Server", _server.server_name);
 			_response->setStatusCode(status_code);
 		}
 	}
@@ -679,6 +698,12 @@ bool		RequestHandler::findRequestedLocation(const std::string& path)
 	if (!location_found)
 	{
 		location_found = searchingPrefixMatchLocation(path);
+	}
+
+	if (!location_found && path == "/")
+	{
+		_location.defaultRootLocation();
+		location_found = true;
 	}
 
 	return location_found;

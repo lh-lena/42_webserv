@@ -16,7 +16,7 @@
             <h2>Upload File</h2>
         </div>
         <div id="message"></div>
-        <form id="file_upload_form" action="/file_upload.php"  method="POST" enctype="multipart/form-data">
+        <form id="file_upload_form" action="/file_upload.py"  method="POST" enctype="multipart/form-data">
             <!-- <span id="fileName">No File Selected</span> -->
             <label id="fileName" for="file">No File Selected</label>
             <!-- hidden file input -->
@@ -24,7 +24,7 @@
             <!-- custom button -->
             <img src="../images/upload_icon.png" id="uploadBtm" alt="Upload Icon">
             <!-- submit button -->
-            <input type="submit" id="submitBtn"></input>
+            <input type="submit" id="submitBtn" name="submit">
         </form>
     </div>
 

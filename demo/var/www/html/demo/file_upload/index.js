@@ -31,10 +31,10 @@ submitBtn.addEventListener('click', async (e) => {
     else {
         const name = fileInput.files[0].name;
         const file = fileInput.files[0];
-        const form_data = new FormData();
-        form_data.append("name", name);
-        form_data.append("file", "INPUT");
-        console.log(e);
+        const form_data = new FormData(form);
+        // form_data.append("name", name);
+        // form_data.append("file", "INPUT");
+        // console.log(e);
         // const form_data = e.currentTarget;
         // if (form_data === null) {
         //     throw new Error(`Invalid input`);
@@ -43,7 +43,7 @@ submitBtn.addEventListener('click', async (e) => {
         // console.log(e.currentTarget);
         // console.log(new FormData(form_data));
         // console.log(e.currentTarget.action);
-        const response = await fetch("/file_upload.php", {
+        const response = await fetch("/file_upload.py", {
             method: "POST",
             body: form_data
         })
@@ -55,12 +55,13 @@ submitBtn.addEventListener('click', async (e) => {
         })
         .then(response => {
             message.style.display = "block";
-            message.innerHTML = "File " + file_name + " saved successfully!";
-            // form.reset();
+            message.innerHTML = "File " + name + " saved successfully!";
+            fileNameDisplay.textContent = "No File Selected";
+            form.reset();
             setTimeout(() => {
                 message.style.display = "none";
                 message.innerHTML = "";
-                console.log(json.message);
+                console.log(response.message);
             }, 2000);
         })
         .catch(error => {
@@ -69,6 +70,7 @@ submitBtn.addEventListener('click', async (e) => {
             setTimeout(() => {
                 message.style.display = "none";
                 message.innerHTML = "";
+                fileNameDisplay.textContent = "No File Selected";
             }, 3000);
         });
     }

@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     // Save the file
     if (file_put_contents($filePath, $fileBody) !== false) {
-        header ('Status: 200 OK');
+        header ('Status: 201 Created');
         echo json_encode(['success' => true, 'message' => 'File ' . htmlspecialchars($fileName) . ' saved successfully!', 'upload_path: ' => $uploadDir]);
     } else {
         header ('Status: 400 Bad request');

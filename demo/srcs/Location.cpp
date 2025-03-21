@@ -105,6 +105,7 @@ void	Location::defaultRootLocation( void )
 	setPath("/");
 	setRoot("var/www/html");
 	setIndex("index.42webserver.html");
+	setAllowedMethod("GET");
 }
 
 /*
