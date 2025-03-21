@@ -363,7 +363,7 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	oss << iss.rdbuf();
 	body = oss.str();
 
-	std::cerr << RED << "BODY CGI: \n" << body << RESET<<  std::endl; //rm
+	// std::cerr << RED << "BODY CGI: \n" << body << RESET<<  std::endl; //rm
 
 	if (utils::get_value("content-type", headers).empty())
 	{
@@ -378,14 +378,16 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 		con_len = utils::to_string(body.length());
 	}
 
+
 	if (!utils::get_value("status", headers).empty())
 	{
 		int st = utils::stoi(utils::get_value("status", headers));
 		_response->setStatusCode(st);
 	}
 	else
+	{
 		_response->setStatusCode(200);
-
+	}
 	_response->setBody(body);
 	_response->setHeader("Date", utils::formatDate(utils::get_timestamp("")));
 	_response->setHeader("Server", _server.server_name);
@@ -396,12 +398,11 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 		_response->setStatusCode(302);
 		_response->setHeader("Location", utils::get_value("location", headers));
 	}
-
 	std::vector<std::pair<std::string, std::string> >::const_iterator it = headers.begin();
 	std::vector<std::string> cookies_val;
 	for (; it != headers.end(); ++it)
 	{
-		//std::cerr << RED << it->first << ":" << it->second << RESET << std::endl;
+		std::cerr << RED << it->first << ":" << it->second << RESET << std::endl;
 		if (it->first == "set-cookie") //&& !utils::is_str_in_vector(it->second, cookies_val)
 		{
 			cookies_val.push_back(it->second);
@@ -934,4 +935,14 @@ std::string	RequestHandler::generateHtmlErrorPage( int status_code )
 CGI	&	RequestHandler::getCGI()
 {
 	return *_cgi;
+}
+
+Request & RequestHandler::getRequest()
+{
+	return *_request;
+}
+
+Response & RequestHandler::getResponse()
+{
+	return *_response;
 }

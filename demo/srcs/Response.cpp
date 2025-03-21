@@ -11,7 +11,7 @@ void	Response::setHeader(const std::string& key, const std::string& value)
 	_header_fields.push_back(std::make_pair(key, value));
 }
 
-void	Response::setBody(const std::string& body)
+void	Response::setBody(std::string body)
 {
 	_body = body;
 }
@@ -84,7 +84,7 @@ void		Response::setPostResponse(int code, const std::string& filename)
 	setStatusCode(code);
 	setHeader("Date", utils::formatDate(utils::get_timestamp("")));
 	setHeader("Server", "Webserv/1.0");
-	
+
 	std::stringstream html;
 	html << "<!DOCTYPE html><html lang=\"en\"><head>\
 	<title>File Upload</title></head><body><ul><li>" << filename << " is successfully upload.</li></ul></body></html>";
@@ -96,9 +96,9 @@ std::string		Response::getResponse( void ) const
 {
 	std::ostringstream response;
 
-	response	<< "HTTP/1.1 " 
+	response	<< "HTTP/1.1 "
 				<< _status_code
-				<< " " 
+				<< " "
 				<< utils::get_reason_phrase(_status_code)
 				<< CRLF;
 

@@ -289,7 +289,7 @@ void	ServerControler::handleInEvent(int fd)
 	Connection *conn = getConnection(fd);
 	if (conn == NULL)
 	{
-		std::cout << "handleInEvent: no such connection in conns" << std::endl;
+		std::cout << "handleInEvent: fd " << fd << " no such connection in conns" << std::endl;
 		return;
 	}
 
@@ -297,6 +297,17 @@ void	ServerControler::handleInEvent(int fd)
 	{
 		std::cout << "Getting CGI response from pipe fd " << fd << std::endl;
 		conn->getCGIHandler()->processCGIResponse();
+		std::cout << GREEN << "PROCESS CGI OK"  << RESET << std::endl;
+
+		conn->setResponse(conn->getCGIHandler()->getResponse().getResponse());
+		std::cout << GREEN << "setResponse OK"  << RESET << std::endl;
+
+
+		std::string ss;
+		ss = "[TRACE] " + utils::getFormattedDateTime() + " \"" + conn->getCGIHandler()->getRequest().start_line + "\"\n" +\
+		 utils::itos(conn->getCGIHandler()->getResponse().getStatusCode()) + " " + conn->getCGIHandler()->getResponse().getHeader("Content-Length");
+		std::cout << MAGENTA << ss << RESET << std::endl;
+
 		removeCGIfd(fd);
 		return;
 	}
@@ -358,7 +369,10 @@ void	ServerControler::handleOutEvent(int fd)
 		return;
 	}
 
+	//conn->resetConnection();
 	conn->setResponse("");
+	if (conn->getCGIHandler() != NULL)
+		conn->setCGIHandler(NULL);
 	conn->setStartTime();
 
 	std::cout <<"[INFO] : "  << utils::getFormattedDateTime() <<  " Transmitted Data Size "<< res <<" Bytes."  << std::endl;
@@ -422,7 +436,6 @@ void	ServerControler::processRequest(Connection & conn)
 {
 	Request		*request = new Request();
 	Response	*response = new Response();
-	Server		serv;
 
 	// client_info : client IP adress and port
 	struct sockaddr_in client_info = conn.getClientAddr();
@@ -440,7 +453,7 @@ void	ServerControler::processRequest(Connection & conn)
 		conn.setResponse(response->getResponse());
 	}
 
-	serv = chooseServBlock(request->getHeader("Host"), conn.getPort());
+	Server & serv = chooseServBlock(request->getHeader("Host"), conn.getPort());
 	RequestHandler * reqHandler = new RequestHandler(serv, request, response);
 
 	int res = reqHandler->processRequest();
@@ -455,19 +468,13 @@ void	ServerControler::processRequest(Connection & conn)
 
 	// std::cerr << GREEN << response.getResponse() << RESET << std::endl;
 
-	// std::ostringstream ss;
-	// ne prazuie // did'ko
 	std::string ss;
-	// std::cout << MAGENTA << "[TRACE] "
-	// << utils::getFormattedDateTime()
-	// << "\"" << request.start_line << "\" "
-	// << response.getStatusCode() << " "
-	// << response.getHeader("Content-Length")  << RESET << std::endl;
 
 	ss = "[TRACE] " + utils::getFormattedDateTime() + " \"" + request->start_line + "\"\n" +\
 	 utils::itos(response->getStatusCode()) + " " + response->getHeader("Content-Length");
 
 	std::cout << MAGENTA << ss << RESET << std::endl;
+
 	conn.setResponse(response->getResponse());
 	delete reqHandler;
 }
@@ -549,7 +556,6 @@ void	ServerControler::addConnection(int fd, int port, struct sockaddr_in & clien
 		std::cerr << "New connection not accepted. Maximum number of working connections (" << _work_conn_num <<") is reached" << std::endl;
 		return;
 	}
-
 		Connection c(fd);
 		c.setPort(port);
 		c.setClientAddr(client);
@@ -600,7 +606,7 @@ void	ServerControler::removePfd(int fd)
 		return;
 
 	if (close(_pfds[i].fd) == -1)
-		throw std::runtime_error("Error: close() failed");
+		std::cerr << "Error: close() failed, fd is already closed" << std::endl;
 
 	for (int j = i; j < _nfds - 1; j++)
 	{
@@ -627,6 +633,7 @@ void	ServerControler::removeCGIfd(int fd)
 		if (_cgi_fds[i] == fd)
 		{
 			_cgi_fds.erase(_cgi_fds.begin() + i);
+			removePfd(fd);
 			return;
 		}
 	}

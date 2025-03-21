@@ -14,7 +14,7 @@ public:
 	~Response();
 
 	void			setHeader(const std::string& key, const std::string& value);
-	void			setBody(const std::string& body);
+	void			setBody(std::string body);
 	void			setStatusCode(int code);
 	void			setErrorResponse(int code, std::string path);
 	void			setPostResponse(int code, const std::string& filename);

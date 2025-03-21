@@ -39,8 +39,10 @@ public:
 	static std::string		decodeURI(const std::string& path);
 	static std::string		generateHtmlErrorPage( int status_code);
 
-	void	setCGI(CGI *c);
 	CGI	&	getCGI();
+	Request & getRequest();
+	Response & getResponse();
+	//void	setCGI(CGI *c);
 
 private:
 
