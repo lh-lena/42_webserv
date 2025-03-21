@@ -191,7 +191,8 @@ bool	Connection::isReqChuncked()
 
 void	Connection::resetRequest()
 {
-	_request.clear();
+	if (!_request.empty())
+		_request.clear();
 	_req_body_len = 0;
 	_req_head_len = 0;
 	_req_chuncked = false;
@@ -202,8 +203,11 @@ void	Connection::resetConnection()
 {
 	resetRequest();
 	_response.clear();
-	delete _cgi_handler;
-	_cgi_handler = NULL;
+	if (_cgi_handler)
+	{
+		delete _cgi_handler;
+		_cgi_handler = NULL;
+	}
 }
 
 size_t	Connection::getReqHeadLen()

@@ -259,7 +259,6 @@ void	ServerControler::polling()
 void	ServerControler::startServing()
 {
 	// signal(SIGINT, ServerControler::sig_handler);
-
 	try
 	{
 		createListeningSockets();
@@ -296,7 +295,9 @@ void	ServerControler::handleInEvent(int fd)
 
 	if (isCGIfd(fd))
 	{
+		std::cout << "Getting CGI response from pipe fd " << fd << std::endl;
 		conn->getCGIHandler()->processCGIResponse();
+		removeCGIfd(fd);
 		return;
 	}
 
@@ -447,6 +448,7 @@ void	ServerControler::processRequest(Connection & conn)
 	{
 		conn.setCGIHandler(reqHandler);
 		addPfd(conn.getCGIfdIn());
+		addCGIfd(conn.getCGIfdIn());
 		// add CGIfdOut
 		return;
 	}

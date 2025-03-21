@@ -288,6 +288,7 @@ bool	RequestHandler::isCGIRequest( void ) const
 
 void	RequestHandler::handleCgiRequest( void )
 {
+	std::cout << YELLOW << "Handling CGI request" << std::endl;
 	_cgi = new CGI();
 	CGI & cgi = *_cgi;
 
