@@ -52,13 +52,13 @@ class Connection
 	std::string 		_request;
 	size_t				_req_body_len;
 	size_t				_req_head_len;
-	bool 				_req_chuncked;
+	bool 				_req_chunked;
 	std::string 		_response;
 	RequestHandler 	*	_cgi_handler;
 
 	size_t	getReqHeadLen();
 	size_t	getReqBodyLen();
-	bool	isReqChuncked();
+	bool	isReqChunked();
 
 };
 

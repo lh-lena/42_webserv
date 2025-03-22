@@ -33,11 +33,20 @@ RequestHandler	&	RequestHandler::operator=(const RequestHandler& rh)
 RequestHandler::~RequestHandler()
 {
 	if (_request != NULL)
+	{
+		std::cerr << "RequestHandler destructor called! Trying to delete _request" << std::endl;
 		delete _request;
+	}
 	if (_response != NULL)
+	{
+		std::cerr << "RequestHandler destructor called! Trying to delete _response" << std::endl;
 		delete _response;
+	}
 	if (_cgi != NULL)
+	{
+		std::cerr << "RequestHandler destructor called! Trying to delete _cgi" << std::endl;
 		delete _cgi;
+	}
 }
 
 /*

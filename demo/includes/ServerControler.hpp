@@ -54,7 +54,7 @@ class ServerControler
 		std::vector<Server>		_servBlocks;
 		std::vector<int>		_ports;
 		std::vector<int>		_socketFds; // array of listening sockets identifiers (server_fds)
-		std::vector<Connection>	_conns;
+		std::vector<Connection*>	_conns;
 		std::vector<int> 		_cgi_fds;
 		struct pollfd 			_pfds[100000]; // size of pfds_limit
 		int						_nfds;

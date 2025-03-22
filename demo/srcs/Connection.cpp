@@ -7,7 +7,7 @@ Connection::Connection()
 	_start = time(NULL);
 	_req_body_len = 0;
 	_req_head_len = 0;
-	_req_chuncked = false;
+	_req_chunked = false;
 	_cgi_handler = NULL;
 	//memset(_cgi_fds, 0, sizeof(_cgi_fds));
 }
@@ -17,7 +17,7 @@ Connection::Connection(int fd): _fd(fd)
 	_start = time(NULL);
 	_req_body_len = 0;
 	_req_head_len = 0;
-	_req_chuncked = false;
+	_req_chunked = false;
 	_cgi_handler = NULL;
 	//memset(_cgi_fds, 0, sizeof(_cgi_fds));
 }
@@ -25,38 +25,47 @@ Connection::Connection(int fd): _fd(fd)
 Connection::~Connection()
 {
 	if (_cgi_handler != NULL)
+	{
+		std::cerr << "Connection destructor called! Trying to delete handler" << std::endl;
 		delete _cgi_handler;
+	}
 }
 
 bool	Connection::unchunkRequest() // return 1 if the last chunk received
 {
+	std::cout << "Request is chunked" << std::endl;
+	//std::cout << "Request: " << _request << std::endl;
 	size_t	res;
 	std::string s;
 
-	res = _request.find("\r\n0\r\n");
+	res = _request.find("0\r\n\r\n");
+	//std::cout << "Checking for end 0 : " << res << std::endl;
 	if (res != std::string::npos)
 	{
-		_request.erase(res, 3);
+		//_request.erase(res, 3);
 		// replace "Transfer-Encoding: chunked" with "Content-Length: <_req_body_len>"
 		return 1;
 	}
-	//getReqHeadLen();
-	size_t i = _req_head_len + _req_body_len;
-	//while (i < _request.size() && _request[i] < 48)
-	//	i++;
-	if (i >= _request.size())
-		return 0;
 
-	res = _request.find("\r\n", i);
-	if (res != std::string::npos)
-		return 0;
-	s = _request.substr(i, res - i);
-	res = strtol(s.c_str(), NULL, 16);
-	if (res > 0)
-	{
-		_req_body_len = _req_body_len + res;
-		_request.erase(i, s.size() + 2); //remove chunk-size-line from request
-	}
+	// size_t i = _req_head_len + _req_body_len;
+	// //while (i < _request.size() && _request[i] < 48)
+	// //	i++;
+	// // if (i >= _request.size())
+	// // 	return 0;
+
+	// res = _request.find("\r\n", i);
+	// if (res != std::string::npos)
+	// {
+	// 	std::cout << "CRLF not found" << std::endl;
+	// 	return 0;
+	// }
+	// s = _request.substr(i, res - i);
+	// res = strtol(s.c_str(), NULL, 16);
+	// if (res > 0)
+	// {
+	// 	_req_body_len = _req_body_len + res;
+	// 	_request.erase(i, s.size() + 2); //remove chunk-size-line from request
+	// }
 	return 0;
 }
 
@@ -95,9 +104,13 @@ bool	Connection::checkRequest() // return 1 if request fully received
 		getReqHeadLen();
 		std::cout << "Request headers length = " << _req_head_len << std::endl;
 	}
-	if (isReqChuncked())
-		return unchunkRequest();
-	else if (_request.find("POST") != std::string::npos)
+	if (isReqChunked())
+	{
+		int check = unchunkRequest();
+		std::cout << "isReqChunked = " << check << std::endl;
+		return check;
+	}
+	if (_request.find("POST") != std::string::npos)
 	{
 		getReqBodyLen();
 		std::cout << "Request body length = " << _req_body_len << std::endl;
@@ -173,20 +186,24 @@ void	Connection::appendRequest(const char * s)
 		_request.append(s);
 }
 
-bool	Connection::isReqChuncked()
+bool	Connection::isReqChunked()
 {
-	if (_req_chuncked)
+	std::cout << "Cheking for chunked request..." << std::endl;
+	if (_req_chunked)
 		return true;
 
 	size_t res = _request.find("Transfer-Encoding:");
 	if (res == std::string::npos)
-		return false;
+	return false;
+
 	if (_request[res + 18] == ' ')
 		res++;
 	res = res + 18;
-	if (_request.compare(res, 7, "chunked"))
-		_req_chuncked = true;
-	return _req_chuncked;
+
+	if (_request.compare(res, 7, "chunked") == 0)
+		_req_chunked = true;
+
+	return _req_chunked;
 }
 
 void	Connection::resetRequest()
@@ -195,7 +212,7 @@ void	Connection::resetRequest()
 		_request.clear();
 	_req_body_len = 0;
 	_req_head_len = 0;
-	_req_chuncked = false;
+	_req_chunked = false;
 
 }
 
@@ -203,11 +220,13 @@ void	Connection::resetConnection()
 {
 	resetRequest();
 	_response.clear();
-	if (_cgi_handler)
+	if (_cgi_handler != NULL)
 	{
+		std::cerr << "Connection::resetConnection(). Trying to delete _cgi_handler" << std::endl;
 		delete _cgi_handler;
 		_cgi_handler = NULL;
 	}
+	setStartTime();
 }
 
 size_t	Connection::getReqHeadLen()

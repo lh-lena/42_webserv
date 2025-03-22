@@ -299,8 +299,9 @@ void	ServerControler::handleInEvent(int fd)
 		conn->getCGIHandler()->processCGIResponse();
 		std::cout << GREEN << "PROCESS CGI OK"  << RESET << std::endl;
 
-		conn->setResponse(conn->getCGIHandler()->getResponse().getResponse());
-		std::cout << GREEN << "setResponse OK"  << RESET << std::endl;
+		std::string str = conn->getCGIHandler()->getResponse().getResponse();
+		conn->setResponse(str);
+		std::cout << GREEN << "setResponse: " << str << RESET << std::endl;
 
 
 		std::string ss;
@@ -308,7 +309,7 @@ void	ServerControler::handleInEvent(int fd)
 		 utils::itos(conn->getCGIHandler()->getResponse().getStatusCode()) + " " + conn->getCGIHandler()->getResponse().getHeader("Content-Length");
 		std::cout << MAGENTA << ss << RESET << std::endl;
 
-		removeCGIfd(fd);
+		removePfd(fd);
 		return;
 	}
 
@@ -317,7 +318,7 @@ void	ServerControler::handleInEvent(int fd)
 	int res = recv(fd, buf, BUFF_SIZE - 1, 0);
 	if (res < 0)
 	{
-		// std::cout << RED << "[ERROR] : "  << utils::getFormattedDateTime() << " recv() failed" << RESET << std::endl; //rm
+		std::cout << RED << "[ERROR] : "  << utils::getFormattedDateTime() << " recv() failed" << RESET << std::endl; //rm
 		removeConnection(fd);
 		return;
 	}
@@ -352,6 +353,8 @@ void	ServerControler::handleInEvent(int fd)
 
 void	ServerControler::handleOutEvent(int fd)
 {
+	if (isCGIfd(fd))
+		return;
 	Connection *conn = getConnection(fd);
 	if (conn == NULL)
 	{
@@ -359,6 +362,7 @@ void	ServerControler::handleOutEvent(int fd)
 		return;
 	}
 	std::string str = conn->getResponse();
+	std::cout << "Sent response:\n" << str << std::endl;
 	if (str.empty())
 		return;
 	int res = send(fd, str.c_str(), str.size(), 0);
@@ -369,11 +373,11 @@ void	ServerControler::handleOutEvent(int fd)
 		return;
 	}
 
-	//conn->resetConnection();
-	conn->setResponse("");
+	conn->resetConnection();
+	// conn->setResponse("");
 	if (conn->getCGIHandler() != NULL)
-		conn->setCGIHandler(NULL);
-	conn->setStartTime();
+		removeCGIfd(conn->getCGIfdIn());
+	//conn->setStartTime();
 
 	std::cout <<"[INFO] : "  << utils::getFormattedDateTime() <<  " Transmitted Data Size "<< res <<" Bytes."  << std::endl;
 	std::cout <<"[INFO] : "  << utils::getFormattedDateTime() <<  " File Transfer Complete." << std::endl;
@@ -541,10 +545,10 @@ Connection	*	ServerControler::getConnection(int fd)
 	int size = _conns.size();
 	for (int i = 0; i < size; i++)
 	{
-		if (_conns[i].getFd() == fd)
-			return &_conns[i];
-		if (_conns[i].getCGIHandler() && _conns[i].getCGIfdIn() == fd)
-			return &_conns[i];
+		if (_conns[i]->getFd() == fd)
+			return _conns[i];
+		if (_conns[i]->getCGIHandler() && _conns[i]->getCGIfdIn() == fd)
+			return _conns[i];
 	}
 	return NULL;
 }
@@ -556,9 +560,9 @@ void	ServerControler::addConnection(int fd, int port, struct sockaddr_in & clien
 		std::cerr << "New connection not accepted. Maximum number of working connections (" << _work_conn_num <<") is reached" << std::endl;
 		return;
 	}
-		Connection c(fd);
-		c.setPort(port);
-		c.setClientAddr(client);
+		Connection *c = new Connection(fd);
+		c->setPort(port);
+		c->setClientAddr(client);
 		_conns.push_back(c);
 		addPfd(fd);
 }
@@ -570,11 +574,12 @@ void	ServerControler::removeConnection(int fd)
 		return ;
 	for (int i = 0; i < size; i++)
 	{
-		if (_conns[i].getFd() == fd)
+		if (_conns[i]->getFd() == fd)
 		{
+			if (_conns[i]->getCGIHandler() != NULL)
+				removeCGIfd(_conns[i]->getCGIfdIn());
+			delete _conns[i];
 			_conns.erase(_conns.begin() + i);
-			if (_conns[i].getCGIHandler() != NULL)
-				removeCGIfd(fd);
 			break;
 		}
 	}
@@ -605,8 +610,8 @@ void	ServerControler::removePfd(int fd)
 	if (i == _nfds)
 		return;
 
-	if (close(_pfds[i].fd) == -1)
-		std::cerr << "Error: close() failed, fd is already closed" << std::endl;
+	if (close(_pfds[i].fd) == -1 && !isCGIfd(fd))
+		std::cerr << "Error: close() on fd " << _pfds[i].fd << " failed" << std::endl;
 
 	for (int j = i; j < _nfds - 1; j++)
 	{
@@ -632,8 +637,8 @@ void	ServerControler::removeCGIfd(int fd)
 	{
 		if (_cgi_fds[i] == fd)
 		{
-			_cgi_fds.erase(_cgi_fds.begin() + i);
 			removePfd(fd);
+			_cgi_fds.erase(_cgi_fds.begin() + i);
 			return;
 		}
 	}
