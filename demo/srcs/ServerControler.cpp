@@ -40,8 +40,8 @@ ServerControler::ServerControler()
 
 	memset(_pfds, 0, sizeof(_pfds));
 
-	std::cout << "Limit for the number of opened file descriptors: soft = "
-				<< _pfds_limit << " hard = " << lim.rlim_max << std::endl;
+	// std::cout << "Limit for the number of opened file descriptors: soft = "
+				// << _pfds_limit << " hard = " << lim.rlim_max << std::endl;
 }
 
 ServerControler::ServerControler( const ServerControler& src )
@@ -224,8 +224,8 @@ void	ServerControler::polling()
 					if (new_fd > 0)
 					{
 						addConnection(new_fd, _ports[indx], client);
-						std::cout << "New connection on listening socket " << indx << ", new_fd = " << new_fd << std::endl;
-						std::cout << "Client: " << utils::getClientIP(client) << ":" << utils::getClientPort(client) << std::endl;
+						std::cout << "New connection on listening socket " << indx << ", new_fd = " << new_fd << ".";
+						std::cout << " Client: " << utils::getClientIP(client) << ":" << utils::getClientPort(client) << std::endl;
 					}
 					continue;
 				}
@@ -272,20 +272,16 @@ void	ServerControler::handleInEvent(int fd)
 	Connection *conn = getConnection(fd);
 	if (conn == NULL)
 	{
-		std::cout << "handleInEvent: fd " << fd << " no such connection in conns" << std::endl;
+		// std::cout << "handleInEvent: fd " << fd << " no such connection in conns" << std::endl;
 		return;
 	}
 
 	if (isCGIfd(fd))
 	{
-		std::cout << "Getting CGI response from pipe fd " << fd << std::endl;
 		conn->getCGIHandler()->processCGIResponse();
-		std::cout << GREEN << "PROCESS CGI OK"  << RESET << std::endl;
 
 		std::string str = conn->getCGIHandler()->getResponse().getResponse();
 		conn->setResponse(str);
-		std::cout << GREEN << "setResponse: " << str << RESET << std::endl;
-
 
 		std::string ss;
 		ss = "[TRACE] " + utils::getFormattedDateTime() + " \"" + conn->getCGIHandler()->getRequest().start_line + "\"\n" +\
@@ -317,18 +313,17 @@ void	ServerControler::handleInEvent(int fd)
 	int res = recv(fd, buf, BUFF_SIZE - 1, 0);
 	if (res < 0)
 	{
-		std::cout << RED << "[ERROR] : "  << utils::getFormattedDateTime() << " recv() failed" << RESET << std::endl; //rm
+		std::cout << RED << "[ERROR] : "  << utils::getFormattedDateTime() << " recv() failed" << RESET << std::endl;
 		removeConnection(fd);
 		return;
 	}
 	if (res > 0)
 	{
-		//std::cout << "Data received on connection " << fd << ": " << buf << std::endl;
 		conn->appendRequest(buf);
 		if (res < BUFF_SIZE - 1 || recv(fd, buf, 1, MSG_PEEK) < 1)
 		{
 			std::string request = conn->getRequest();
-			std::cout << "Request on connection " << conn->getFd() << ":\n" << request << "size = " << request.size() << std::endl;
+			// std::cout << "Request on connection " << conn->getFd() << ":\n" << request << "size = " << request.size() << std::endl;
 			if (conn->checkRequest())
 			{
 				processRequest(*conn);
@@ -441,8 +436,6 @@ void	ServerControler::processRequest(Connection & conn)
 	struct sockaddr_in client_info = conn.getClientAddr();
 	std::cerr << MAGENTA << "Processing request for client: " << utils::getClientIP(client_info) << ":"
 				<< utils::getClientPort(client_info) << std::endl;
-
-	// std::cerr << MAGENTA << data << RESET << std::endl; //rm
 
 	if (!request->parse(conn.getRequest(), conn.getClientAddr()))
 	{
