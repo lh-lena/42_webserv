@@ -31,12 +31,14 @@ Connection::~Connection()
 	}
 }
 
-bool	Connection::unchunkRequest() // return 1 if the last chunk received
+/* bool	Connection::unchunkRequest() // return 1 if the last chunk received
 {
 	std::cout << "Request is chunked" << std::endl;
-	//std::cout << "Request: " << _request << std::endl;
+	std::cout << "Request: " << _request << std::endl;
 	size_t	res;
 	std::string s;
+
+	return 1;
 
 	res = _request.find("0\r\n\r\n");
 	//std::cout << "Checking for end 0 : " << res << std::endl;
@@ -66,6 +68,46 @@ bool	Connection::unchunkRequest() // return 1 if the last chunk received
 	// 	_req_body_len = _req_body_len + res;
 	// 	_request.erase(i, s.size() + 2); //remove chunk-size-line from request
 	// }
+	return 0;
+}
+ */
+
+bool	Connection::unchunkRequest()
+{
+	size_t pos = 0;
+	size_t pos_prev = _req_head_len;
+	int i = 0;
+	bool end = false;
+	std::string	chunk_size;
+	
+	while (!end)
+	{
+		pos = _request.find("\r\n", pos_prev);
+		if (pos == std::string::npos)
+		{
+			return 0;
+		}
+		_request.erase(pos, 2);
+		if (i % 2 == 0)
+		{
+			chunk_size = _request.substr(pos_prev, pos - pos_prev);
+			_request.erase(pos_prev, chunk_size.length());
+			if (chunk_size == "0")
+			{
+				pos = _request.find("\r\n", pos_prev);
+				if (pos == std::string::npos)
+				{
+					return 0;
+				}
+				_request.erase(pos, 2);
+				pos_prev = pos;
+				end = true;
+				return 1;
+			}
+		}
+		pos_prev = pos;
+		i++;
+	}
 	return 0;
 }
 
