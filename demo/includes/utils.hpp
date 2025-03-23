@@ -78,5 +78,6 @@ namespace utils
 	int							getClientPort(const struct sockaddr_in & client);
 	int							get_dir_entries(const std::string& dirp, std::vector<std::string>& content);
 	bool						is_matching_ext(const std::string& s, const std::vector<std::string>& exts);
+	bool						isTimeout(time_t start, double sec);
 }
 #endif /** UTILS_HPP */

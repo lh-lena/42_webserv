@@ -66,7 +66,7 @@ class ServerControler
 		int		isSocketFd(int fd);
 		bool	isCGIfd(int fd);
 		void	processRequest(Connection & conn);
-		// std::string	processRequest(std::string & request, int port); // parse request and pass it to the rigth server block to get response
+		void	checkCGIprocesses();
 		Server & chooseServBlock(const std::string & host, int port);
 };
 

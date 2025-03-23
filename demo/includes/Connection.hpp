@@ -46,7 +46,7 @@ class Connection
 
 	int		_fd;
 	int		_port;
-	//int		_cgi_fds[2];
+
 	struct sockaddr_in _client_addr;
 	time_t 				_start;
 	std::string 		_request;
@@ -61,18 +61,5 @@ class Connection
 	bool	isReqChunked();
 
 };
-
-//struct Conn
-//{
-//	int	fd;
-//	bool active;
-//	time_t start;
-//	std::string request;
-//	bool req_complete;
-//	size_t next_req_chunk;
-//	std::string response;
-//	bool resp_complete;
-
-//};
 
 #endif

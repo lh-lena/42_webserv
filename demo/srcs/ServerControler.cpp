@@ -221,7 +221,7 @@ void	ServerControler::polling()
 			}
 			else if ((_pfds[i].revents & POLLHUP) || (_pfds[i].revents & POLLERR))
 			{
-				if (connection)
+				if (connection && !isCGIfd(_pfds[i].fd))
 				{
 					removeConnection(_pfds[i].fd);
 					std::cout << "Connection on fd " << _pfds[i].fd << " was closed because of error or client disconnect" << std::endl;
@@ -252,6 +252,7 @@ void	ServerControler::polling()
 					handleOutEvent(_pfds[i].fd);
 			}
 		}
+		checkCGIprocesses();
 	}
 	closeFds();
 }
@@ -309,7 +310,23 @@ void	ServerControler::handleInEvent(int fd)
 		 utils::itos(conn->getCGIHandler()->getResponse().getStatusCode()) + " " + conn->getCGIHandler()->getResponse().getHeader("Content-Length");
 		std::cout << MAGENTA << ss << RESET << std::endl;
 
-		removePfd(fd);
+		int fdc = conn->getFd();
+		int res = send(fdc, str.c_str(), str.size(), 0);
+		if (res < 0)
+		{
+			std::cerr << "Error: send() failed on connection fd " << fdc << std::endl;
+			//removeConnection(fd);
+			return;
+		}
+
+		std::cout <<"[INFO] : "  << utils::getFormattedDateTime() <<  " Transmitted Data Size "<< res <<" Bytes."  << std::endl;
+		std::cout <<"[INFO] : "  << utils::getFormattedDateTime() <<  " File Transfer Complete." << std::endl;
+
+		conn->resetConnection();
+		if (conn->getCGIHandler() != NULL)
+			removeCGIfd(conn->getCGIfdIn());
+
+		removeCGIfd(fd);
 		return;
 	}
 
@@ -333,8 +350,6 @@ void	ServerControler::handleInEvent(int fd)
 			if (conn->checkRequest())
 			{
 				processRequest(*conn);
-				//std::string response = processRequest(request, conn->getPort());
-				//conn->setResponse(response);
 				conn->resetRequest();
 			}
 			else
@@ -354,7 +369,10 @@ void	ServerControler::handleInEvent(int fd)
 void	ServerControler::handleOutEvent(int fd)
 {
 	if (isCGIfd(fd))
+	{
+		std::cout << "handleOutEvent() fd " << fd << std::endl;
 		return;
+	}
 	Connection *conn = getConnection(fd);
 	if (conn == NULL)
 	{
@@ -362,22 +380,19 @@ void	ServerControler::handleOutEvent(int fd)
 		return;
 	}
 	std::string str = conn->getResponse();
-	std::cout << "Sent response:\n" << str << std::endl;
 	if (str.empty())
 		return;
 	int res = send(fd, str.c_str(), str.size(), 0);
 	if (res < 0)
 	{
-		removeConnection(fd);
 		std::cerr << "Error: send() failed on connection fd " << fd << ". Connection closed." << std::endl;
+		removeConnection(fd);
 		return;
 	}
 
 	conn->resetConnection();
-	// conn->setResponse("");
 	if (conn->getCGIHandler() != NULL)
 		removeCGIfd(conn->getCGIfdIn());
-	//conn->setStartTime();
 
 	std::cout <<"[INFO] : "  << utils::getFormattedDateTime() <<  " Transmitted Data Size "<< res <<" Bytes."  << std::endl;
 	std::cout <<"[INFO] : "  << utils::getFormattedDateTime() <<  " File Transfer Complete." << std::endl;
@@ -466,6 +481,7 @@ void	ServerControler::processRequest(Connection & conn)
 		conn.setCGIHandler(reqHandler);
 		addPfd(conn.getCGIfdIn());
 		addCGIfd(conn.getCGIfdIn());
+		conn.setStartTime();
 		// add CGIfdOut
 		return;
 	}
@@ -676,6 +692,30 @@ void	ServerControler::closeFds()
 	{
 		if (close(_pfds[i].fd) == -1)
 			continue;
+	}
+}
+
+void	ServerControler::checkCGIprocesses()
+{
+	time_t	tem;
+	pid_t	pid;
+	Connection *c;
+
+	for (size_t i = 0; i < _cgi_fds.size(); i++)
+	{
+		c = getConnection(_cgi_fds[i]);
+		tem = c->getCGIHandler()->getCGI().getTimer();
+		if (utils::isTimeout(tem, 10))
+		{
+			pid = c->getCGIHandler()->getCGI().getProcessId();
+			std::cout << "CGI on connection " << c->getFd() << " doesn't respond. Kill CGI process id " << pid << std::endl;
+			if (kill(pid, SIGKILL) == -1)
+				std::cerr << "Error: failed to kill CGI child process pid " << pid << std::endl;
+			// c->resetConnection();
+			c->getCGIHandler()->getResponse().setErrorResponse(INTERNAL_SERVER_ERROR, c->getCGIHandler()->getCustomErrorPath(500)); // NULL
+			removeCGIfd(_cgi_fds[i]);
+			i--;
+		}
 	}
 }
 

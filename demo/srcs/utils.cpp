@@ -817,3 +817,12 @@ std::string	utils::getClientIP(const struct sockaddr_in & client)
 	std::string ip = inet_ntoa(client.sin_addr);
 	return ip;
 }
+
+bool	utils::isTimeout(time_t start, double sec)
+{
+	time_t t = time(NULL);
+	double dif = difftime(t, start);
+	if (dif > sec)
+		return true;
+	return false;
+}

@@ -163,11 +163,12 @@ void	Connection::setStartTime()
 
 bool	Connection::isTimeout()
 {
-	time_t t = time(NULL);
-	double dif = difftime(t, _start);
-	if (dif > 30)
-		return true;
-	return false;
+	return utils::isTimeout(_start, 30);
+	// time_t t = time(NULL);
+	// double dif = difftime(t, _start);
+	// if (dif > 30)
+	// 	return true;
+	// return false;
 }
 
 std::string	Connection::getRequest() const

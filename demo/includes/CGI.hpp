@@ -33,12 +33,14 @@ public:
 	int			getIfd();
 	int			getOfd();
 	std::string getCGIResponce();
-	
+	time_t		getTimer();
+
 	private:
 
 	pid_t		_pid;
 	int			_fds[2];
-	std::string	_cgi_responce; //CGI output from the pipe
+	std::string	_cgi_responce; //CGI output received from pipe
+	time_t		_timer;
 
 	std::vector<std::pair<std::string, std::string> >	_env;
 	std::vector<char*>			envp;

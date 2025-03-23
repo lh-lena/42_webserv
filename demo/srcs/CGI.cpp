@@ -143,6 +143,7 @@ void	CGI::setChildProcess(Request& request)
 	if (str[0] != '\0')
 		write(in_fds[1], str, b.length());
 	close(in_fds[1]);
+	_timer = time(NULL);
 }
 
 void	CGI::readResponse()
@@ -159,8 +160,8 @@ void	CGI::readResponse()
 		if (read(_fds[0], &buf, 1) == 1)
 		{
 			if (kill(_pid, SIGKILL) == -1)
-				std::cerr << "Error: failed to kill CGI child process" << std::endl;
-			std::cerr << "Error: file received from CGI is too big" << std::endl;
+				std::cerr << "Error: failed to kill CGI child process pid " << _pid << std::endl;
+			std::cerr << "Error: data received from CGI is too big" << std::endl;
 		}
 	}
 	close(_fds[0]);
@@ -275,4 +276,9 @@ int		CGI::getOfd()
 std::string CGI::getCGIResponce()
 {
 	return _cgi_responce;
+}
+
+time_t	CGI::getTimer()
+{
+	return _timer;
 }
