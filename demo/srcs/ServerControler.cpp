@@ -177,7 +177,6 @@ void	ServerControler::polling()
 	struct sockaddr_in client;
 	unsigned int size = sizeof(client);
 
-	std::cout << "Waiting on poll" << std::endl;
 	while (!g_serv_end)
 	{
 		res = poll(_pfds, _nfds, timeout);
@@ -188,7 +187,7 @@ void	ServerControler::polling()
 		}
 		if (res == 0)
 		{
-			std::cout << "Timeout" << std::endl;
+			std::cout << "Timeout on poll" << std::endl;
 			g_serv_end = true;
 			break;
 		}
@@ -285,7 +284,7 @@ void	ServerControler::handleInEvent(int fd)
 		conn->setResponse(str);
 
 		std::string ss;
-		ss = "[TRACE] " + utils::getFormattedDateTime() + " \"" + conn->getCGIHandler()->getRequest().start_line + "\"\n" +\
+		ss = "[TRACE] " + utils::getFormattedDateTime() + " \"" + conn->getCGIHandler()->getRequest().start_line + "\" " +\
 		 utils::itos(conn->getCGIHandler()->getResponse().getStatusCode()) + " " + conn->getCGIHandler()->getResponse().getHeader("Content-Length");
 		std::cout << MAGENTA << ss << RESET << std::endl;
 
@@ -298,8 +297,8 @@ void	ServerControler::handleInEvent(int fd)
 			return;
 		}
 
-		std::cout <<"[INFO] : "  << utils::getFormattedDateTime() <<  " Transmitted Data Size "<< res <<" Bytes."  << std::endl;
-		std::cout <<"[INFO] : "  << utils::getFormattedDateTime() <<  " File Transfer Complete." << std::endl;
+		std::cout  << "[INFO] : "  << utils::getFormattedDateTime() <<  " Transmitted Data Size "<< res <<" Bytes."  << std::endl;
+		std::cout  << "[INFO] : "  << utils::getFormattedDateTime() <<  " File Transfer Complete."  << std::endl;
 
 		conn->resetConnection();
 		if (conn->getCGIHandler() != NULL)
@@ -314,7 +313,7 @@ void	ServerControler::handleInEvent(int fd)
 	int res = recv(fd, buf, BUFF_SIZE - 1, 0);
 	if (res < 0)
 	{
-		std::cout << RED << "[ERROR] : "  << utils::getFormattedDateTime() << " recv() failed" << RESET << std::endl;
+		std::cout << RED << "Error: recv() failed" << RESET << std::endl;
 		removeConnection(fd);
 		return;
 	}
@@ -372,8 +371,8 @@ void	ServerControler::handleOutEvent(int fd)
 	if (conn->getCGIHandler() != NULL)
 		removeCGIfd(conn->getCGIfdIn());
 
-	std::cout <<"[INFO] : "  << utils::getFormattedDateTime() <<  " Transmitted Data Size "<< res <<" Bytes."  << std::endl;
-	std::cout <<"[INFO] : "  << utils::getFormattedDateTime() <<  " File Transfer Complete." << std::endl;
+	std::cout  << "[INFO] : "  << utils::getFormattedDateTime() <<  " Transmitted Data Size "<< res <<" Bytes."  << std::endl;
+	std::cout  << "[INFO] : "  << utils::getFormattedDateTime() <<  " File Transfer Complete." << std::endl;
 
 }
 
@@ -399,12 +398,12 @@ void	ServerControler::createListeningSockets()
 			server_fd = create_tcp_server_socket(port);
 			_socketFds.push_back(server_fd);
 			_ports.push_back(port);
-			std::cout << "[INFO] : " << utils::getFormattedDateTime() << " Server " << i << " listening on port: " << port << std::endl;
+			std::cout << "[INFO] : " << utils::getFormattedDateTime() << " Server " << i << " listening on port: " << port << RESET << std::endl;
 			temp = port;
 		}
 	}
 
-	std::cout << "Number of listening sokets created: " << _socketFds.size() << std::endl;
+	std::cout <<  "[INFO] : " << utils::getFormattedDateTime() << " Number of listening sokets created: " << _socketFds.size() << RESET << std::endl;
 }
 
 Server & ServerControler::chooseServBlock(const std::string & host, int port)
@@ -435,7 +434,7 @@ void	ServerControler::processRequest(Connection & conn)
 
 	// client_info : client IP adress and port
 	struct sockaddr_in client_info = conn.getClientAddr();
-	std::cerr << MAGENTA << "Processing request for client: " << utils::getClientIP(client_info) << ":"
+	std::cerr << "[INFO] : " << utils::getFormattedDateTime() << " Processing request for client: " << utils::getClientIP(client_info) << ":"
 				<< utils::getClientPort(client_info) << std::endl;
 
 	if (!request->parse(conn.getRequest(), conn.getClientAddr()))
@@ -457,60 +456,16 @@ void	ServerControler::processRequest(Connection & conn)
 		addPfd(conn.getCGIfdIn());
 		addCGIfd(conn.getCGIfdIn());
 		conn.setStartTime();
-		// add CGIfdOut
 		return;
 	}
-
-	// std::cerr << GREEN << response.getResponse() << RESET << std::endl;
-
-	std::string ss;
-
-	ss = "[TRACE] " + utils::getFormattedDateTime() + " \"" + request->start_line + "\"\n" +\
-	 utils::itos(response->getStatusCode()) + " " + response->getHeader("Content-Length");
+	std::string ss = "[TRACE] : " + utils::getFormattedDateTime() + " \"" + request->start_line + "\" " + \
+	 	utils::itos(response->getStatusCode()) + " " + response->getHeader("Content-Length");
 
 	std::cout << MAGENTA << ss << RESET << std::endl;
 
 	conn.setResponse(response->getResponse());
 	delete reqHandler;
 }
-/*
-std::string	ServerControler::processRequest(std::string & data, int port)
-{
-	Request		request;
-	Response	response;
-	Server		serv;
-	// std::cerr << MAGENTA << data << RESET << std::endl; //rm
-	if (!request.parse(data))
-	{
-		if (request.getHeader("Server-Protocol") != "HTTP/1.1")
-			response.setErrorResponse(505, std::string());
-		else
-			response.setErrorResponse(BAD_REQUEST, std::string());
-		return response.getResponse();
-	}
-
-	serv = chooseServBlock(request.getHeader("Host"), port);
-	RequestHandler reqHandler(serv, request, response);
-
-	reqHandler.processRequest();
-
-	// std::cerr << GREEN << response.getResponse() << RESET << std::endl;
-
-	// std::ostringstream ss;
-	// ne prazuie // did'ko
-	std::string ss;
-	// std::cout << MAGENTA << "[TRACE] "
-	// << utils::getFormattedDateTime()
-	// << "\"" << request.start_line << "\" "
-	// << response.getStatusCode() << " "
-	// << response.getHeader("Content-Length")  << RESET << std::endl;
-
-	ss = "[TRACE] " + utils::getFormattedDateTime() + " \"" + request.start_line + "\"\n" +\
-	 utils::itos(response.getStatusCode()) + " " + response.getHeader("Content-Length");
-
-	std::cout << MAGENTA << ss << RESET << std::endl;
-	return response.getResponse();
-}*/
 
 /*
 ** --------------------------------- Accessors ----------------------------------
@@ -602,7 +557,7 @@ void	ServerControler::removePfd(int fd)
 		return;
 
 	if (close(_pfds[i].fd) == -1 && !isCGIfd(fd))
-		std::cerr << "Error: close() on fd " << _pfds[i].fd << " failed" << std::endl;
+		std::cerr << RED << "Error: close() on fd " << _pfds[i].fd << " failed" << RESET << std::endl;
 
 	for (int j = i; j < _nfds - 1; j++)
 	{
@@ -683,9 +638,9 @@ void	ServerControler::checkCGIprocesses()
 		if (utils::isTimeout(tem, 10))
 		{
 			pid = c->getCGIHandler()->getCGI().getProcessId();
-			std::cout << "CGI on connection " << c->getFd() << " doesn't respond. Kill CGI process id " << pid << std::endl;
+			std::cout << "[INFO] : " << utils::getFormattedDateTime() << " CGI on connection " << c->getFd() << " doesn't respond. Kill CGI process id " << pid << RESET << std::endl;
 			if (kill(pid, SIGKILL) == -1)
-				std::cerr << "Error: failed to kill CGI child process pid " << pid << std::endl;
+				std::cerr << RED << "[ERROR] : Failed to kill CGI child process pid " << pid << std::endl;
 			c->getCGIHandler()->getResponse().setErrorResponse(INTERNAL_SERVER_ERROR, c->getCGIHandler()->getCustomErrorPath(500)); // NULL
 			removeCGIfd(_cgi_fds[i]);
 			i--;
