@@ -381,7 +381,7 @@ void	ServerControler::sig_handler(int sig_num)
 {
 	(void)sig_num;
 	g_serv_end = true;
-	std::cout << "\nStoping server gracefully.\n";
+	std::cout << "\nInterrupting server gracefully.\n";
 }
 
 void	ServerControler::createListeningSockets()
