@@ -25,7 +25,6 @@ public:
 	void		setEnvironment(const Request & request);
 	void		setChildProcess(Request& request);
 	void		readResponse();
-	std::string	executeCGI(Request & request);
 	void		setInterpreter(const std::string& str);
 	void		setExecutable(const std::string& str);
 	void		setUploadDir(const std::string& str);

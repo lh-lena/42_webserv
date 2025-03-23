@@ -104,7 +104,7 @@ std::ostream&			operator<<( std::ostream & o, Server const& i )
 void		Server::defaultServer( void )
 {
 	setHost("127.0.0.1");
-	setPort(8000);
+	setPort(8080);
 	setRoot("var/www/html");
 	setIndex("index.42webserver.html");
 }

@@ -120,12 +120,8 @@ void	CGI::setChildProcess(Request& request)
 		close(out_fds[0]);
 		close(out_fds[1]);
 		char * const * nll = NULL;
-		// std::string intr = "php-cgi";
-		// char *intr = (char*)(interpreter.c_str());
-		// char *arg[] = {(char*)(interpreter.c_str()), (char *)executable.c_str(), NULL};
 		char *arg = {(char *)executable.c_str()};
 
-		// if (execve(arg[0], arg, envp.data()) < 0)
 		if (execve(arg, nll, envp.data()) < 0)
 		{
 			std::cerr << RED << "[ERROR] : execve() failed\n" << RESET;
@@ -162,80 +158,12 @@ void	CGI::readResponse()
 			if (kill(_pid, SIGKILL) == -1)
 				std::cerr << "Error: failed to kill CGI child process pid " << _pid << std::endl;
 			std::cerr << "Error: data received from CGI is too big" << std::endl;
+			_cgi_responce = "Content-Type: text/plain\nStatus: 413 data received from CGI is too big\n\n";
 		}
 	}
 	close(_fds[0]);
 	waitpid(_pid, NULL, 0);
 	cleanEnvironment();
-}
-
-std::string		CGI::executeCGI(Request& request)
-{
-	int in_fds[2];
-	int out_fds[2];
-	pipe(in_fds);
-	pipe(out_fds);
-
-	_fds[0] = out_fds[0]; //POLLIN : read from the pipe
-	_fds[1] = in_fds[1]; //POLLOUT : write to the pipe
-
-	pid_t pid = fork();
-	if (pid == 0)
-	{
-		dup2(in_fds[0], STDIN_FILENO);
-		close(in_fds[0]);
-		close(in_fds[1]);
-		dup2(out_fds[1], STDOUT_FILENO);
-		close(out_fds[0]);
-		close(out_fds[1]);
-		char * const * nll = NULL;
-		// std::string intr = "php-cgi";
-		// char *intr = (char*)(interpreter.c_str());
-		// char *arg[] = {(char*)(interpreter.c_str()), (char *)executable.c_str(), NULL};
-		char *arg = {(char *)executable.c_str()};
-
-		// if (execve(arg[0], arg, envp.data()) < 0)
-		if (execve(arg, nll, envp.data()) < 0)
-		{
-			std::cerr << RED << "[ERROR] : execve() failed\n" << RESET;
-			write(STDOUT_FILENO, "Status: 500\n\n", 15);
-			exit(0);
-		}
-	}
-	_pid = pid;
-	close(in_fds[0]);
-	close(out_fds[1]);
-
-	std::string b = request.getBody();
-	// std::cerr << BLUE << b << RESET << std::endl;
-	char *str = (char *)b.c_str();
-	if (str[0] != '\0')
-		write(in_fds[1], str, b.length());
-	close(in_fds[1]);
-	//request.connection->cgi_fds[1] = -1;
-
-	// check for timeout before reading from the pipe
-
-	std::string respn; //result message returned from execve()
-	char buf[1500];
-	int res = 0;
-	do
-	{
-		memset(buf, 0, sizeof(buf));
-		res = read(out_fds[0], &buf, 1500);
-		if (res > 0)
-			respn.append(buf);
-
-	} while (res == 1500);
-
-	close(out_fds[0]);
-	//request.connection->cgi_fds[0] = -1;
-
-	waitpid(pid, NULL, 0); // kill child process in case of timeout;
-	// std::cerr << GREEN << "RESPONSE CGI :" << respn << RESET << std::endl;
-	cleanEnvironment();
-	_cgi_responce = respn;
-	return respn;
 }
 
 void		CGI::setInterpreter(const std::string& str)

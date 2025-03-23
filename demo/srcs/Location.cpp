@@ -152,7 +152,7 @@ void	Location::addErrorPage(int	key, const std::string &val)
 	_error_pages[key] = val;
 }
 
-void	Location::setRedirect( int key, const std::string &val ) 
+void	Location::setRedirect( int key, const std::string &val )
 {
 	_return[key] = val;
 }

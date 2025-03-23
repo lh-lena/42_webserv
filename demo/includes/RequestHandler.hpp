@@ -43,7 +43,6 @@ public:
 	CGI	&	getCGI();
 	Request & getRequest();
 	Response & getResponse();
-	//void	setCGI(CGI *c);
 
 private:
 

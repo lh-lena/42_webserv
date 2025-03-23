@@ -26,7 +26,6 @@ Connection::~Connection()
 {
 	if (_cgi_handler != NULL)
 	{
-		std::cerr << "Connection destructor called! Trying to delete handler" << std::endl;
 		delete _cgi_handler;
 	}
 }
@@ -79,7 +78,7 @@ bool	Connection::unchunkRequest()
 	int i = 0;
 	bool end = false;
 	std::string	chunk_size;
-	
+
 	while (!end)
 	{
 		pos = _request.find("\r\n", pos_prev);
@@ -144,18 +143,17 @@ bool	Connection::checkRequest() // return 1 if request fully received
 	if (_req_head_len == 0)
 	{
 		getReqHeadLen();
-		std::cout << "Request headers length = " << _req_head_len << std::endl;
+		// std::cout << "Request headers length = " << _req_head_len << std::endl;
 	}
 	if (isReqChunked())
 	{
 		int check = unchunkRequest();
-		std::cout << "isReqChunked = " << check << std::endl;
 		return check;
 	}
 	if (_request.find("POST") != std::string::npos)
 	{
 		getReqBodyLen();
-		std::cout << "Request body length = " << _req_body_len << std::endl;
+		// std::cout << "Request body length = " << _req_body_len << std::endl;
 		if (_request.size() < _req_body_len + _req_head_len)
 			return 0;
 	}
@@ -206,11 +204,6 @@ void	Connection::setStartTime()
 bool	Connection::isTimeout()
 {
 	return utils::isTimeout(_start, 30);
-	// time_t t = time(NULL);
-	// double dif = difftime(t, _start);
-	// if (dif > 30)
-	// 	return true;
-	// return false;
 }
 
 std::string	Connection::getRequest() const
@@ -231,7 +224,6 @@ void	Connection::appendRequest(const char * s)
 
 bool	Connection::isReqChunked()
 {
-	std::cout << "Cheking for chunked request..." << std::endl;
 	if (_req_chunked)
 		return true;
 
@@ -265,7 +257,6 @@ void	Connection::resetConnection()
 	_response.clear();
 	if (_cgi_handler != NULL)
 	{
-		std::cerr << "Connection::resetConnection(). Trying to delete _cgi_handler" << std::endl;
 		delete _cgi_handler;
 		_cgi_handler = NULL;
 	}

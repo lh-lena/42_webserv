@@ -92,17 +92,11 @@ static int	set_to_nonblocking(int server_fd)
 	if (flags == -1)
 	{
 		throw std::runtime_error(strerror(errno));
-		// std::cerr << "Error: " << strerror(errno) << std::endl;
-		// close(server_fd);
-		// return -6;
 	}
 	int res = fcntl(server_fd, F_SETFL, flags | O_NONBLOCK);
 	if (res == -1)
 	{
 		throw std::runtime_error(strerror(errno));
-		// std::cerr << "Error: " << strerror(errno) << std::endl;
-		// close(server_fd);
-		// return -7;
 	}
 	return 1;
 }
@@ -118,8 +112,6 @@ static int	create_tcp_server_socket(int port)
 	if (server_fd == -1)
 	{
 		throw std::runtime_error(strerror(errno));
-		// std::cerr << "Error: creation socket failed: " << strerror(errno) << std::endl;
-		// return -2;
 	}
 
 	/*This helps in manipulating options for the socket referred by the file descriptor sockfd. Optional*/
@@ -128,9 +120,6 @@ static int	create_tcp_server_socket(int port)
 	if (res == -1)
 	{
 		throw std::runtime_error("Error: set socket options failed");
-		// std::cerr << "Error: set socket options failed" << std::endl;
-		// close(server_fd);
-		// return -3;
 	}
 
 	/* Initialize the socket address structure */
@@ -150,18 +139,12 @@ static int	create_tcp_server_socket(int port)
 	if (bind(server_fd, (sockaddr*)&socket_addr, sizeof(sockaddr)) == -1)
 	{
 		throw std::runtime_error(strerror(errno));
-		// std::cerr << "Error: binding socket failed: " << strerror(errno) << std::endl;
-		// close(server_fd);
-		// return -4;
 	}
 
 	// Listen for connections. Max connections is 5 LISTEN_BACKLOG
 	if (listen(server_fd, SOMAXCONN) == -1)
 	{
 		throw std::runtime_error(strerror(errno));
-		// std::cerr << "Error listening on socket: " << strerror(errno) << std::endl;
-		// close(server_fd);
-		// return -5;
 	}
 
 	//std::cout << "Server listening on port " << port << std::endl;
@@ -285,7 +268,6 @@ void	ServerControler::startServing()
 
 void	ServerControler::handleInEvent(int fd)
 {
-	//std::cout << "Handle POLLIN event on fd " << fd << std::endl;
 
 	Connection *conn = getConnection(fd);
 	if (conn == NULL)
@@ -339,7 +321,7 @@ void	ServerControler::handleInEvent(int fd)
 		removeConnection(fd);
 		return;
 	}
-	if (res > 0) // what if the last read res is exactly BUFF_SIZE - 1?
+	if (res > 0)
 	{
 		//std::cout << "Data received on connection " << fd << ": " << buf << std::endl;
 		conn->appendRequest(buf);
@@ -370,13 +352,13 @@ void	ServerControler::handleOutEvent(int fd)
 {
 	if (isCGIfd(fd))
 	{
-		std::cout << "handleOutEvent() fd " << fd << std::endl;
+		//std::cout << "handleOutEvent() fd " << fd << std::endl;
 		return;
 	}
 	Connection *conn = getConnection(fd);
 	if (conn == NULL)
 	{
-		std::cout << "handleOutEvent: no such connection in conns" << std::endl;
+		//std::cout << "handleOutEvent: no such connection in conns" << std::endl;
 		return;
 	}
 	std::string str = conn->getResponse();
@@ -419,7 +401,6 @@ void	ServerControler::createListeningSockets()
 		if (port != temp)
 		{
 			server_fd = create_tcp_server_socket(port);
-			//std::cout << "Port " << i << " :" << ports[i] << std::endl;
 			_socketFds.push_back(server_fd);
 			_ports.push_back(port);
 			std::cout << "[INFO] : " << utils::getFormattedDateTime() << " Server " << i << " listening on port: " << port << std::endl;
@@ -576,11 +557,11 @@ void	ServerControler::addConnection(int fd, int port, struct sockaddr_in & clien
 		std::cerr << "New connection not accepted. Maximum number of working connections (" << _work_conn_num <<") is reached" << std::endl;
 		return;
 	}
-		Connection *c = new Connection(fd);
-		c->setPort(port);
-		c->setClientAddr(client);
-		_conns.push_back(c);
-		addPfd(fd);
+	Connection *c = new Connection(fd);
+	c->setPort(port);
+	c->setClientAddr(client);
+	_conns.push_back(c);
+	addPfd(fd);
 }
 
 void	ServerControler::removeConnection(int fd)
@@ -636,7 +617,7 @@ void	ServerControler::removePfd(int fd)
 		_pfds[j].revents = _pfds[j + 1].revents;
 	}
 	_nfds--;
-	std::cout << "fd " << fd << " deleted from poll. Size of pollFd array is " << _nfds << std::endl;
+	//std::cout << "fd " << fd << " deleted from poll. Size of pollFd array is " << _nfds << std::endl;
 }
 
 void	ServerControler::addCGIfd(int fd)
@@ -711,7 +692,6 @@ void	ServerControler::checkCGIprocesses()
 			std::cout << "CGI on connection " << c->getFd() << " doesn't respond. Kill CGI process id " << pid << std::endl;
 			if (kill(pid, SIGKILL) == -1)
 				std::cerr << "Error: failed to kill CGI child process pid " << pid << std::endl;
-			// c->resetConnection();
 			c->getCGIHandler()->getResponse().setErrorResponse(INTERNAL_SERVER_ERROR, c->getCGIHandler()->getCustomErrorPath(500)); // NULL
 			removeCGIfd(_cgi_fds[i]);
 			i--;

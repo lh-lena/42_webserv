@@ -34,17 +34,14 @@ RequestHandler::~RequestHandler()
 {
 	if (_request != NULL)
 	{
-		std::cerr << "RequestHandler destructor called! Trying to delete _request" << std::endl;
 		delete _request;
 	}
 	if (_response != NULL)
 	{
-		std::cerr << "RequestHandler destructor called! Trying to delete _response" << std::endl;
 		delete _response;
 	}
 	if (_cgi != NULL)
 	{
-		std::cerr << "RequestHandler destructor called! Trying to delete _cgi" << std::endl;
 		delete _cgi;
 	}
 }
@@ -60,9 +57,6 @@ int		RequestHandler::processRequest()
 		setCustomErrorResponse(NOT_FOUND, getCustomErrorPath(NOT_FOUND));
 		return -1;
 	}
-
-	// std::cerr << YELLOW << "request:\n" << _request << RESET; //rm
-	// std::cout << GREEN << "location: " << _location << RESET <<  std::endl;
 
 	if (!isImplementedMethod())
 	{
@@ -86,7 +80,7 @@ int		RequestHandler::processRequest()
 
 	if (isCGIRequest())
 	{
-		handleCgiRequest(); //parse, fork and return to poll
+		handleCgiRequest();
 		return 1;
 	}
 	else
@@ -297,7 +291,6 @@ bool	RequestHandler::isCGIRequest( void ) const
 
 void	RequestHandler::handleCgiRequest( void )
 {
-	std::cout << YELLOW << "Handling CGI request" << std::endl;
 	_cgi = new CGI();
 	CGI & cgi = *_cgi;
 
@@ -322,8 +315,6 @@ void	RequestHandler::handleCgiRequest( void )
 	}
 	_request->setHeader("Path-Translated", utils::substr_before_rdel(_request->getFullPath(), script_name) + _request->getHeader("Path-Info"));
 
-	// std::cerr << GREEN << _request.getHeader("Path-Info") << "\n"  << _request.getHeader("Path-Translated") << RESET << std::endl; //rm
-
 	std::string body = _request->getBody();
 	size_t max_size = (_location.getClientMaxBody() != 0) ? _location.getClientMaxBody() : _server.getClientMaxBody();
 	if (body.size() > max_size)
@@ -339,16 +330,10 @@ void	RequestHandler::handleCgiRequest( void )
 	cgi.setEnvironment(*_request);
 
 	cgi.setChildProcess(*_request);
-	//std::string data = cgi.executeCGI(*_request);
-
-	//wait for POLLIN event to read data
-	//cgi.readResponse();
-	//handleCgiResponse(cgi.getCGIResponce());
 }
 
 void	RequestHandler::processCGIResponse()
 {
-	//wait for POLLIN event to read data
 	_cgi->readResponse();
 	handleCgiResponse(_cgi->getCGIResponce());
 }
@@ -361,10 +346,8 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	std::string			con_len;
 	std::vector<std::pair<std::string, std::string> >	headers;
 
-	// while (std::getline(iss, line) && line != "\r" )
 	while (std::getline(iss, line) && line.length() != 0 )
 	{
-		// std::cerr << BLUE << "header: " << line << RESET << std::endl; //rm
 		utils::parse_header_field(line, headers);
 	}
 
@@ -372,11 +355,8 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	oss << iss.rdbuf();
 	body = oss.str();
 
-	// std::cerr << RED << "BODY CGI: \n" << body << RESET<<  std::endl; //rm
-
 	if (utils::get_value("content-type", headers).empty())
 	{
-		// std::cerr <<  BLUE << "utils::get_value(Content-Type, headers).empty()" << RESET << std::endl;
 		setCustomErrorResponse(INTERNAL_SERVER_ERROR, getCustomErrorPath(INTERNAL_SERVER_ERROR));
 		return;
 	}
@@ -411,7 +391,6 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 	std::vector<std::string> cookies_val;
 	for (; it != headers.end(); ++it)
 	{
-		std::cerr << RED << it->first << ":" << it->second << RESET << std::endl;
 		if (it->first == "set-cookie") //&& !utils::is_str_in_vector(it->second, cookies_val)
 		{
 			cookies_val.push_back(it->second);
@@ -425,8 +404,6 @@ void	RequestHandler::handleCgiResponse(const std::string& data)
 void	RequestHandler::handleGetDirectoryResponse( void )
 {
 	std::string	new_path;
-
-	//std::cerr << RED << "_request.getFullPath() " << _request.getFullPath() << RESET << std::endl;
 
 	if (!utils::ends_with(_request->getFullPath(), "/"))
 	{
@@ -503,7 +480,7 @@ std::string generateRawDataFilename()
 
 	std::strftime(buf, sizeof(buf), "%Y%m%d_%H%M%S", localTime);
 
-    return "raw_data_" + std::string(buf);
+	return "raw_data_" + std::string(buf);
 }
 
 void		RequestHandler::handlePOST( void )
@@ -551,10 +528,6 @@ void		RequestHandler::handlePOST( void )
 	}
 	outfile.close();
 	_response->setPostResponse(CREATED, filename);
-	// _response.setStatusCode(CREATED);
-	// _response.setHeader("Content-Length", 0);
-	// _response.setHeader("Date", utils::formatDate(utils::get_timestamp("")));
-	// _response.setHeader("Server", _server.server_name);
 	_response->setStatusCode(CREATED);
 }
 
@@ -566,20 +539,15 @@ std::string		RequestHandler::searchingUploadPath( void )
 	if (_location.getUploadDir().empty() && !_server.getUploadDir().empty())
 	{
 		uploadDir = _server.getUploadDir();
-		findRequestedLocation(uploadDir); //added
+		findRequestedLocation(uploadDir);
 		fullPath = determineFilePath(uploadDir);
 	}
 	else if (!_location.getUploadDir().empty())
 	{
 		uploadDir = _location.getUploadDir();
-		findRequestedLocation(uploadDir); //added
+		findRequestedLocation(uploadDir);
 		fullPath = determineFilePath(uploadDir);
 	}
-
-	// std::cerr << YELLOW << _location << RESET << std::endl; //rm
-	// std::cerr << GREEN << "_server.getUploadDir() " << _server.getUploadDir() << "\n" <<
-	// " _location.getUploadDir() " << _location.getUploadDir() << " \fullPath  "<<
-	// fullPath << RESET << std::endl; //rm
 
 	return fullPath;
 }
@@ -667,6 +635,7 @@ int			RequestHandler::remove_file(const std::string& path)
 }
 
 /** @return status code */
+/*
 int			RequestHandler::remove_directory_recursively(const std::string& path)
 {
 	std::vector<std::string> cont;
@@ -696,6 +665,7 @@ int			RequestHandler::remove_directory_recursively(const std::string& path)
 	}
 	return NO_CONTENT;
 }
+*/
 
 /* ------------------------ Methods related to Location  ------------------------- */
 
