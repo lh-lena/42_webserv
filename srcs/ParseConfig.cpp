@@ -23,7 +23,7 @@ template void	ParseConfig::handleCGIExtension<Location>(const std::pair<std::str
 ** ------------------------------- CONSTRUCTOR --------------------------------
 */
 
-ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _conf_file_path("serv.conf")
+ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp)
 {
 	if (!file_path.empty())
 		_conf_file_path = file_path;

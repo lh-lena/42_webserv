@@ -14,7 +14,7 @@ int	main(int ac, char **av, char **envp)
 	if (ac == 2)
 		configFilePath = av[1];
 	else
-		configFilePath = "conf/serv.conf";
+		configFilePath = "conf/serv.def.conf";
 
 	ParseConfig config(configFilePath, envp);
 
