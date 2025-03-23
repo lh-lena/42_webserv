@@ -39,6 +39,7 @@ ServerControler::ServerControler()
 	_pfds_limit = lim.rlim_cur;
 
 	memset(_pfds, 0, sizeof(_pfds));
+	_nfds = 0;
 
 	// std::cout << "Limit for the number of opened file descriptors: soft = "
 				// << _pfds_limit << " hard = " << lim.rlim_max << std::endl;
@@ -242,7 +243,7 @@ void	ServerControler::polling()
 
 void	ServerControler::startServing()
 {
-	// signal(SIGINT, ServerControler::sig_handler);
+	signal(SIGINT, ServerControler::sig_handler);
 	try
 	{
 		createListeningSockets();
@@ -716,4 +717,14 @@ int	ServerControler::decrementNfds(void)
 	if (_nfds > 0)
 		_nfds--;
 	return _nfds;
+}
+
+void	ServerControler::cleanUp( void )
+{
+	for (size_t i = 0; i < _conns.size(); i++)
+	{
+		delete _conns[i];
+		_conns[i] = NULL;
+	}
+	closeFds();
 }

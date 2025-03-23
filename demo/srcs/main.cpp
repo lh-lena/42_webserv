@@ -25,6 +25,7 @@ int	main(int ac, char **av, char **envp)
 
 		ServerControler & controler = config.getServControler();
 		controler.startServing();
+		controler.cleanUp();
 	}
 	catch (std::exception &e)
 	{

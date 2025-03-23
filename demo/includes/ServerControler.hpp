@@ -41,6 +41,7 @@ class ServerControler
 		int								decrementNfds(void);
 		void							closeFds(void);
 		void							setWorkConnNum(size_t n);
+		void							cleanUp( void );
 
 		static void						sig_handler(int sig_num);
 
