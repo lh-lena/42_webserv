@@ -87,19 +87,25 @@ void	Request::parseStartLine(const std::string& str)
 
 void	Request::parseHeader(const std::string& header_lines)
 {
-	size_t pos = header_lines.find(":");
+	std::string line = header_lines;
+
+	if (utils::ends_with(line, "\r"))
+	{
+		line.erase(line.size() - 1);
+	}
+	size_t pos = line.find(":");
 	if (pos == std::string::npos)
 	{
 		return;
 	}
 
-	std::string key = header_lines.substr(0, pos);
+	std::string key = line.substr(0, pos);
 	if (utils::ends_with(key, " "))
 	{
 		_is_valid = false;
 		return;
 	}
-	std::string value = header_lines.substr(pos + 1);
+	std::string value = line.substr(pos + 1);
 	if (std::strncmp(value.c_str(), " ", 1) == 0)
 	{
 		value.erase(0, 1);
