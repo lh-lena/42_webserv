@@ -11,7 +11,8 @@ Server::Server()
 		server_name("Webserv/1.0"),
 		_client_max_body_size(1 * 1024 * 1024), //1M
 		_location_nbr(0),
-		_worker_connections(1024)
+		_worker_connections(1024),
+		_port(0)
 {
 	setImplementedMethods("GET");
 	setImplementedMethods("HEAD");

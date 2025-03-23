@@ -27,7 +27,6 @@ ParseConfig::ParseConfig(std::string file_path, char **envp) : _envp(envp), _con
 {
 	if (!file_path.empty())
 		_conf_file_path = file_path;
-	std::cout << "_conf_file_path " << _conf_file_path << "\n";
 	block_dir["http"] = true;
 	block_dir["server"] = true;
 	block_dir["location"] = true;

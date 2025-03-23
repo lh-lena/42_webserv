@@ -307,6 +307,28 @@ std::string		utils::substr_after_rdel(const std::string& path, const std::string
 	return path.substr(pos + 1);
 }
 
+std::string		utils::substr_after_del(const std::string& path, const std::string& del)
+{
+	if (del.empty())
+	{
+		return std::string();
+	}
+
+	size_t pos = 0;
+	pos = path.find(del);
+	if (pos == std::string::npos)
+	{
+		return std::string();
+	}
+
+	if (pos + 1 > path.length())
+	{
+		return std::string();
+	}
+
+	return path.substr(pos + 1);
+}
+
 std::string		utils::substr_before_rdel(const std::string& path, const std::string& del)
 {
 	if (del.empty())
@@ -316,6 +338,23 @@ std::string		utils::substr_before_rdel(const std::string& path, const std::strin
 
 	size_t pos = 0;
 	pos = path.rfind(del);
+	if (pos == std::string::npos)
+	{
+		return std::string();
+	}
+
+	return path.substr(0, pos);
+}
+
+std::string		utils::substr_before_del(const std::string& path, const std::string& del)
+{
+	if (del.empty())
+	{
+		return std::string();
+	}
+
+	size_t pos = 0;
+	pos = path.find(del);
 	if (pos == std::string::npos)
 	{
 		return std::string();
@@ -514,10 +553,10 @@ bool	utils::parse_query(const std::string& uri, std::string& new_uri, std::strin
 		return false;
 	}
 
-	if (uri.rfind('?') != std::string::npos)
+	if (uri.find('?') != std::string::npos)
 	{
-		query = utils::substr_after_rdel(uri, "?");
-		new_uri = utils::substr_before_rdel(uri, "?");
+		query = utils::substr_after_del(uri, "?");
+		new_uri = utils::substr_before_del(uri, "?");
 		return true;
 	}
 

@@ -63,8 +63,8 @@ class ParseConfig
 		};
 
 	private:
-		ParseConfig( ParseConfig const & src ); // not implemented
-		ParseConfig &		operator=( ParseConfig const & rhs ); // not implemented
+		ParseConfig( ParseConfig const & src );
+		ParseConfig &		operator=( ParseConfig const & rhs );
 		ServerControler										_serverControler;
 		char												**_envp;
 		std::string											_conf_file_path;

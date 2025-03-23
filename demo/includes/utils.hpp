@@ -72,6 +72,8 @@ namespace utils
 	std::string					get_env_value(char **envp, const std::string &variable);
 	std::string					substr_after_rdel(const std::string& path, const std::string& del);
 	std::string					substr_before_rdel(const std::string& path, const std::string& del);
+	std::string					substr_after_del(const std::string& path, const std::string& del);
+	std::string					substr_before_del(const std::string& path, const std::string& del);
 	std::string					sanitize_file_name(const std::string& filename);
 	std::string					getClientIP(const struct sockaddr_in & client);
 	std::vector<std::string>	ft_split(const std::string& s, std::string delimeter);
