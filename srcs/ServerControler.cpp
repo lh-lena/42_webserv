@@ -416,11 +416,16 @@ Server & ServerControler::chooseServBlock(const std::string & host, int port)
 		i++;
 
 	res = i;
-
 	while (i < size)
 	{
-		if (_servBlocks[i].getPort() != port && _servBlocks[i].getHost() == host)
-			return _servBlocks[i];
+		std::vector<std::string> names = _servBlocks[i].getServerNames();
+		for (size_t t = 0; t < names.size(); t++)
+		{
+			if (_servBlocks[i].getPort() == port && names[t].compare(host) == 0)
+			{
+				return _servBlocks[i];
+			}
+		}
 		i++;
 	}
 
