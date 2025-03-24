@@ -29,8 +29,9 @@ http {  # The main HTTP block, containing server configurations.
 
 
       location [path] {  # Defines specific configurations for different URL paths.
-        autoindex [on];              # Enables or disables the display of directory listings, use `on` or `off`. Default: off
-        return <status code> [path]; # Returns a specific HTTP status code and URL/Path, effectively redirecting the client.
+        autoindex [on];                  # Enables or disables the display of directory listings, use `on` or `off`. Default: off
+        alias [relative_path]            # Replace specified location path name by alias path
+        return <status code> [path/url]; # Returns a specific HTTP status code and URL/Path, effectively redirecting the client.
       }
 
 
@@ -56,4 +57,4 @@ Understanding `webserv` context:
 - **Global Context**: `http`,`worker_connections`
 - **HTTP Context**: Configuration related to handling HTTP requests :  `server`
 - **Server Context**: Configuration for a specific virtual server: `server_name`, `listen`, `root`,  `error_page` , `client_max_body_size` , `index`, `cgi_extension`, `upload_dir`, `allow_methods`
-- **Location Context**: Configuration for handling specific URL paths or locations within a server: `root`, `error_page`, `allowed_methods`, `autoindex`, `return`, `client_max_body_size`, `index`, `autoindex`, `allowed_methods`, `upload_dir`
+- **Location Context**: Configuration for handling specific URL paths or locations within a server: `root`, `alias`, `error_page`, `allowed_methods`, `autoindex`, `return`, `client_max_body_size`, `index`, `autoindex`, `allowed_methods`, `upload_dir`
