@@ -580,10 +580,10 @@ void		RequestHandler::handleDELETE( void )
 		else
 		{
 			_response->setStatusCode(status_code);
-			_response->setHeader("Content-Length", 0);
 			_response->setHeader("Date", utils::formatDate(utils::get_timestamp("")));
 			_response->setHeader("Server", _server.server_name);
 			_response->setBody(generateHtmlDefaultPage(status_code));
+			_response->setHeader("Content-Length", utils::to_string(generateHtmlDefaultPage(status_code).length()));
 		}
 	}
 	else
