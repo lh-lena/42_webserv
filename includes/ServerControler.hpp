@@ -68,6 +68,7 @@ class ServerControler
 		bool	isCGIfd(int fd);
 		void	processRequest(Connection & conn);
 		void	checkCGIprocesses();
+		void	cleanFds();
 		Server & chooseServBlock(const std::string & host, int port);
 };
 

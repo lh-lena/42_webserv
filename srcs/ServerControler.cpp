@@ -198,19 +198,21 @@ void	ServerControler::polling()
 			{
 				if (connection && connection->isTimeout())
 				{
-					removeConnection(_pfds[i].fd);
 					std::cout << "Connection on fd " << _pfds[i].fd << " was closed because of timeout" << std::endl;
+					removeConnection(_pfds[i].fd);
+					break;
 				}
 			}
 			else if ((_pfds[i].revents & POLLHUP) || (_pfds[i].revents & POLLERR))
 			{
 				if (connection && !isCGIfd(_pfds[i].fd))
 				{
-					removeConnection(_pfds[i].fd);
 					std::cout << "Connection on fd " << _pfds[i].fd << " was closed because of error or client disconnect" << std::endl;
+					removeConnection(_pfds[i].fd);
 				}
 				else
 					removePfd(_pfds[i].fd);
+				break;
 			}
 			else if (_pfds[i].revents & POLLIN)
 			{
@@ -224,18 +226,17 @@ void	ServerControler::polling()
 					if (new_fd > 0)
 					{
 						addConnection(new_fd, _ports[indx], client);
-						std::cout << "New connection on listening socket " << indx << ", new_fd = " << new_fd << ".";
-						std::cout << " Client: " << utils::getClientIP(client) << ":" << utils::getClientPort(client) << std::endl;
 					}
 					continue;
 				}
 				else
 					handleInEvent(_pfds[i].fd);
-				if (_pfds[i].revents & POLLOUT) //&& connection
-					handleOutEvent(_pfds[i].fd);
 			}
+			if (_pfds[i].revents & POLLOUT)
+				handleOutEvent(_pfds[i].fd);
 		}
 		checkCGIprocesses();
+		cleanFds();
 	}
 	closeFds();
 }
@@ -293,18 +294,27 @@ void	ServerControler::handleInEvent(int fd)
 		if (res < 0)
 		{
 			std::cerr << "Error: send() failed on connection fd " << fdc << std::endl;
-			//removeConnection(fd);
+			removeConnection(fd);
+			return;
+		}
+		if (res == 0)
+		{
+			std::cerr << "Client disconnected on connection fd " << fdc << std::endl;
+			removeConnection(fd);
 			return;
 		}
 
 		std::cout  << "[INFO] : "  << utils::getFormattedDateTime() <<  " Transmitted Data Size "<< res <<" Bytes."  << std::endl;
 		std::cout  << "[INFO] : "  << utils::getFormattedDateTime() <<  " File Transfer Complete."  << std::endl;
 
-		conn->resetConnection();
-		if (conn->getCGIHandler() != NULL)
-			removeCGIfd(conn->getCGIfdIn());
+		if (_conns.size() == _work_conn_num)
+			removeConnection(fd);
+		else
+		{
+			conn->resetConnection();
+			removeCGIfd(fd);
+		}
 
-		removeCGIfd(fd);
 		return;
 	}
 
@@ -319,7 +329,7 @@ void	ServerControler::handleInEvent(int fd)
 	}
 	if (res > 0)
 	{
-		conn->appendRequest(buf);
+		conn->appendRequest(buf, res);
 		if (res < BUFF_SIZE - 1 || recv(fd, buf, 1, MSG_PEEK) < 1)
 		{
 			std::string request = conn->getRequest();
@@ -337,8 +347,8 @@ void	ServerControler::handleInEvent(int fd)
 	{
 		if (conn->isTimeout())
 		{
-			std::cout << "Connection on fd " << fd << " closed because of timeout" << std::endl;
 			removeConnection(fd);
+			std::cout << "Connection on fd " << fd << " closed because of timeout" << std::endl;
 		}
 	}
 }
@@ -346,15 +356,20 @@ void	ServerControler::handleInEvent(int fd)
 void	ServerControler::handleOutEvent(int fd)
 {
 	if (isCGIfd(fd))
-	{
-		//std::cout << "handleOutEvent() fd " << fd << std::endl;
 		return;
-	}
+
 	Connection *conn = getConnection(fd);
 	if (conn == NULL)
-	{
-		//std::cout << "handleOutEvent: no such connection in conns" << std::endl;
 		return;
+
+	if (conn->getCGIfdIn() == fd)
+		return;
+
+	if (conn->getCGIfail())
+	{
+		conn->getCGIHandler()->setCustomErrorResponse(500, conn->getCGIHandler()->getCustomErrorPath(500));
+		conn->setResponse(conn->getCGIHandler()->getResponse().getResponse());
+		conn->setCGIfail(false);
 	}
 	std::string str = conn->getResponse();
 	if (str.empty())
@@ -366,10 +381,17 @@ void	ServerControler::handleOutEvent(int fd)
 		removeConnection(fd);
 		return;
 	}
+	if (res == 0)
+	{
+		std::cerr << "Client disconnected on connection fd " << fd << ". Connection closed." << std::endl;
+		removeConnection(fd);
+		return;
+	}
 
-	conn->resetConnection();
-	if (conn->getCGIHandler() != NULL)
-		removeCGIfd(conn->getCGIfdIn());
+	if (_conns.size() == _work_conn_num)
+		removeConnection(fd);
+	else
+		conn->resetConnection();
 
 	std::cout  << "[INFO] : "  << utils::getFormattedDateTime() <<  " Transmitted Data Size "<< res <<" Bytes."  << std::endl;
 	std::cout  << "[INFO] : "  << utils::getFormattedDateTime() <<  " File Transfer Complete." << std::endl;
@@ -437,7 +459,6 @@ void	ServerControler::processRequest(Connection & conn)
 	Request		*request = new Request();
 	Response	*response = new Response();
 
-	// client_info : client IP adress and port
 	struct sockaddr_in client_info = conn.getClientAddr();
 	std::cerr << "[INFO] : " << utils::getFormattedDateTime() << " Processing request for client: " << utils::getClientIP(client_info) << ":"
 				<< utils::getClientPort(client_info) << std::endl;
@@ -463,6 +484,7 @@ void	ServerControler::processRequest(Connection & conn)
 		conn.setStartTime();
 		return;
 	}
+
 	std::string ss = "[TRACE] : " + utils::getFormattedDateTime() + " \"" + request->start_line + "\" " + \
 	 	utils::itos(response->getStatusCode()) + " " + response->getHeader("Content-Length");
 
@@ -516,6 +538,8 @@ void	ServerControler::addConnection(int fd, int port, struct sockaddr_in & clien
 	c->setClientAddr(client);
 	_conns.push_back(c);
 	addPfd(fd);
+	std::cout << "New connection on port " << port << ", new_fd = " << fd << ".";
+	std::cout << " Client: " << utils::getClientIP(client) << ":" << utils::getClientPort(client) << std::endl;
 }
 
 void	ServerControler::removeConnection(int fd)
@@ -564,14 +588,26 @@ void	ServerControler::removePfd(int fd)
 	if (close(_pfds[i].fd) == -1 && !isCGIfd(fd))
 		std::cerr << RED << "Error: close() on fd " << _pfds[i].fd << " failed" << RESET << std::endl;
 
-	for (int j = i; j < _nfds - 1; j++)
+	_pfds[i].fd = -1;
+
+}
+
+void	ServerControler::cleanFds()
+{
+	for (int i = 0; i < _nfds; i++)
 	{
-		_pfds[j].fd = _pfds[j + 1].fd;
-		_pfds[j].events = _pfds[j + 1].events;
-		_pfds[j].revents = _pfds[j + 1].revents;
+		if (_pfds[i].fd == -1)
+		{
+			for (int j = i; j < _nfds - 1; j++)
+			{
+				_pfds[j].fd = _pfds[j + 1].fd;
+				_pfds[j].events = _pfds[j + 1].events;
+				_pfds[j].revents = _pfds[j + 1].revents;
+			}
+			i--;
+			_nfds--;
+		}
 	}
-	_nfds--;
-	//std::cout << "fd " << fd << " deleted from poll. Size of pollFd array is " << _nfds << std::endl;
 }
 
 void	ServerControler::addCGIfd(int fd)
@@ -640,15 +676,15 @@ void	ServerControler::checkCGIprocesses()
 	{
 		c = getConnection(_cgi_fds[i]);
 		tem = c->getCGIHandler()->getCGI().getTimer();
-		if (utils::isTimeout(tem, 10))
+		if (utils::isTimeout(tem, 5))
 		{
 			pid = c->getCGIHandler()->getCGI().getProcessId();
 			std::cout << "[INFO] : " << utils::getFormattedDateTime() << " CGI on connection " << c->getFd() << " doesn't respond. Kill CGI process id " << pid << RESET << std::endl;
 			if (kill(pid, SIGKILL) == -1)
-				std::cerr << RED << "[ERROR] : Failed to kill CGI child process pid " << pid << std::endl;
-			c->getCGIHandler()->getResponse().setErrorResponse(INTERNAL_SERVER_ERROR, c->getCGIHandler()->getCustomErrorPath(500)); // NULL
-			removeCGIfd(_cgi_fds[i]);
-			i--;
+				std::cerr << RED << "[ERROR] : Failed to kill CGI child process pid " << pid << RESET << std::endl;
+			c->setCGIfail(true);
+			removeCGIfd(c->getCGIfdIn());
+			c->setStartTime();
 		}
 	}
 }

@@ -39,10 +39,14 @@ public:
 	static std::string		decodeURI(const std::string& path);
 	static std::string		generateHtmlDefaultPage( int status_code);
 	std::string				getCustomErrorPath(int status_code);
+	int						getCGIError( void );
+	void					setCGIError( int code);
 
 	CGI	&	getCGI();
 	Request & getRequest();
 	Response & getResponse();
+
+	void					setCustomErrorResponse(int status_code, const std::string& custom_error_path);
 
 private:
 
@@ -51,6 +55,7 @@ private:
 	Response		*		_response;
 	Location				_location;
 	CGI				*		_cgi;
+	int						_cgi_error;
 
 	bool					isRedirection( void ) const;
 	void					setRedirectResponse( void );
@@ -63,7 +68,6 @@ private:
 	bool					searchingExtensionMatchLocation(const std::string& requested_path);
 	bool					searchingPrefixMatchLocation(const std::string& requested_path);
 	bool					isExternalRedirect(const std::string& path);
-	void					setCustomErrorResponse(int status_code, const std::string& custom_error_path);
 	std::string				determineFilePath(const std::string& requested_path);
 	void					handleStaticRequest( void );
 	void					setDirectoryListingResponse(int status_code);

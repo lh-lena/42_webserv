@@ -48,7 +48,6 @@ public:
 	std::string					interpreter;
 	std::string					upload_path;
 	std::string					executable;
-	void	cleanEnvironment();
 	void	addEnvField(const std::string& key, const std::string& value);
 };
 

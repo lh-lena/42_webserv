@@ -28,7 +28,10 @@ CGI::CGI(void) :
 }
 
 CGI::~CGI(void)
-{}
+{
+	for (size_t i = 0; i < envp.size(); i++)
+		delete[] envp[i];
+}
 
 void CGI::setEnvironment(const Request& request)
 {
@@ -83,12 +86,6 @@ void CGI::setEnvironment(const Request& request)
 	envp.push_back(NULL);
 }
 
-void	CGI::cleanEnvironment()
-{
-	for (size_t i = 0; i < envp.size(); i++)
-		delete[] envp[i];
-}
-
 void	CGI::printEnvironment()
 {
 	std::cout << "CGI::printEnvironment()" << std::endl;
@@ -134,10 +131,15 @@ void	CGI::setChildProcess(Request& request)
 	close(out_fds[1]);
 
 	std::string b = request.getBody();
-	// std::cerr << BLUE << b << RESET << std::endl;
 	char *str = (char *)b.c_str();
 	if (str[0] != '\0')
-		write(in_fds[1], str, b.length());
+	{
+		int res = write(in_fds[1], str, b.length());
+		if (res == -1)
+			std::cerr << "Error: write() failed" << std::endl;
+		if (res == 0)
+			std::cerr << "Error: write(): no data sent" << std::endl;
+	}
 	close(in_fds[1]);
 	_timer = time(NULL);
 }
@@ -149,8 +151,18 @@ void	CGI::readResponse()
 
 	memset(buf, 0, sizeof(buf));
 	res = read(_fds[0], &buf, sizeof(buf) - 1);
+	if (res == -1)
+	{
+		std::cerr << "read() CGI response failed";
+		_cgi_responce = "Content-Type: text/plain\nStatus: 500 no data received from CGI\n\n";
+	}
+	if (res == 0)
+	{
+		std::cerr << "CGI return empty";
+		_cgi_responce = "Content-Type: text/plain\nStatus: 500 no data received from CGI\n\n";
+	}
 	if (res > 0)
-		_cgi_responce.append(buf);
+		_cgi_responce.append(buf, res);
 	if (res == MAX_RESP_SIZE - 1)
 	{
 		if (read(_fds[0], &buf, 1) == 1)
@@ -161,9 +173,9 @@ void	CGI::readResponse()
 			_cgi_responce = "Content-Type: text/plain\nStatus: 413 data received from CGI is too big\n\n";
 		}
 	}
+
 	close(_fds[0]);
 	waitpid(_pid, NULL, 0);
-	cleanEnvironment();
 }
 
 void		CGI::setInterpreter(const std::string& str)

@@ -69,7 +69,7 @@ run : all
 	@./$(NAME)
 
 valgrind : all
-	@valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all ./$(NAME)
+	@valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all ./$(NAME) conf/serv.conf
 
 #### TEST SETTINGS ####
 

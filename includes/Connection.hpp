@@ -29,7 +29,7 @@ class Connection
 	bool	isTimeout();
 	std::string	getRequest() const;
 	void	setRequest(const std::string & s);
-	void	appendRequest(const char * s);
+	void	appendRequest(const char * s, int res);
 	void	resetRequest();
 	void	resetConnection();
 	std::string	getResponse() const;
@@ -38,6 +38,8 @@ class Connection
 	RequestHandler * getCGIHandler();
 	int		getCGIfdIn();
 	int		getCGIfdOut();
+	bool	getCGIfail();
+	void	setCGIfail(bool b);
 
 	bool 	unchunkRequest();
 	bool	checkRequest();
@@ -55,6 +57,7 @@ class Connection
 	bool 				_req_chunked;
 	std::string 		_response;
 	RequestHandler 	*	_cgi_handler;
+	bool				_cgi_fail;
 
 	size_t	getReqHeadLen();
 	size_t	getReqBodyLen();

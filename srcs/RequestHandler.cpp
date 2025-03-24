@@ -13,7 +13,8 @@ RequestHandler::RequestHandler(Server& server, Request* request, Response* respo
 	_server(server),
 	_request(request),
 	_response(response),
-	_cgi(NULL)
+	_cgi(NULL),
+	_cgi_error(1)
 {}
 
 RequestHandler	&	RequestHandler::operator=(const RequestHandler& rh)
@@ -23,6 +24,7 @@ RequestHandler	&	RequestHandler::operator=(const RequestHandler& rh)
 	_response = rh._response;
 	_location = rh._location;
 	_cgi = rh._cgi;
+	_cgi_error = rh._cgi_error;
 	return *this;
 }
 
@@ -81,7 +83,7 @@ int		RequestHandler::processRequest()
 	if (isCGIRequest())
 	{
 		handleCgiRequest();
-		return 1;
+		return _cgi_error;
 	}
 	else
 	{
@@ -302,14 +304,23 @@ void	RequestHandler::handleCgiRequest( void )
 	_request->setHeader("Script-Name", script_name);
 	_request->setFullPath(determineFilePath(_request->getHeader("Script-Name")));
 
+	if (_request->getHeader("Request-Method").compare("POST") != 0 && _request->getHeader("Request-Method").compare("GET") != 0)
+	{
+		_cgi_error = METHOD_NOT_ALLOWED;
+		setCustomErrorResponse(METHOD_NOT_ALLOWED, getCustomErrorPath(METHOD_NOT_ALLOWED));
+		return;
+	}
+
 	if (!utils::is_regular_file(_request->getFullPath()))
 	{
+		_cgi_error = NOT_FOUND;
 		setCustomErrorResponse(NOT_FOUND, getCustomErrorPath(NOT_FOUND));
 		return;
 	}
 
 	if (!utils::has_executable_permissions(_request->getFullPath()))
 	{
+		_cgi_error = FORBIDDEN;
 		setCustomErrorResponse(FORBIDDEN, getCustomErrorPath(FORBIDDEN));
 		return;
 	}
@@ -319,12 +330,12 @@ void	RequestHandler::handleCgiRequest( void )
 	size_t max_size = (_location.getClientMaxBody() != 0) ? _location.getClientMaxBody() : _server.getClientMaxBody();
 	if (body.size() > max_size)
 	{
+		_cgi_error = REQUEST_ENTITY_TOO_LARGE;
 		setCustomErrorResponse(REQUEST_ENTITY_TOO_LARGE, getCustomErrorPath(REQUEST_ENTITY_TOO_LARGE));
 		return;
 	}
 
 	cgi.setExecutable(_request->getFullPath());
-
 	cgi.setExecutable(_request->getFullPath());
 	cgi.setUploadDir(searchingUploadPath());
 	cgi.setEnvironment(*_request);
@@ -924,4 +935,14 @@ Request & RequestHandler::getRequest()
 Response & RequestHandler::getResponse()
 {
 	return *_response;
+}
+
+int		RequestHandler::getCGIError( void )
+{
+	return _cgi_error;
+}
+
+void		RequestHandler::setCGIError( int code )
+{
+	_cgi_error = code;
 }

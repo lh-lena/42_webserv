@@ -4,22 +4,28 @@
 
 Connection::Connection()
 {
+	_request = "";
+	_response = "";
 	_start = time(NULL);
 	_req_body_len = 0;
 	_req_head_len = 0;
 	_req_chunked = false;
 	_cgi_handler = NULL;
-	//memset(_cgi_fds, 0, sizeof(_cgi_fds));
+	_cgi_fail = false;
+
 }
 
 Connection::Connection(int fd): _fd(fd)
 {
+	_request = "";
+	_response = "";
 	_start = time(NULL);
 	_req_body_len = 0;
 	_req_head_len = 0;
 	_req_chunked = false;
 	_cgi_handler = NULL;
-	//memset(_cgi_fds, 0, sizeof(_cgi_fds));
+	_cgi_fail = false;
+
 }
 
 Connection::~Connection()
@@ -29,47 +35,6 @@ Connection::~Connection()
 		delete _cgi_handler;
 	}
 }
-
-/* bool	Connection::unchunkRequest() // return 1 if the last chunk received
-{
-	std::cout << "Request is chunked" << std::endl;
-	std::cout << "Request: " << _request << std::endl;
-	size_t	res;
-	std::string s;
-
-	return 1;
-
-	res = _request.find("0\r\n\r\n");
-	//std::cout << "Checking for end 0 : " << res << std::endl;
-	if (res != std::string::npos)
-	{
-		//_request.erase(res, 3);
-		// replace "Transfer-Encoding: chunked" with "Content-Length: <_req_body_len>"
-		return 1;
-	}
-
-	// size_t i = _req_head_len + _req_body_len;
-	// //while (i < _request.size() && _request[i] < 48)
-	// //	i++;
-	// // if (i >= _request.size())
-	// // 	return 0;
-
-	// res = _request.find("\r\n", i);
-	// if (res != std::string::npos)
-	// {
-	// 	std::cout << "CRLF not found" << std::endl;
-	// 	return 0;
-	// }
-	// s = _request.substr(i, res - i);
-	// res = strtol(s.c_str(), NULL, 16);
-	// if (res > 0)
-	// {
-	// 	_req_body_len = _req_body_len + res;
-	// 	_request.erase(i, s.size() + 2); //remove chunk-size-line from request
-	// }
-	return 0;
-}
- */
 
 bool	Connection::unchunkRequest()
 {
@@ -216,10 +181,9 @@ void	Connection::setRequest(const std::string & s)
 		_request = s;
 }
 
-void	Connection::appendRequest(const char * s)
+void	Connection::appendRequest(const char * s, int res)
 {
-	if (s[0] != '\0')
-		_request.append(s);
+	_request.append(s, res);
 }
 
 bool	Connection::isReqChunked()
@@ -308,4 +272,14 @@ int		Connection::getCGIfdOut()
 	if (_cgi_handler != NULL)
 		return _cgi_handler->getCGI().getOfd();
 	return -1;
+}
+
+void	Connection::setCGIfail(bool b)
+{
+	_cgi_fail = b;
+}
+
+bool	Connection::getCGIfail()
+{
+	return _cgi_fail;
 }
