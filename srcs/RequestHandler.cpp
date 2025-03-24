@@ -100,7 +100,7 @@ void	RequestHandler::setCustomErrorResponse(int status_code, const std::string& 
 
 	if (custom_error_path.empty())
 	{
-		body = generateHtmlErrorPage(status_code);
+		body = generateHtmlDefaultPage(status_code);
 	}
 	else if (isExternalRedirect(custom_error_path)
 		|| status_code == MOVED_PERMANENTLY
@@ -131,7 +131,7 @@ void	RequestHandler::setCustomErrorResponse(int status_code, const std::string& 
 		}
 		else
 		{
-			body = generateHtmlErrorPage(status_code);
+			body = generateHtmlDefaultPage(status_code);
 		}
 		last_modified = utils::formatDate(utils::get_timestamp(new_path));
 	}
@@ -583,7 +583,7 @@ void		RequestHandler::handleDELETE( void )
 			_response->setHeader("Content-Length", 0);
 			_response->setHeader("Date", utils::formatDate(utils::get_timestamp("")));
 			_response->setHeader("Server", _server.server_name);
-			_response->setStatusCode(status_code);
+			_response->setBody(generateHtmlDefaultPage(status_code));
 		}
 	}
 	else
@@ -857,7 +857,7 @@ std::string	RequestHandler::generateHtmlDirectoryListing( const std::string& pat
 	return html.str();
 }
 
-std::string	RequestHandler::generateHtmlErrorPage( int status_code )
+std::string	RequestHandler::generateHtmlDefaultPage( int status_code )
 {
 	std::stringstream	html;
 

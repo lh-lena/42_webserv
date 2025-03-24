@@ -61,7 +61,7 @@ void	Response::setErrorResponse(int code, std::string path)
 
 	if (path.empty())
 	{
-		body = RequestHandler::generateHtmlErrorPage(code);
+		body = RequestHandler::generateHtmlDefaultPage(code);
 		last_modified = utils::formatDate(utils::get_timestamp(path));
 		setHeader("Content-Type", utils::get_MIME_type(body));
 	}

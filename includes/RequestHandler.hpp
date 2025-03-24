@@ -37,7 +37,7 @@ public:
 	static std::string		canonicalizePath(const std::string& path);
 	static std::string		normalizePath(const std::string& path);
 	static std::string		decodeURI(const std::string& path);
-	static std::string		generateHtmlErrorPage( int status_code);
+	static std::string		generateHtmlDefaultPage( int status_code);
 	std::string				getCustomErrorPath(int status_code);
 
 	CGI	&	getCGI();
