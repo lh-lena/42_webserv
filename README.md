@@ -1,10 +1,37 @@
-## Webserv
+## Webserv - HTTP Server in C++98
 
 #### Collaboratively developed with [dzhoka](https://github.com/dzhoka) a fully functional HTTP web server in C++ following the HTTP/1.1 protocol
 
-Capable of handling concurrent client requests. 
-Implemented features such as request parsing, response generation, connection management, and load balancing. 
-Gained experience with networking concepts like socket programming, non-blocking I/O, and multi-threading, while ensuring high performance and scalability.
+## 🌟 Overview
+Webserv is a high-performance HTTP server built from scratch in C++98. This project provides deep insights into web server architecture, HTTP protocol implementation, and network programming. The server supports modern web features while maintaining compatibility with standard web browsers.
+
+### Key Highlights
+
+- **HTTP/1.1 Compliant**: Full implementation of HTTP/1.1 protocol </br>
+- **Non-blocking I/O**: Efficient handling of multiple simultaneous connections </br>
+- **CGI Support**: Execute dynamic scripts (PHP, Python, etc.) </br>
+- **Virtual Hosts**: Multiple websites on a single server </br>
+- **File Upload**: Handle POST requests with file uploads </br>
+- **Browser Compatible**: Works with modern web browsers </br>
+
+## ✨ Features
+### Core Functionality
+
+✅ HTTP Methods: GET, POST, DELETE </br>
+✅ Static File Serving: HTML, CSS, JS, images, and more </br>
+✅ Directory Listing: Configurable auto-indexing </br>
+✅ Error Pages: Custom error pages with proper status codes </br>
+✅ Virtual Hosts: Multiple server configurations </br>
+✅ Port Binding: Listen on multiple ports simultaneously </br>
+
+### Advanced Features
+
+✅ CGI Integration: Support for PHP, Python, and other CGI scripts </br>
+✅ File Uploads: Handle multipart/form-data uploads </br>
+✅ Redirections: HTTP redirects (301, 302, etc.) </br>
+✅ Request Body Limiting: Configurable client body size limits </br>
+✅ Non-blocking I/O: Using epoll() </br>
+✅ Chunked Transfer: Handle chunked request encoding </br>
 
 ## Configuration file
 
