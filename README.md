@@ -1,6 +1,8 @@
 ## Webserv - HTTP Server in C++98
+> "This is when you finally understand why a URL starts with HTTP"
 
-#### Collaboratively developed with [dzhoka](https://github.com/dzhoka) a fully functional HTTP web server in C++ following the HTTP/1.1 protocol
+A fully functional HTTP/1.1 server implementation written in C++98, capable of serving static websites, handling CGI scripts, processing file uploads, and supporting multiple virtual hosts.
+#### Collaboratively developed with [dzhoka](https://github.com/dzhoka)
 
 ## 🌟 Overview
 Webserv is a high-performance HTTP server built from scratch in C++98. This project provides deep insights into web server architecture, HTTP protocol implementation, and network programming. The server supports modern web features while maintaining compatibility with standard web browsers.
@@ -56,11 +58,36 @@ make fclean   # Remove object files and executable
 make re       # Recompile everything
 ```
 
-## Configuration file
+## 📖 Usage
+### Basic Usage
+```bash
+# Run with default configuration
+./webserv
 
-This configuration file defines the behavior of our `webserv` web server. It uses a structure similar to Nginx, allowing for flexible server and location configurations.
+# Run with custom configuration file
+./webserv config/serv.conf
 
+# Run with specific configuration
+./webserv /path/to/your/config.conf
 ```
+### Quick Start Example
+```bash
+# 1. Compile the server
+make
+
+# 2. Run with example configuration
+./webserv config/serv.conf
+
+# 3. Open your browser and visit:
+# http://localhost:8080
+```
+
+## ⚙️ Configuration
+### The server uses Nginx-inspired configuration syntax. Here's a comprehensive configuration example:
+
+#### Basic Configuration
+
+```nginx
 
 http {  # The main HTTP block, containing server configurations.
 
@@ -101,9 +128,43 @@ http {  # The main HTTP block, containing server configurations.
 }
 ```
 
-Understanding `webserv` context:
+#### Understanding `webserv` context:
 
-- **Global Context**: `http`,`worker_connections`
-- **HTTP Context**: Configuration related to handling HTTP requests :  `server`
-- **Server Context**: Configuration for a specific virtual server: `server_name`, `listen`, `root`,  `error_page` , `client_max_body_size` , `index`, `cgi_extension`, `upload_dir`, `allow_methods`
-- **Location Context**: Configuration for handling specific URL paths or locations within a server: `root`, `alias`, `error_page`, `allowed_methods`, `autoindex`, `return`, `client_max_body_size`, `index`, `autoindex`, `allowed_methods`, `upload_dir`
+| Directive             | Context           | Description                | Example                               |
+| :-------------------- | :---------------- | :------------------------- | :------------------------------------ |
+| `worker_connections`  | `global`          | Max simultaneous connections | `worker_connections 1024;`            |
+| `listen`              | `server`          | Bind address and port      | `listen 8080;`                        |
+| `server_name`         | `server`          | Virtual host names         | `server_name example.com;`            |
+| `root`                | `server`, `location` | Document root              | `root ./www;`                         |
+| `index`               | `server`, `location` | Default files              | `index index.html;`                   |
+| `error_page`          | `server`, `location` | Custom error pages         | `error_page 404 /404.html;`           |
+| `client_max_body_size` | `server`, `location` | Request body limit         | `client_max_body_size 10M;`           |
+| `allow_methods`       | `location`        | Allowed HTTP methods       | `allow_methods GET POST;`             |
+| `autoindex`           | `location`        | Directory listing          | `autoindex on;`                       |
+| `alias`               | `location`        | Path aliasing              | `alias ./assets/;`                    |
+| `return`              | `location`        | HTTP redirections          | `return 301 /new-path;`               |
+| `upload_dir`          | `location`        | Upload directory           | `upload_dir ./uploads;`               |
+| `cgi_extension`       | `server`          | CGI file extensions        | `cgi_extension .php .py;`             |
+
+## 🔍 Compliance & Standards
+### HTTP/1.1 Compliance
+✅ Request/Response format </br>
+✅ Status codes (1xx, 2xx, 3xx, 4xx, 5xx) </br>
+✅ Headers handling </br>
+✅ Persistent connections </br>
+✅ Chunked transfer encoding </br>
+✅ RFC 7230: HTTP/1.1 Message Syntax and Routing </br>
+✅ RFC 7231: HTTP/1.1 Semantics and Content </br>
+✅ RFC 7232: HTTP/1.1 Conditional Requests </br>
+
+### CGI Compliance
+✅ RFC 3875: Common Gateway Interface (CGI) Version 1.1 </br>
+✅ Environment variable handling </br>
+✅ Input/Output redirection </br>
+✅ Error handling </br>
+
+
+### Browser Compatibility
+✅ Chrome </br>
+✅ Firefox </br>
+✅ Safari </br>
