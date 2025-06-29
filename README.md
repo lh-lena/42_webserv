@@ -33,6 +33,11 @@ Webserv is a high-performance HTTP server built from scratch in C++98. This proj
 ✅ Non-blocking I/O: Using epoll() </br>
 ✅ Chunked Transfer: Handle chunked request encoding </br>
 
+### Bonus Features
+
+🎯 Session Management: Cookie-based sessions </br>
+🎯 Multiple CGI: Support for multiple CGI interpreters </br>
+
 ## Configuration file
 
 This configuration file defines the behavior of our `webserv` web server. It uses a structure similar to Nginx, allowing for flexible server and location configurations.
