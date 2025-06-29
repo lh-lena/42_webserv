@@ -38,12 +38,29 @@ Webserv is a high-performance HTTP server built from scratch in C++98. This proj
 🎯 Session Management: Cookie-based sessions </br>
 🎯 Multiple CGI: Support for multiple CGI interpreters </br>
 
+## 🚀 Installation
+### Clone the Repository
+```bash
+git clone https://github.com/lh-lena/42_webserv webserv
+cd webserv
+```
+### Compile the Project
+```bash
+make
+```
+### Available Make Targets
+```bash
+make all      # Compile the project
+make clean    # Remove object files
+make fclean   # Remove object files and executable
+make re       # Recompile everything
+```
+
 ## Configuration file
 
 This configuration file defines the behavior of our `webserv` web server. It uses a structure similar to Nginx, allowing for flexible server and location configurations.
 
 ```
-worker_connections xxx; #
 
 http {  # The main HTTP block, containing server configurations.
 
